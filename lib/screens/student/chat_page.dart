@@ -1,0 +1,841 @@
+import 'package:flutter/material.dart';
+
+class StudentChatPage extends StatefulWidget {
+  const StudentChatPage({super.key});
+
+  @override
+  State<StudentChatPage> createState() => _StudentChatPageState();
+}
+
+class _StudentChatPageState extends State<StudentChatPage>
+    with TickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  final TextEditingController _messageController = TextEditingController();
+
+  final List<Map<String, dynamic>> _conversations = [
+    {
+      'id': 'C001',
+      'name': 'Dr. Sarah Johnson',
+      'role': 'Counsellor',
+      'lastMessage': 'I understand your concerns. Let\'s schedule a session.',
+      'time': '2 hours ago',
+      'unread': 2,
+      'isOnline': true,
+      'avatar': 'SJ',
+    },
+    {
+      'id': 'C002',
+      'name': 'Campus Security',
+      'role': 'Security Team',
+      'lastMessage': 'Your report has been received and is being investigated.',
+      'time': '1 day ago',
+      'unread': 0,
+      'isOnline': true,
+      'avatar': 'CS',
+    },
+    {
+      'id': 'C003',
+      'name': 'Dr. Michael Chen',
+      'role': 'Student Counselor',
+      'lastMessage': 'Thank you for reaching out. How are you feeling today?',
+      'time': '3 days ago',
+      'unread': 1,
+      'isOnline': false,
+      'avatar': 'MC',
+    },
+    {
+      'id': 'C004',
+      'name': 'Support Team',
+      'role': 'Technical Support',
+      'lastMessage': 'Your issue has been resolved. Is there anything else?',
+      'time': '1 week ago',
+      'unread': 0,
+      'isOnline': false,
+      'avatar': 'ST',
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return FadeTransition(
+          opacity: _fadeAnimation,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark
+                    ? [color.withOpacity(0.05), Colors.transparent]
+                    : [Colors.grey.shade50, Colors.white],
+              ),
+            ),
+            child: Column(
+              children: [
+                _buildHeader(context, color),
+                Expanded(
+                  child: _conversations.isEmpty
+                      ? _buildEmptyState(context, color)
+                      : _buildConversationsList(context),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.chat, color: color, size: 24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Support Chat',
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.w700, color: color),
+                    ),
+                    Text(
+                      'Get help from counselors and support staff',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  context,
+                  'Active Chats',
+                  '${_conversations.where((c) => c['isOnline'] == true).length}',
+                  Icons.chat_bubble,
+                  Colors.blue,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildStatCard(
+                  context,
+                  'Unread',
+                  '${_conversations.fold(0, (sum, c) => sum + (c['unread'] as int))}',
+                  Icons.mark_email_unread,
+                  Colors.orange,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildStatCard(
+                  context,
+                  'Available',
+                  '24/7',
+                  Icons.support_agent,
+                  Colors.green,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context, Color color) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color.withOpacity(0.1),
+            ),
+            child: Icon(Icons.chat_bubble_outline, size: 64, color: color),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'No Conversations Yet',
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Start a conversation with our support team',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+          FilledButton.icon(
+            onPressed: () => _showStartChatDialog(context),
+            icon: const Icon(Icons.add),
+            label: const Text('Start New Chat'),
+            style: FilledButton.styleFrom(
+              backgroundColor: color,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConversationsList(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      itemCount: _conversations.length,
+      itemBuilder: (context, index) {
+        final conversation = _conversations[index];
+        return _buildConversationCard(context, conversation, index);
+      },
+    );
+  }
+
+  Widget _buildConversationCard(
+    BuildContext context,
+    Map<String, dynamic> conversation,
+    int index,
+  ) {
+    final unread = conversation['unread'] as int;
+    final isOnline = conversation['isOnline'] as bool;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: InkWell(
+          onTap: () => _openChat(context, conversation),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.1),
+                      child: Text(
+                        conversation['avatar'],
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    if (isOnline)
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              conversation['name'],
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          Text(
+                            conversation['time'],
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface.withOpacity(0.6),
+                                ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        conversation['role'],
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              conversation['lastMessage'],
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface.withOpacity(0.7),
+                                  ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (unread > 0) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                unread.toString(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _openChat(BuildContext context, Map<String, dynamic> conversation) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => _ChatDetailPage(conversation: conversation),
+      ),
+    );
+  }
+
+  void _showStartChatDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Start New Chat'),
+        content: const Text(
+          'Choose who you would like to chat with for support and guidance.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _startNewChat(context, 'Counsellor');
+            },
+            child: const Text('Start Chat'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _startNewChat(BuildContext context, String type) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Starting new chat with $type...'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+}
+
+class _ChatDetailPage extends StatefulWidget {
+  final Map<String, dynamic> conversation;
+
+  const _ChatDetailPage({required this.conversation});
+
+  @override
+  State<_ChatDetailPage> createState() => _ChatDetailPageState();
+}
+
+class _ChatDetailPageState extends State<_ChatDetailPage> {
+  final TextEditingController _messageController = TextEditingController();
+  final List<Map<String, dynamic>> _messages = [
+    {
+      'text': 'Hello! How can I help you today?',
+      'isMe': false,
+      'time': '10:30 AM',
+    },
+    {
+      'text': 'I\'m feeling stressed about my studies and need some guidance.',
+      'isMe': true,
+      'time': '10:32 AM',
+    },
+    {
+      'text':
+          'I understand. Academic stress is very common. Let\'s talk about what specific areas are causing you concern.',
+      'isMe': false,
+      'time': '10:33 AM',
+    },
+  ];
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.primary.withOpacity(0.1),
+              child: Text(
+                widget.conversation['avatar'],
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.conversation['name'],
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    widget.conversation['role'],
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            onPressed: () => _showChatOptions(context),
+            icon: const Icon(Icons.more_vert),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _messages.length,
+              itemBuilder: (context, index) {
+                final message = _messages[index];
+                return _buildMessageBubble(context, message);
+              },
+            ),
+          ),
+          _buildMessageInput(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageBubble(
+    BuildContext context,
+    Map<String, dynamic> message,
+  ) {
+    final isMe = message['isMe'] as bool;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
+        children: [
+          if (!isMe) ...[
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.primary.withOpacity(0.1),
+              child: Text(
+                widget.conversation['avatar'],
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isMe
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(20).copyWith(
+                  bottomLeft: isMe
+                      ? const Radius.circular(20)
+                      : const Radius.circular(4),
+                  bottomRight: isMe
+                      ? const Radius.circular(4)
+                      : const Radius.circular(20),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    message['text'],
+                    style: TextStyle(
+                      color: isMe
+                          ? Colors.white
+                          : Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    message['time'],
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isMe
+                          ? Colors.white.withOpacity(0.7)
+                          : Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (isMe) ...[
+            const SizedBox(width: 8),
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.primary.withOpacity(0.1),
+              child: const Icon(Icons.person, size: 16, color: Colors.white),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageInput(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _messageController,
+              decoration: const InputDecoration(
+                hintText: 'Type a message...',
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+              maxLines: null,
+            ),
+          ),
+          const SizedBox(width: 12),
+          FloatingActionButton.small(
+            onPressed: _sendMessage,
+            child: const Icon(Icons.send),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _sendMessage() {
+    if (_messageController.text.trim().isNotEmpty) {
+      setState(() {
+        _messages.add({
+          'text': _messageController.text.trim(),
+          'isMe': true,
+          'time': _formatTime(DateTime.now()),
+        });
+      });
+      _messageController.clear();
+    }
+  }
+
+  String _formatTime(DateTime time) {
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  void _showChatOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.info),
+              title: const Text('Chat Info'),
+              onTap: () {
+                Navigator.pop(context);
+                _showChatInfo(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.block),
+              title: const Text('Block User'),
+              onTap: () {
+                Navigator.pop(context);
+                _blockUser(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.report),
+              title: const Text('Report'),
+              onTap: () {
+                Navigator.pop(context);
+                _reportUser(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showChatInfo(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Chat Information'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Name: ${widget.conversation['name']}'),
+            Text('Role: ${widget.conversation['role']}'),
+            Text(
+              'Status: ${widget.conversation['isOnline'] ? 'Online' : 'Offline'}',
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _blockUser(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Block User'),
+        content: const Text('Are you sure you want to block this user?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('User blocked')));
+            },
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Block'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _reportUser(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Report User'),
+        content: const Text('This will report the user to administrators.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('User reported')));
+            },
+            child: const Text('Report'),
+          ),
+        ],
+      ),
+    );
+  }
+}
