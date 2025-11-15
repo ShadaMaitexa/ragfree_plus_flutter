@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../services/app_state.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -136,13 +138,18 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    Text(
-                      'Dr. Sarah Wilson',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
+                    Consumer<AppState>(
+                      builder: (context, appState, _) {
+                        final userName = appState.currentUser?.name ?? 'Admin';
+                        return Text(
+                          userName,
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        );
+                      },
                     ),
                   ],
                 ),

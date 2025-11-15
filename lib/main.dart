@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'services/app_theme.dart';
 import 'services/app_state.dart';
-import 'screens/role_selection_screen.dart';
+import 'services/auth_service.dart';
+import 'screens/login_screen.dart';
+import 'screens/registration_screen.dart';
+import 'screens/approval_pending_screen.dart';
 import 'dart:async';
 import 'screens/student/home_page.dart';
 import 'screens/student/complaints_page.dart';
@@ -40,7 +45,10 @@ import 'screens/admin/reports_page.dart' as admin_pages;
 import 'screens/admin/feedback_page.dart' as admin_pages;
 import 'screens/admin/analytics_page.dart' as admin_pages;
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(
     ChangeNotifierProvider(
       create: (_) => AppState(),
@@ -68,7 +76,13 @@ class RagFreePlusApp extends StatelessWidget {
             page = const SplashScreen();
             break;
           case Routes.login:
-            page = const RoleSelectionScreen();
+            page = const LoginScreen();
+            break;
+          case Routes.register:
+            page = const RegistrationScreen();
+            break;
+          case Routes.approvalPending:
+            page = const ApprovalPendingScreen();
             break;
           case Routes.student:
             page = const StudentDashboard();
@@ -100,6 +114,8 @@ class RagFreePlusApp extends StatelessWidget {
 class Routes {
   static const String splash = '/splash';
   static const String login = '/login';
+  static const String register = '/register';
+  static const String approvalPending = '/approval-pending';
   static const String student = '/student';
   static const String parent = '/parent';
   static const String admin = '/admin';
@@ -146,10 +162,60 @@ class _SplashScreenState extends State<SplashScreen>
       _textController.forward();
     });
 
-    Timer(const Duration(seconds: 3), () {
-      if (!mounted) return;
+    _checkAuthAndNavigate();
+  }
+
+  Future<void> _checkAuthAndNavigate() async {
+    await Future.delayed(const Duration(seconds: 3));
+    if (!mounted) return;
+
+    final authService = AuthService();
+    final user = authService.currentUser;
+
+    if (user != null) {
+      // User is logged in, check their status
+      final userData = await authService.getUserData(user.uid);
+      if (userData != null) {
+        final appState = Provider.of<AppState>(context, listen: false);
+        appState.setUser(userData);
+
+        // Check if approval is needed
+        if ((userData.role == 'police' ||
+                userData.role == 'counsellor' ||
+                userData.role == 'warden') &&
+            !userData.isApproved) {
+          Navigator.of(context).pushReplacementNamed(Routes.approvalPending);
+        } else {
+          // Navigate to appropriate dashboard
+          switch (userData.role) {
+            case 'student':
+              Navigator.of(context).pushReplacementNamed(Routes.student);
+              break;
+            case 'parent':
+              Navigator.of(context).pushReplacementNamed(Routes.parent);
+              break;
+            case 'admin':
+              Navigator.of(context).pushReplacementNamed(Routes.admin);
+              break;
+            case 'counsellor':
+              Navigator.of(context).pushReplacementNamed(Routes.counsellor);
+              break;
+            case 'warden':
+              Navigator.of(context).pushReplacementNamed(Routes.warden);
+              break;
+            case 'police':
+              Navigator.of(context).pushReplacementNamed(Routes.police);
+              break;
+            default:
+              Navigator.of(context).pushReplacementNamed(Routes.login);
+          }
+        }
+      } else {
+        Navigator.of(context).pushReplacementNamed(Routes.login);
+      }
+    } else {
       Navigator.of(context).pushReplacementNamed(Routes.login);
-    });
+    }
   }
 
   @override
@@ -250,15 +316,6 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const RoleSelectionScreen();
-  }
-}
-
 PageRoute _buildFadeRoute(Widget page, RouteSettings settings) {
   return PageRouteBuilder(
     settings: settings,
@@ -326,8 +383,14 @@ class _StudentDashboardState extends State<StudentDashboard> {
               icon: Icon(Icons.assignment),
               label: 'Complaints',
             ),
-            BottomNavigationBarItem(icon: Icon(Icons.chat_bubble), label: 'Chat'),
-            BottomNavigationBarItem(icon: Icon(Icons.school), label: 'Awareness'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.chat_bubble),
+              label: 'Chat',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.school),
+              label: 'Awareness',
+            ),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
         ),
@@ -393,8 +456,14 @@ class _ParentDashboardState extends State<ParentDashboard> {
               icon: Icon(Icons.assignment),
               label: 'ChildComplaints',
             ),
-            BottomNavigationBarItem(icon: Icon(Icons.chat_bubble), label: 'Chat'),
-            BottomNavigationBarItem(icon: Icon(Icons.school), label: 'Awareness'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.chat_bubble),
+              label: 'Chat',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.school),
+              label: 'Awareness',
+            ),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
         ),

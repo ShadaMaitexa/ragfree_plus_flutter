@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../services/app_state.dart';
 
 class CounsellorDashboardPage extends StatefulWidget {
   const CounsellorDashboardPage({super.key});
@@ -137,13 +139,18 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage>
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    Text(
-                      'Dr. Sarah Wilson',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
+                    Consumer<AppState>(
+                      builder: (context, appState, _) {
+                        final userName = appState.currentUser?.name ?? 'Counsellor';
+                        return Text(
+                          userName,
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        );
+                      },
                     ),
                   ],
                 ),

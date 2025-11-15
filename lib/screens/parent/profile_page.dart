@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../services/app_state.dart';
+import '../../services/auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ParentProfilePage extends StatefulWidget {
   const ParentProfilePage({super.key});
@@ -13,18 +17,13 @@ class _ParentProfilePageState extends State<ParentProfilePage>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
-  final TextEditingController _nameController = TextEditingController(
-    text: 'Mrs. Sarah Johnson',
-  );
-  final TextEditingController _emailController = TextEditingController(
-    text: 'sarah.johnson@email.com',
-  );
-  final TextEditingController _phoneController = TextEditingController(
-    text: '+1 (555) 123-4567',
-  );
-  final TextEditingController _addressController = TextEditingController(
-    text: '123 Main St, City, State 12345',
-  );
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+
+  final AuthService _authService = AuthService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   bool _isEditing = false;
   String _selectedRelationship = 'Mother';
@@ -60,6 +59,30 @@ class _ParentProfilePageState extends State<ParentProfilePage>
         );
 
     _animationController.forward();
+    _loadUserData();
+  }
+
+  void _loadUserData() {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+    
+    if (user != null) {
+      _nameController.text = user.name;
+      _emailController.text = user.email;
+      _phoneController.text = user.phone ?? '';
+      
+      // Load additional profile data from Firestore
+      _firestore.collection('users').doc(user.uid).get().then((doc) {
+        if (doc.exists && mounted) {
+          final data = doc.data()!;
+          setState(() {
+            _addressController.text = data['address'] ?? '';
+            _selectedRelationship = data['relationship'] ?? 'Mother';
+            _selectedEmergencyContact = data['emergencyContact'] ?? 'Spouse';
+          });
+        }
+      });
+    }
   }
 
   @override
@@ -506,6 +529,19 @@ class _ParentProfilePageState extends State<ParentProfilePage>
         const SizedBox(height: 12),
         SizedBox(
           width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: _logout,
+            icon: const Icon(Icons.logout),
+            label: const Text('Logout'),
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.red,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: () => _deleteAccount(context),
             icon: const Icon(Icons.delete_forever, color: Colors.red),
@@ -640,16 +676,97 @@ class _ParentProfilePageState extends State<ParentProfilePage>
     });
   }
 
-  void _saveProfile() {
-    setState(() {
-      _isEditing = false;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Profile updated successfully!'),
-        backgroundColor: Colors.green,
+  Future<void> _saveProfile() async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+    
+    if (user == null) return;
+
+    try {
+      await _firestore.collection('users').doc(user.uid).update({
+        'name': _nameController.text.trim(),
+        'phone': _phoneController.text.trim().isEmpty 
+            ? null 
+            : _phoneController.text.trim(),
+        'address': _addressController.text.trim(),
+        'relationship': _selectedRelationship,
+        'emergencyContact': _selectedEmergencyContact,
+      });
+
+      final updatedUser = user.copyWith(
+        name: _nameController.text.trim(),
+        phone: _phoneController.text.trim().isEmpty 
+            ? null 
+            : _phoneController.text.trim(),
+      );
+      appState.setUser(updatedUser);
+
+      if (mounted) {
+        setState(() {
+          _isEditing = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error updating profile: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _logout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Logout'),
+          ),
+        ],
       ),
     );
+
+    if (confirmed == true) {
+      try {
+        await _authService.signOut();
+        final appState = Provider.of<AppState>(context, listen: false);
+        appState.clearUser();
+        
+        if (mounted) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/login',
+            (route) => false,
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error logging out: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 
   void _changePassword(BuildContext context) {

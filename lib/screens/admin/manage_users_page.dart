@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_service.dart';
+import '../../models/user_model.dart';
 
 class AdminManageUsersPage extends StatefulWidget {
   const AdminManageUsersPage({super.key});
@@ -68,7 +70,7 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
@@ -112,6 +114,7 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
                   child: TabBarView(
                     controller: _tabController,
                     children: [
+                      _buildPendingApprovalsTab(context),
                       _buildStudentsTab(context),
                       _buildParentsTab(context),
                       _buildCounsellorsTab(context),
@@ -264,6 +267,7 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
         labelColor: Colors.white,
         unselectedLabelColor: Theme.of(context).colorScheme.onSurface,
         tabs: const [
+          Tab(text: 'Pending'),
           Tab(text: 'Students'),
           Tab(text: 'Parents'),
           Tab(text: 'Counsellors'),
@@ -271,6 +275,223 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
         ],
       ),
     );
+  }
+
+  Widget _buildPendingApprovalsTab(BuildContext context) {
+    final authService = AuthService();
+    final color = Theme.of(context).colorScheme.primary;
+
+    return StreamBuilder<List<UserModel>>(
+      stream: authService.getPendingApprovals(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+
+        final pendingUsers = snapshot.data ?? [];
+
+        if (pendingUsers.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.check_circle_outline, size: 64, color: Colors.green),
+                const SizedBox(height: 16),
+                Text(
+                  'No Pending Approvals',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'All users have been approved',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(20),
+          itemCount: pendingUsers.length,
+          itemBuilder: (context, index) {
+            final user = pendingUsers[index];
+            return Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              elevation: 2,
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: color.withOpacity(0.1),
+                  child: Icon(_getRoleIcon(user.role), color: color),
+                ),
+                title: Text(
+                  user.name,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(user.email),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _getRoleColor(user.role).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            user.role.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: _getRoleColor(user.role),
+                            ),
+                          ),
+                        ),
+                        if (user.department != null) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            user.department!,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.check_circle, color: Colors.green),
+                      onPressed: () => _approveUser(context, user, authService),
+                      tooltip: 'Approve',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.cancel, color: Colors.red),
+                      onPressed: () => _rejectUser(context, user, authService),
+                      tooltip: 'Reject',
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  IconData _getRoleIcon(String role) {
+    switch (role) {
+      case 'police':
+        return Icons.local_police;
+      case 'counsellor':
+        return Icons.psychology;
+      case 'warden':
+        return Icons.security;
+      default:
+        return Icons.person;
+    }
+  }
+
+  Color _getRoleColor(String role) {
+    switch (role) {
+      case 'police':
+        return Colors.blue;
+      case 'counsellor':
+        return Colors.purple;
+      case 'warden':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Future<void> _approveUser(
+    BuildContext context,
+    UserModel user,
+    AuthService authService,
+  ) async {
+    try {
+      await authService.approveUser(user.uid);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${user.name} has been approved'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _rejectUser(
+    BuildContext context,
+    UserModel user,
+    AuthService authService,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reject User'),
+        content: Text(
+          'Are you sure you want to reject ${user.name}? This will delete their account.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Reject'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await authService.rejectUser(user.uid);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${user.name} has been rejected'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 
   Widget _buildStudentsTab(BuildContext context) {

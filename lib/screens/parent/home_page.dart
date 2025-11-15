@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../services/app_state.dart';
 
 class ParentHomePage extends StatefulWidget {
   const ParentHomePage({super.key});
@@ -136,13 +138,18 @@ class _ParentHomePageState extends State<ParentHomePage>
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    Text(
-                      'Mrs. Sarah Johnson',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
+                    Consumer<AppState>(
+                      builder: (context, appState, _) {
+                        final userName = appState.currentUser?.name ?? 'User';
+                        return Text(
+                          userName,
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        );
+                      },
                     ),
                   ],
                 ),
