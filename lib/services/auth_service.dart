@@ -135,15 +135,24 @@ class AuthService {
 
       return adminModel;
     } catch (e) {
-      // If admin doesn't exist, create the account first
-      if (e.toString().contains('user-not-found')) {
+      // If admin doesn't exist or credentials are invalid, create the account first
+      final errorString = e.toString().toLowerCase();
+      if (errorString.contains('user-not-found') || 
+          errorString.contains('invalid-credential') ||
+          errorString.contains('wrong-password')) {
         try {
+          // First, try to create the admin account
           UserCredential userCredential =
               await _auth.createUserWithEmailAndPassword(
             email: adminEmail,
             password: adminPassword,
           );
 
+          if (userCredential.user == null) {
+            throw Exception('Failed to create admin account');
+          }
+
+          // Create admin user in Firestore
           UserModel adminModel = UserModel(
             uid: userCredential.user!.uid,
             email: adminEmail,
@@ -160,6 +169,45 @@ class AuthService {
 
           return adminModel;
         } catch (createError) {
+          // If account already exists, try to sign in again
+          if (createError.toString().toLowerCase().contains('already-in-use')) {
+            try {
+              UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+                email: adminEmail,
+                password: adminPassword,
+              );
+
+              if (userCredential.user == null) return null;
+
+              // Get or create admin user in Firestore
+              DocumentSnapshot doc = await _firestore
+                  .collection('users')
+                  .doc(userCredential.user!.uid)
+                  .get();
+
+              UserModel adminModel;
+              if (!doc.exists) {
+                adminModel = UserModel(
+                  uid: userCredential.user!.uid,
+                  email: adminEmail,
+                  name: 'Administrator',
+                  role: 'admin',
+                  isApproved: true,
+                  createdAt: DateTime.now(),
+                );
+                await _firestore
+                    .collection('users')
+                    .doc(userCredential.user!.uid)
+                    .set(adminModel.toMap());
+              } else {
+                adminModel = UserModel.fromMap(doc.data() as Map<String, dynamic>);
+              }
+
+              return adminModel;
+            } catch (signInError) {
+              throw Exception('Admin login failed: ${signInError.toString()}');
+            }
+          }
           throw Exception('Failed to create admin account: ${createError.toString()}');
         }
       }
