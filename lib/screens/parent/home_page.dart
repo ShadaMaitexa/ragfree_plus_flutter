@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
 import '../../services/parent_student_service.dart';
+import '../../services/notification_service.dart';
+import '../../services/activity_service.dart';
+import '../../services/complaint_service.dart';
 import '../../models/parent_student_link_model.dart';
+import '../../models/notification_model.dart';
+import '../../models/activity_model.dart';
 import '../../utils/responsive.dart';
 
 class ParentHomePage extends StatefulWidget {
@@ -18,6 +23,9 @@ class _ParentHomePageState extends State<ParentHomePage>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   final ParentStudentService _parentStudentService = ParentStudentService();
+  final NotificationService _notificationService = NotificationService();
+  final ActivityService _activityService = ActivityService();
+  final ComplaintService _complaintService = ComplaintService();
 
   @override
   void initState() {
@@ -274,6 +282,7 @@ class _ParentHomePageState extends State<ParentHomePage>
                       link.studentEmail,
                       link.relationship,
                       _getColorForIndex(index),
+                      link.studentId,
                     );
                   },
                 );
@@ -408,136 +417,165 @@ class _ParentHomePageState extends State<ParentHomePage>
     String email,
     String relationship,
     Color color,
+    String? studentId,
   ) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        return Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
+        return StreamBuilder<List<dynamic>>(
+          stream: studentId != null
+              ? _complaintService
+                    .getParentChildComplaints([studentId])
+                    .map(
+                      (complaints) => [
+                        complaints.length,
+                        complaints.where((c) => c.status == 'Resolved').length,
+                        complaints.where((c) => c.status != 'Resolved').length,
+                      ],
+                    )
+              : Stream.value([0, 0, 0]),
+          builder: (context, snapshot) {
+            final total = snapshot.data?[0] ?? 0;
+            final resolved = snapshot.data?[1] ?? 0;
+            final active = snapshot.data?[2] ?? 0;
+
+            return Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-            ),
-            child: Padding(
-              padding: EdgeInsets.all(Responsive.isDesktop(context) ? 20 : 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: Responsive.isDesktop(context) ? 24 : 20,
-                        backgroundColor: color.withOpacity(0.2),
-                        child: Text(
-                          name
-                              .split(' ')
-                              .map((n) => n.isNotEmpty ? n[0] : '')
-                              .join()
-                              .toUpperCase(),
-                          style: TextStyle(
-                            color: color,
-                            fontWeight: FontWeight.w600,
-                            fontSize: Responsive.isDesktop(context) ? 16 : 14,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: Responsive.isDesktop(context) ? 16 : 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              name,
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Text(
-                              '$relationship • $email',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface.withOpacity(0.7),
-                                  ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.isDesktop(context) ? 10 : 8,
-                          vertical: Responsive.isDesktop(context) ? 6 : 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text(
-                          'Safe',
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ],
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
                   ),
-                  SizedBox(height: Responsive.isDesktop(context) ? 16 : 12),
-                  LayoutBuilder(
-                    builder: (context, cardConstraints) {
-                      return Row(
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(
+                    Responsive.isDesktop(context) ? 20 : 16,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
                         children: [
-                          Flexible(
-                            child: _buildStatusItem(
-                              context,
-                              'Reports',
-                              '2',
-                              Colors.blue,
+                          CircleAvatar(
+                            radius: Responsive.isDesktop(context) ? 24 : 20,
+                            backgroundColor: color.withOpacity(0.2),
+                            child: Text(
+                              name
+                                  .split(' ')
+                                  .map((n) => n.isNotEmpty ? n[0] : '')
+                                  .join()
+                                  .toUpperCase(),
+                              style: TextStyle(
+                                color: color,
+                                fontWeight: FontWeight.w600,
+                                fontSize: Responsive.isDesktop(context)
+                                    ? 16
+                                    : 14,
+                              ),
                             ),
                           ),
                           SizedBox(
-                            width: Responsive.isTablet(context) ? 16 : 12,
+                            width: Responsive.isDesktop(context) ? 16 : 12,
                           ),
-                          Flexible(
-                            child: _buildStatusItem(
-                              context,
-                              'Resolved',
-                              '1',
-                              Colors.green,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  '$relationship • $email',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withOpacity(0.7),
+                                      ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ),
                           ),
-                          SizedBox(
-                            width: Responsive.isTablet(context) ? 16 : 12,
-                          ),
-                          Flexible(
-                            child: _buildStatusItem(
-                              context,
-                              'Active',
-                              '1',
-                              Colors.orange,
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: Responsive.isDesktop(context)
+                                  ? 10
+                                  : 8,
+                              vertical: Responsive.isDesktop(context) ? 6 : 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Text(
+                              'Safe',
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                         ],
-                      );
-                    },
+                      ),
+                      SizedBox(height: Responsive.isDesktop(context) ? 16 : 12),
+                      LayoutBuilder(
+                        builder: (context, cardConstraints) {
+                          return Row(
+                            children: [
+                              Flexible(
+                                child: _buildStatusItem(
+                                  context,
+                                  'Reports',
+                                  '$total',
+                                  Colors.blue,
+                                ),
+                              ),
+                              SizedBox(
+                                width: Responsive.isTablet(context) ? 16 : 12,
+                              ),
+                              Flexible(
+                                child: _buildStatusItem(
+                                  context,
+                                  'Resolved',
+                                  '$resolved',
+                                  Colors.green,
+                                ),
+                              ),
+                              SizedBox(
+                                width: Responsive.isTablet(context) ? 16 : 12,
+                              ),
+                              Flexible(
+                                child: _buildStatusItem(
+                                  context,
+                                  'Active',
+                                  '$active',
+                                  Colors.orange,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -738,30 +776,12 @@ class _ParentHomePageState extends State<ParentHomePage>
   }
 
   Widget _buildNotifications(BuildContext context) {
-    final notifications = [
-      {
-        'title': 'Emma\'s Report Resolved',
-        'message': 'The harassment complaint filed by Emma has been resolved.',
-        'time': '2 hours ago',
-        'type': 'success',
-        'icon': Icons.check_circle,
-      },
-      {
-        'title': 'Alex Safety Check',
-        'message': 'Alex is safe and accounted for on campus.',
-        'time': '1 day ago',
-        'type': 'info',
-        'icon': Icons.verified_user,
-      },
-      {
-        'title': 'New Safety Alert',
-        'message':
-            'Campus security has issued a safety alert for the library area.',
-        'time': '2 days ago',
-        'type': 'warning',
-        'icon': Icons.warning,
-      },
-    ];
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+
+    if (user == null) {
+      return const SizedBox.shrink();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -773,16 +793,76 @@ class _ParentHomePageState extends State<ParentHomePage>
           ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 16),
-        Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            children: notifications.map((notification) {
-              return _buildNotificationItem(context, notification);
-            }).toList(),
-          ),
+        StreamBuilder<List<NotificationModel>>(
+          stream: _notificationService.getUserNotifications(user.uid),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              );
+            }
+            if (snapshot.hasError) {
+              return Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Center(child: Text('Error: ${snapshot.error}')),
+                ),
+              );
+            }
+            final notifications = snapshot.data ?? [];
+            if (notifications.isEmpty) {
+              return Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.notifications_none,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No Notifications',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'You\'ll see notifications here when there are updates',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withOpacity(0.7),
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
+            return Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: notifications.map((notification) {
+                  return _buildNotificationItemFromModel(context, notification);
+                }).toList(),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -793,18 +873,23 @@ class _ParentHomePageState extends State<ParentHomePage>
     Map<String, dynamic> notification,
   ) {
     Color color;
+    IconData icon;
     switch (notification['type']) {
       case 'success':
         color = Colors.green;
+        icon = Icons.check_circle;
         break;
       case 'warning':
         color = Colors.orange;
+        icon = Icons.warning;
         break;
       case 'info':
         color = Colors.blue;
+        icon = Icons.info;
         break;
       default:
         color = Colors.grey;
+        icon = Icons.notifications;
     }
 
     return ListTile(
@@ -814,7 +899,7 @@ class _ParentHomePageState extends State<ParentHomePage>
           shape: BoxShape.circle,
           color: color.withOpacity(0.1),
         ),
-        child: Icon(notification['icon'], color: color, size: 20),
+        child: Icon(icon, color: color, size: 20),
       ),
       title: Text(
         notification['title'],
@@ -832,7 +917,86 @@ class _ParentHomePageState extends State<ParentHomePage>
     );
   }
 
+  Widget _buildNotificationItemFromModel(
+    BuildContext context,
+    NotificationModel notification,
+  ) {
+    Color color;
+    IconData icon;
+    switch (notification.type) {
+      case 'success':
+        color = Colors.green;
+        icon = Icons.check_circle;
+        break;
+      case 'warning':
+        color = Colors.orange;
+        icon = Icons.warning;
+        break;
+      case 'error':
+        color = Colors.red;
+        icon = Icons.error;
+        break;
+      case 'info':
+      default:
+        color = Colors.blue;
+        icon = Icons.info;
+    }
+
+    final timeAgo = _getTimeAgo(notification.createdAt);
+
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color.withOpacity(0.1),
+        ),
+        child: Icon(icon, color: color, size: 20),
+      ),
+      title: Text(
+        notification.title,
+        style: Theme.of(
+          context,
+        ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(notification.message),
+      trailing: Text(
+        timeAgo,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+        ),
+      ),
+      onTap: () {
+        if (!notification.isRead) {
+          _notificationService.markAsRead(notification.id);
+        }
+      },
+    );
+  }
+
+  String _getTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays} day${difference.inDays > 1 ? 's' : ''} ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} hour${difference.inHours > 1 ? 's' : ''} ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} minute${difference.inMinutes > 1 ? 's' : ''} ago';
+    } else {
+      return 'Just now';
+    }
+  }
+
   Widget _buildRecentActivity(BuildContext context) {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+
+    if (user == null) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -843,41 +1007,80 @@ class _ParentHomePageState extends State<ParentHomePage>
           ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 16),
-        Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            children: [
-              _buildActivityItem(
-                context,
-                Icons.assignment,
-                'Emma filed a new complaint',
-                'Harassment incident reported in library',
-                Colors.blue,
-                '3 hours ago',
+        StreamBuilder<List<ActivityModel>>(
+          stream: _activityService.getUserActivities(user.uid, limit: 5),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              );
+            }
+            if (snapshot.hasError) {
+              return Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Center(child: Text('Error: ${snapshot.error}')),
+                ),
+              );
+            }
+            final activities = snapshot.data ?? [];
+            if (activities.isEmpty) {
+              return Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(Icons.history, size: 48, color: Colors.grey),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No Recent Activity',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Your recent activities will appear here',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withOpacity(0.7),
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
+            return Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              const Divider(height: 1),
-              _buildActivityItem(
-                context,
-                Icons.chat,
-                'Chat with counselor',
-                'Dr. Smith responded to your message',
-                Colors.green,
-                '1 day ago',
+              child: Column(
+                children: activities.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final activity = entry.value;
+                  return Column(
+                    children: [
+                      _buildActivityItemFromModel(context, activity),
+                      if (index < activities.length - 1)
+                        const Divider(height: 1),
+                    ],
+                  );
+                }).toList(),
               ),
-              const Divider(height: 1),
-              _buildActivityItem(
-                context,
-                Icons.school,
-                'Safety awareness',
-                'New safety guidelines published',
-                Colors.orange,
-                '2 days ago',
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ],
     );
@@ -909,6 +1112,57 @@ class _ParentHomePageState extends State<ParentHomePage>
       subtitle: Text(subtitle),
       trailing: Text(
         time,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActivityItemFromModel(
+    BuildContext context,
+    ActivityModel activity,
+  ) {
+    Color color;
+    IconData icon;
+    switch (activity.type) {
+      case 'complaint':
+        color = Colors.blue;
+        icon = Icons.assignment;
+        break;
+      case 'chat':
+        color = Colors.green;
+        icon = Icons.chat;
+        break;
+      case 'system':
+        color = Colors.orange;
+        icon = Icons.school;
+        break;
+      default:
+        color = Colors.grey;
+        icon = Icons.history;
+    }
+
+    final timeAgo = _getTimeAgo(activity.timestamp);
+
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color.withOpacity(0.1),
+        ),
+        child: Icon(icon, color: color, size: 20),
+      ),
+      title: Text(
+        activity.title,
+        style: Theme.of(
+          context,
+        ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(activity.description),
+      trailing: Text(
+        timeAgo,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
           color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
         ),
