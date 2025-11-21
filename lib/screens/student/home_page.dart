@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
 import '../../services/sos_service.dart';
+import '../../utils/responsive.dart';
 
 class StudentHomePage extends StatefulWidget {
   const StudentHomePage({super.key});
@@ -216,20 +217,18 @@ class _StudentHomePageState extends State<StudentHomePage>
         const SizedBox(height: 16),
         LayoutBuilder(
           builder: (context, constraints) {
-            // Responsive grid based on screen width
-            int crossAxisCount = 2;
-            double childAspectRatio = 1.5;
-
-            if (constraints.maxWidth > 600) {
-              crossAxisCount = 4;
-              childAspectRatio = 1.2;
-            } else if (constraints.maxWidth > 400) {
-              crossAxisCount = 2;
-              childAspectRatio = 1.3;
-            } else {
-              crossAxisCount = 2;
-              childAspectRatio = 1.4;
-            }
+            final crossAxisCount = Responsive.getGridCrossAxisCount(
+              context,
+              mobile: 2,
+              tablet: 3,
+              desktop: 4,
+            );
+            final childAspectRatio = Responsive.getGridAspectRatio(
+              context,
+              mobile: 1.4,
+              tablet: 1.3,
+              desktop: 1.2,
+            );
 
             return GridView.builder(
               shrinkWrap: true,
@@ -372,20 +371,18 @@ class _StudentHomePageState extends State<StudentHomePage>
         const SizedBox(height: 16),
         LayoutBuilder(
           builder: (context, constraints) {
-            // Responsive grid based on screen width
-            int crossAxisCount = 2;
-            double childAspectRatio = 1.2;
-
-            if (constraints.maxWidth > 600) {
-              crossAxisCount = 4;
-              childAspectRatio = 1.0;
-            } else if (constraints.maxWidth > 400) {
-              crossAxisCount = 2;
-              childAspectRatio = 1.1;
-            } else {
-              crossAxisCount = 2;
-              childAspectRatio = 1.2;
-            }
+            final crossAxisCount = Responsive.getGridCrossAxisCount(
+              context,
+              mobile: 2,
+              tablet: 3,
+              desktop: 4,
+            );
+            final childAspectRatio = Responsive.getGridAspectRatio(
+              context,
+              mobile: 1.2,
+              tablet: 1.1,
+              desktop: 1.0,
+            );
 
             return GridView.builder(
               shrinkWrap: true,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/complaint_service.dart';
 import '../../models/complaint_model.dart';
 import '../../services/auth_service.dart';
+import '../../utils/responsive.dart';
 import 'package:intl/intl.dart';
 
 class AdminComplaintsPage extends StatefulWidget {
@@ -220,7 +221,7 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
           builder: (context, constraints) {
             return ListView.builder(
               padding: EdgeInsets.symmetric(
-                horizontal: constraints.maxWidth > 600 ? 40 : 20,
+                horizontal: Responsive.getHorizontalPadding(context),
               ),
               itemCount: complaints.length,
               itemBuilder: (context, index) {

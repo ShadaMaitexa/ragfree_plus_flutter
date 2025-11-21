@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
 import '../../services/parent_student_service.dart';
 import '../../models/parent_student_link_model.dart';
+import '../../utils/responsive.dart';
 
 class ParentHomePage extends StatefulWidget {
   const ParentHomePage({super.key});
@@ -69,22 +70,33 @@ class _ParentHomePageState extends State<ParentHomePage>
                       : [Colors.grey.shade50, Colors.white],
                 ),
               ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildWelcomeCard(context, color),
-                    const SizedBox(height: 24),
-                    _buildChildSafetySummary(context, color),
-                    const SizedBox(height: 24),
-                    _buildQuickActions(context, color),
-                    const SizedBox(height: 24),
-                    _buildNotifications(context),
-                    const SizedBox(height: 24),
-                    _buildRecentActivity(context),
-                  ],
-                ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    padding: Responsive.getPadding(context),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: Responsive.isDesktop(context)
+                            ? 1200
+                            : double.infinity,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildWelcomeCard(context, color),
+                          const SizedBox(height: 24),
+                          _buildChildSafetySummary(context, color),
+                          const SizedBox(height: 24),
+                          _buildQuickActions(context, color),
+                          const SizedBox(height: 24),
+                          _buildNotifications(context),
+                          const SizedBox(height: 24),
+                          _buildRecentActivity(context),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -238,7 +250,12 @@ class _ParentHomePageState extends State<ParentHomePage>
             }
             return LayoutBuilder(
               builder: (context, constraints) {
-                final crossAxisCount = constraints.maxWidth > 600 ? 2 : 1;
+                final crossAxisCount = Responsive.getGridCrossAxisCount(
+                  context,
+                  mobile: 1,
+                  tablet: 2,
+                  desktop: 2,
+                );
                 return GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -409,7 +426,7 @@ class _ParentHomePageState extends State<ParentHomePage>
               ),
             ),
             child: Padding(
-              padding: EdgeInsets.all(constraints.maxWidth > 600 ? 20 : 16),
+              padding: EdgeInsets.all(Responsive.isDesktop(context) ? 20 : 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -417,7 +434,7 @@ class _ParentHomePageState extends State<ParentHomePage>
                   Row(
                     children: [
                       CircleAvatar(
-                        radius: constraints.maxWidth > 600 ? 24 : 20,
+                        radius: Responsive.isDesktop(context) ? 24 : 20,
                         backgroundColor: color.withOpacity(0.2),
                         child: Text(
                           name
@@ -428,11 +445,11 @@ class _ParentHomePageState extends State<ParentHomePage>
                           style: TextStyle(
                             color: color,
                             fontWeight: FontWeight.w600,
-                            fontSize: constraints.maxWidth > 600 ? 16 : 14,
+                            fontSize: Responsive.isDesktop(context) ? 16 : 14,
                           ),
                         ),
                       ),
-                      SizedBox(width: constraints.maxWidth > 600 ? 16 : 12),
+                      SizedBox(width: Responsive.isDesktop(context) ? 16 : 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -460,8 +477,8 @@ class _ParentHomePageState extends State<ParentHomePage>
                       ),
                       Container(
                         padding: EdgeInsets.symmetric(
-                          horizontal: constraints.maxWidth > 600 ? 10 : 8,
-                          vertical: constraints.maxWidth > 600 ? 6 : 4,
+                          horizontal: Responsive.isDesktop(context) ? 10 : 8,
+                          vertical: Responsive.isDesktop(context) ? 6 : 4,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.green.withOpacity(0.1),
@@ -478,7 +495,7 @@ class _ParentHomePageState extends State<ParentHomePage>
                       ),
                     ],
                   ),
-                  SizedBox(height: constraints.maxWidth > 600 ? 16 : 12),
+                  SizedBox(height: Responsive.isDesktop(context) ? 16 : 12),
                   LayoutBuilder(
                     builder: (context, cardConstraints) {
                       return Row(
@@ -492,7 +509,7 @@ class _ParentHomePageState extends State<ParentHomePage>
                             ),
                           ),
                           SizedBox(
-                            width: cardConstraints.maxWidth > 400 ? 16 : 12,
+                            width: Responsive.isTablet(context) ? 16 : 12,
                           ),
                           Flexible(
                             child: _buildStatusItem(
@@ -503,7 +520,7 @@ class _ParentHomePageState extends State<ParentHomePage>
                             ),
                           ),
                           SizedBox(
-                            width: cardConstraints.maxWidth > 400 ? 16 : 12,
+                            width: Responsive.isTablet(context) ? 16 : 12,
                           ),
                           Flexible(
                             child: _buildStatusItem(
@@ -606,20 +623,18 @@ class _ParentHomePageState extends State<ParentHomePage>
         const SizedBox(height: 16),
         LayoutBuilder(
           builder: (context, constraints) {
-            // Responsive grid based on screen width
-            int crossAxisCount = 2;
-            double childAspectRatio = 1.5;
-
-            if (constraints.maxWidth > 600) {
-              crossAxisCount = 4;
-              childAspectRatio = 1.2;
-            } else if (constraints.maxWidth > 400) {
-              crossAxisCount = 2;
-              childAspectRatio = 1.3;
-            } else {
-              crossAxisCount = 2;
-              childAspectRatio = 1.4;
-            }
+            final crossAxisCount = Responsive.getGridCrossAxisCount(
+              context,
+              mobile: 2,
+              tablet: 3,
+              desktop: 4,
+            );
+            final childAspectRatio = Responsive.getGridAspectRatio(
+              context,
+              mobile: 1.4,
+              tablet: 1.3,
+              desktop: 1.2,
+            );
 
             return GridView.builder(
               shrinkWrap: true,

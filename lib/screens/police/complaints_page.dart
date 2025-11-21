@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/complaint_service.dart';
 import '../../models/complaint_model.dart';
+import '../../utils/responsive.dart';
 import 'package:intl/intl.dart';
 
 class PoliceComplaintsPage extends StatefulWidget {
@@ -237,7 +238,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
           builder: (context, constraints) {
             return ListView.builder(
               padding: EdgeInsets.symmetric(
-                horizontal: constraints.maxWidth > 600 ? 40 : 20,
+                horizontal: Responsive.getHorizontalPadding(context),
               ),
               itemCount: complaints.length,
               itemBuilder: (context, index) {

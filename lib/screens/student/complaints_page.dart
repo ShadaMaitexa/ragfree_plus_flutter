@@ -5,6 +5,7 @@ import 'dart:io';
 import '../../services/complaint_service.dart';
 import '../../services/app_state.dart';
 import '../../models/complaint_model.dart';
+import '../../utils/responsive.dart';
 import 'package:intl/intl.dart';
 
 class StudentComplaintsPage extends StatefulWidget {

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
 import '../../services/complaint_service.dart';
 import '../../models/complaint_model.dart';
+import '../../utils/responsive.dart';
 
 class PoliceDashboardPage extends StatefulWidget {
   const PoliceDashboardPage({super.key});
@@ -69,20 +70,29 @@ class _PoliceDashboardPageState extends State<PoliceDashboardPage>
                       : [Colors.grey.shade50, Colors.white],
                 ),
               ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildWelcomeCard(context, color),
-                    const SizedBox(height: 24),
-                    _buildStatsGrid(context, color),
-                    const SizedBox(height: 24),
-                    _buildQuickActions(context, color),
-                    const SizedBox(height: 24),
-                    _buildRecentComplaints(context, color),
-                  ],
-                ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    padding: Responsive.getPadding(context),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: Responsive.isDesktop(context) ? 1200 : double.infinity,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildWelcomeCard(context, color),
+                          const SizedBox(height: 24),
+                          _buildStatsGrid(context, color),
+                          const SizedBox(height: 24),
+                          _buildQuickActions(context, color),
+                          const SizedBox(height: 24),
+                          _buildRecentComplaints(context, color),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -189,7 +199,12 @@ class _PoliceDashboardPageState extends State<PoliceDashboardPage>
             const SizedBox(height: 16),
             LayoutBuilder(
               builder: (context, constraints) {
-                final crossAxisCount = constraints.maxWidth > 600 ? 4 : 2;
+                final crossAxisCount = Responsive.getGridCrossAxisCount(
+                  context,
+                  mobile: 2,
+                  tablet: 3,
+                  desktop: 4,
+                );
                 return GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -291,7 +306,12 @@ class _PoliceDashboardPageState extends State<PoliceDashboardPage>
         const SizedBox(height: 16),
         LayoutBuilder(
           builder: (context, constraints) {
-            final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
+            final crossAxisCount = Responsive.getGridCrossAxisCount(
+              context,
+              mobile: 2,
+              tablet: 3,
+              desktop: 4,
+            );
             return GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),

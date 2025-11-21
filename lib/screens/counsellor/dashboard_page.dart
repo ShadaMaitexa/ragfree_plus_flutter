@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
+import '../../utils/responsive.dart';
 
 class CounsellorDashboardPage extends StatefulWidget {
   const CounsellorDashboardPage({super.key});
@@ -67,22 +68,31 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage>
                       : [Colors.grey.shade50, Colors.white],
                 ),
               ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildWelcomeCard(context, color),
-                    const SizedBox(height: 24),
-                    _buildStatsGrid(context, color),
-                    const SizedBox(height: 24),
-                    _buildQuickActions(context, color),
-                    const SizedBox(height: 24),
-                    _buildRecentActivity(context),
-                    const SizedBox(height: 24),
-                    _buildCharts(context),
-                  ],
-                ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    padding: Responsive.getPadding(context),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: Responsive.isDesktop(context) ? 1200 : double.infinity,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildWelcomeCard(context, color),
+                          const SizedBox(height: 24),
+                          _buildStatsGrid(context, color),
+                          const SizedBox(height: 24),
+                          _buildQuickActions(context, color),
+                          const SizedBox(height: 24),
+                          _buildRecentActivity(context),
+                          const SizedBox(height: 24),
+                          _buildCharts(context),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -217,20 +227,18 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage>
         const SizedBox(height: 16),
         LayoutBuilder(
           builder: (context, constraints) {
-            // Responsive grid based on screen width
-            int crossAxisCount = 2;
-            double childAspectRatio = 1.2;
-
-            if (constraints.maxWidth > 600) {
-              crossAxisCount = 3;
-              childAspectRatio = 1.1;
-            } else if (constraints.maxWidth > 400) {
-              crossAxisCount = 2;
-              childAspectRatio = 1.3;
-            } else {
-              crossAxisCount = 2;
-              childAspectRatio = 1.4;
-            }
+            final crossAxisCount = Responsive.getGridCrossAxisCount(
+              context,
+              mobile: 2,
+              tablet: 3,
+              desktop: 3,
+            );
+            final childAspectRatio = Responsive.getGridAspectRatio(
+              context,
+              mobile: 1.4,
+              tablet: 1.3,
+              desktop: 1.1,
+            );
 
             return GridView.builder(
               shrinkWrap: true,
@@ -287,7 +295,9 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage>
               ),
             ),
             child: Padding(
-              padding: EdgeInsets.all(constraints.maxWidth > 600 ? 20 : 16),
+              padding: EdgeInsets.all(
+                Responsive.isDesktop(context) ? 20 : 16,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -296,7 +306,7 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage>
                     children: [
                       Container(
                         padding: EdgeInsets.all(
-                          constraints.maxWidth > 600 ? 8 : 6,
+                          Responsive.isDesktop(context) ? 8 : 6,
                         ),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
@@ -305,14 +315,14 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage>
                         child: Icon(
                           icon,
                           color: color,
-                          size: constraints.maxWidth > 600 ? 20 : 18,
+                          size: Responsive.isDesktop(context) ? 20 : 18,
                         ),
                       ),
                       const Spacer(),
                       Container(
                         padding: EdgeInsets.symmetric(
-                          horizontal: constraints.maxWidth > 600 ? 8 : 6,
-                          vertical: constraints.maxWidth > 600 ? 4 : 3,
+                          horizontal: Responsive.isDesktop(context) ? 8 : 6,
+                          vertical: Responsive.isDesktop(context) ? 4 : 3,
                         ),
                         decoration: BoxDecoration(
                           color: changeColor.withOpacity(0.1),
@@ -406,20 +416,18 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage>
         const SizedBox(height: 16),
         LayoutBuilder(
           builder: (context, constraints) {
-            // Responsive grid based on screen width
-            int crossAxisCount = 2;
-            double childAspectRatio = 1.5;
-
-            if (constraints.maxWidth > 600) {
-              crossAxisCount = 4;
-              childAspectRatio = 1.2;
-            } else if (constraints.maxWidth > 400) {
-              crossAxisCount = 2;
-              childAspectRatio = 1.3;
-            } else {
-              crossAxisCount = 2;
-              childAspectRatio = 1.4;
-            }
+            final crossAxisCount = Responsive.getGridCrossAxisCount(
+              context,
+              mobile: 2,
+              tablet: 3,
+              desktop: 4,
+            );
+            final childAspectRatio = Responsive.getGridAspectRatio(
+              context,
+              mobile: 1.4,
+              tablet: 1.3,
+              desktop: 1.2,
+            );
 
             return GridView.builder(
               shrinkWrap: true,
