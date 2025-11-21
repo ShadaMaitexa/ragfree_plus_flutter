@@ -36,13 +36,17 @@ class ComplaintService {
       // Update complaint with media URLs
       final complaintWithMedia = complaint.copyWith(mediaUrls: mediaUrls);
 
-      // Save to Firestore
-      await _firestore
-          .collection('complaints')
-          .doc(complaint.id)
-          .set(complaintWithMedia.toMap());
+      // Save to Firestore - always use Firestore's auto-generated ID for consistency
+      final docRef = _firestore.collection('complaints').doc();
+      
+      // Remove id from map before saving (Firestore manages the document ID)
+      final complaintMap = complaintWithMedia.toMap();
+      complaintMap.remove('id');
+      
+      await docRef.set(complaintMap);
 
-      return complaintWithMedia;
+      // Return complaint with the actual Firestore document ID
+      return complaintWithMedia.copyWith(id: docRef.id);
     } catch (e) {
       throw Exception('Failed to submit complaint: ${e.toString()}');
     }
@@ -50,13 +54,14 @@ class ComplaintService {
 
   // Get complaints for a student
   Stream<List<ComplaintModel>> getStudentComplaints(String studentId) {
+    // Note: This requires a composite index in Firestore: studentId (ASC) + createdAt (DESC)
     return _firestore
         .collection('complaints')
         .where('studentId', isEqualTo: studentId)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => ComplaintModel.fromMap(doc.data()))
+            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
             .toList());
   }
 
@@ -85,6 +90,7 @@ class ComplaintService {
 
   // Get complaints assigned to a counselor
   Stream<List<ComplaintModel>> getAssignedComplaints(String counselorId) {
+    // Note: This requires a composite index in Firestore: assignedTo (ASC) + createdAt (DESC)
     return _firestore
         .collection('complaints')
         .where('assignedTo', isEqualTo: counselorId)
@@ -101,9 +107,12 @@ class ComplaintService {
     if (studentIds.isEmpty) {
       return Stream.value([]);
     }
+    // Note: whereIn with orderBy requires a composite index in Firestore
+    // Limit to 10 IDs as Firestore whereIn supports max 10 items
+    final limitedIds = studentIds.length > 10 ? studentIds.sublist(0, 10) : studentIds;
     return _firestore
         .collection('complaints')
-        .where('studentId', whereIn: studentIds)
+        .where('studentId', whereIn: limitedIds)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
@@ -146,7 +155,7 @@ class ComplaintService {
     try {
       final doc = await _firestore.collection('complaints').doc(complaintId).get();
       if (!doc.exists) return null;
-      return ComplaintModel.fromMap(doc.data()!);
+      return ComplaintModel.fromMap({...doc.data()!, 'id': doc.id});
     } catch (e) {
       throw Exception('Failed to get complaint: ${e.toString()}');
     }

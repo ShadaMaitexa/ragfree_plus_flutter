@@ -13,15 +13,34 @@ class ChatService {
   }) async {
     try {
       // Check if conversation already exists
-      QuerySnapshot existing = await _firestore
-          .collection('chat_conversations')
-          .where('studentId', isEqualTo: studentId)
-          .where('counselorId', isEqualTo: counselorId)
-          .limit(1)
-          .get();
+      if (counselorId != null && counselorId.isNotEmpty) {
+        final existing = await _firestore
+            .collection('chat_conversations')
+            .where('studentId', isEqualTo: studentId)
+            .where('counselorId', isEqualTo: counselorId)
+            .limit(1)
+            .get();
 
-      if (existing.docs.isNotEmpty) {
-        return existing.docs.first.id;
+        if (existing.docs.isNotEmpty) {
+          return existing.docs.first.id;
+        }
+      } else {
+        // If no counselor, get all conversations for student and filter client-side
+        final allConversations = await _firestore
+            .collection('chat_conversations')
+            .where('studentId', isEqualTo: studentId)
+            .get();
+        // Filter to find ones without counselor
+        final filteredDocs = allConversations.docs
+            .where((doc) {
+              final data = doc.data();
+              return data['counselorId'] == null || data['counselorId'] == '';
+            })
+            .toList();
+        // Return the first matching conversation ID if found
+        if (filteredDocs.isNotEmpty) {
+          return filteredDocs.first.id;
+        }
       }
 
       // Create new conversation
@@ -88,7 +107,7 @@ class ChatService {
         .orderBy('timestamp', descending: false)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => ChatMessageModel.fromMap(doc.data()))
+            .map((doc) => ChatMessageModel.fromMap({...doc.data(), 'id': doc.id}))
             .toList());
   }
 

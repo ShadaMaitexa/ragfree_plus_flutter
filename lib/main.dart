@@ -33,6 +33,7 @@ import 'screens/counsellor/chat_page.dart' as counsellor_pages;
 import 'screens/counsellor/awareness_page.dart' as counsellor_pages;
 import 'screens/police/dashboard_page.dart' as police_pages;
 import 'screens/police/complaints_page.dart' as police_pages;
+import 'screens/police/verify_page.dart' as police_pages;
 import 'screens/police/generate_report_page.dart' as police_pages;
 import 'screens/police/send_notification_page.dart' as police_pages;
 import 'screens/police/awareness_page.dart' as police_pages;
@@ -1093,7 +1094,7 @@ class _PoliceLazy extends StatelessWidget {
       case _PolicePage.complaints:
         return const _PoliceComplaintsProxy();
       case _PolicePage.verify:
-        return const _PoliceComplaintsProxy();
+        return const _PoliceVerifyProxy();
       case _PolicePage.generateReport:
         return const _PoliceGenerateReportProxy();
       case _PolicePage.sendNotification:
@@ -1118,6 +1119,13 @@ class _PoliceComplaintsProxy extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       const police_pages.PoliceComplaintsPage();
+}
+
+class _PoliceVerifyProxy extends StatelessWidget {
+  const _PoliceVerifyProxy();
+  @override
+  Widget build(BuildContext context) =>
+      const police_pages.PoliceVerifyPage();
 }
 
 class _PoliceGenerateReportProxy extends StatelessWidget {

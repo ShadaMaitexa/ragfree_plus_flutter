@@ -998,9 +998,9 @@ class _AddComplaintDialogState extends State<_AddComplaintDialog> {
         throw Exception('User not logged in');
       }
 
-      final complaintId = 'C${DateTime.now().millisecondsSinceEpoch}';
+      // Use empty string for ID - Firestore will auto-generate it
       final complaint = ComplaintModel(
-        id: complaintId,
+        id: '', // Firestore will generate the ID
         studentId: _isAnonymous ? null : user.uid,
         studentName: _isAnonymous ? null : user.name,
         title: _titleController.text.trim(),
