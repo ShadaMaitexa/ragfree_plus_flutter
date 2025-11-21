@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'dart:io';
+import '../../services/complaint_service.dart';
+import '../../services/app_state.dart';
+import '../../models/complaint_model.dart';
+import 'package:intl/intl.dart';
 
 class StudentComplaintsPage extends StatefulWidget {
   const StudentComplaintsPage({super.key});
@@ -13,38 +18,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  final ImagePicker _picker = ImagePicker();
-
-  final List<Map<String, dynamic>> _complaints = [
-    {
-      'id': 'C001',
-      'title': 'Harassment in Library',
-      'description':
-          'Facing verbal harassment from senior students in the library',
-      'status': 'In Progress',
-      'date': '2024-01-15',
-      'priority': 'High',
-      'category': 'Harassment',
-    },
-    {
-      'id': 'C002',
-      'title': 'Bullying in Hostel',
-      'description': 'Physical bullying by roommates in hostel',
-      'status': 'Resolved',
-      'date': '2024-01-10',
-      'priority': 'High',
-      'category': 'Bullying',
-    },
-    {
-      'id': 'C003',
-      'title': 'Discrimination in Class',
-      'description': 'Facing discrimination based on caste in classroom',
-      'status': 'Pending',
-      'date': '2024-01-20',
-      'priority': 'Medium',
-      'category': 'Discrimination',
-    },
-  ];
+  final ComplaintService _complaintService = ComplaintService();
 
   @override
   void initState() {
@@ -91,9 +65,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
               children: [
                 _buildHeader(context, color),
                 Expanded(
-                  child: _complaints.isEmpty
-                      ? _buildEmptyState(context, color)
-                      : _buildComplaintsList(context),
+                  child: _buildComplaintsContent(context),
                 ),
               ],
             ),
@@ -145,34 +117,47 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
           const SizedBox(height: 20),
           Row(
             children: [
-              Expanded(
-                child: _buildStatCard(
-                  context,
-                  'Total Reports',
-                  '${_complaints.length}',
-                  Icons.assignment,
-                  Colors.blue,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  context,
-                  'Resolved',
-                  '${_complaints.where((c) => c['status'] == 'Resolved').length}',
-                  Icons.check_circle,
-                  Colors.green,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  context,
-                  'Pending',
-                  '${_complaints.where((c) => c['status'] == 'Pending').length}',
-                  Icons.pending,
-                  Colors.orange,
-                ),
+              StreamBuilder<List<ComplaintModel>>(
+                stream: _getComplaintsStream(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const SizedBox.shrink();
+                  }
+                  final complaints = snapshot.data!;
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          'Total Reports',
+                          '${complaints.length}',
+                          Icons.assignment,
+                          Colors.blue,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          'Resolved',
+                          '${complaints.where((c) => c.status == 'Resolved').length}',
+                          Icons.check_circle,
+                          Colors.green,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          'Pending',
+                          '${complaints.where((c) => c.status == 'Pending').length}',
+                          Icons.pending,
+                          Colors.orange,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ],
           ),
@@ -261,24 +246,66 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
     );
   }
 
-  Widget _buildComplaintsList(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: _complaints.length,
-      itemBuilder: (context, index) {
-        final complaint = _complaints[index];
-        return _buildComplaintCard(context, complaint, index);
+  Stream<List<ComplaintModel>> _getComplaintsStream() {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+    if (user == null || user.role != 'student') {
+      return Stream.value([]);
+    }
+    return _complaintService.getStudentComplaints(user.uid);
+  }
+
+  Widget _buildComplaintsContent(BuildContext context) {
+    return StreamBuilder<List<ComplaintModel>>(
+      stream: _getComplaintsStream(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                Text('Error: ${snapshot.error}'),
+              ],
+            ),
+          );
+        }
+        final complaints = snapshot.data ?? [];
+        if (complaints.isEmpty) {
+          return _buildEmptyState(context, Theme.of(context).colorScheme.primary);
+        }
+        return _buildComplaintsList(context, complaints);
+      },
+    );
+  }
+
+  Widget _buildComplaintsList(BuildContext context, List<ComplaintModel> complaints) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return ListView.builder(
+          padding: EdgeInsets.symmetric(
+            horizontal: constraints.maxWidth > 600 ? 40 : 20,
+          ),
+          itemCount: complaints.length,
+          itemBuilder: (context, index) {
+            return _buildComplaintCard(context, complaints[index], index);
+          },
+        );
       },
     );
   }
 
   Widget _buildComplaintCard(
     BuildContext context,
-    Map<String, dynamic> complaint,
+    ComplaintModel complaint,
     int index,
   ) {
-    final status = complaint['status'] as String;
-    final priority = complaint['priority'] as String;
+    final status = complaint.status;
+    final priority = complaint.priority;
 
     Color statusColor;
     switch (status) {
@@ -368,7 +395,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                     ),
                     const Spacer(),
                     Text(
-                      complaint['date'],
+                      DateFormat('MMM dd, yyyy').format(complaint.createdAt),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(
                           context,
@@ -378,15 +405,43 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                   ],
                 ),
                 const SizedBox(height: 12),
-                Text(
-                  complaint['title'],
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        complaint.title,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (complaint.isAnonymous)
+                      Container(
+                        margin: const EdgeInsets.only(left: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.visibility_off, size: 12, color: Colors.grey),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Anonymous',
+                              style: TextStyle(fontSize: 10, color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  complaint['description'],
+                  complaint.description,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(
                       context,
@@ -395,6 +450,36 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (complaint.mediaUrls.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 60,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: complaint.mediaUrls.length,
+                      itemBuilder: (context, idx) {
+                        return Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          width: 60,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              complaint.mediaUrls[idx],
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(Icons.broken_image);
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -406,17 +491,20 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                       ).colorScheme.onSurface.withOpacity(0.6),
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      complaint['category'],
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withOpacity(0.6),
+                    Flexible(
+                      child: Text(
+                        complaint.category,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const Spacer(),
                     Text(
-                      'ID: ${complaint['id']}',
+                      'ID: ${complaint.id.substring(0, 8)}...',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(
                           context,
@@ -436,50 +524,83 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
 
   void _showComplaintDetails(
     BuildContext context,
-    Map<String, dynamic> complaint,
+    ComplaintModel complaint,
   ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(complaint['title']),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(complaint['description']),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Text('Status: ', style: Theme.of(context).textTheme.titleSmall),
-                Text(
-                  complaint['status'],
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+        title: Text(complaint.title),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(complaint.description),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Text('Status: ', style: Theme.of(context).textTheme.titleSmall),
+                  Text(
+                    complaint.status,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Text(
+                    'Priority: ',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  Text(
+                    complaint.priority,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Text('Date: ', style: Theme.of(context).textTheme.titleSmall),
+                  Text(
+                    DateFormat('MMM dd, yyyy').format(complaint.createdAt),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+              if (complaint.mediaUrls.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Text('Media:', style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: complaint.mediaUrls.map((url) {
+                    return Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          url,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(Icons.broken_image);
+                          },
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ],
-            ),
-            Row(
-              children: [
-                Text(
-                  'Priority: ',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                Text(
-                  complaint['priority'],
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Text('Date: ', style: Theme.of(context).textTheme.titleSmall),
-                Text(
-                  complaint['date'],
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -495,10 +616,8 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
     showDialog(
       context: context,
       builder: (context) => _AddComplaintDialog(
-        onComplaintAdded: (complaint) {
-          setState(() {
-            _complaints.insert(0, complaint);
-          });
+        onComplaintAdded: () {
+          // Stream will automatically update
         },
       ),
     );
@@ -506,7 +625,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
 }
 
 class _AddComplaintDialog extends StatefulWidget {
-  final Function(Map<String, dynamic>) onComplaintAdded;
+  final VoidCallback onComplaintAdded;
 
   const _AddComplaintDialog({required this.onComplaintAdded});
 
@@ -518,9 +637,13 @@ class _AddComplaintDialogState extends State<_AddComplaintDialog> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _locationController = TextEditingController();
   String _selectedCategory = 'Harassment';
   String _selectedPriority = 'Medium';
-  File? _selectedImage;
+  bool _isAnonymous = false;
+  List<File> _selectedImages = [];
+  bool _isSubmitting = false;
+  final ComplaintService _complaintService = ComplaintService();
 
   final List<String> _categories = [
     'Harassment',
@@ -537,6 +660,7 @@ class _AddComplaintDialogState extends State<_AddComplaintDialog> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _locationController.dispose();
     super.dispose();
   }
 
@@ -570,6 +694,18 @@ class _AddComplaintDialogState extends State<_AddComplaintDialog> {
                     ],
                   ),
                   const SizedBox(height: 24),
+                  CheckboxListTile(
+                    title: const Text('Submit anonymously'),
+                    subtitle: const Text('Your identity will be kept confidential'),
+                    value: _isAnonymous,
+                    onChanged: (value) {
+                      setState(() {
+                        _isAnonymous = value ?? false;
+                      });
+                    },
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  const SizedBox(height: 16),
                   TextFormField(
                     controller: _titleController,
                     decoration: const InputDecoration(
@@ -639,17 +775,58 @@ class _AddComplaintDialogState extends State<_AddComplaintDialog> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  if (_selectedImage != null)
-                    Container(
+                  TextFormField(
+                    controller: _locationController,
+                    decoration: const InputDecoration(
+                      labelText: 'Location (Optional)',
+                      hintText: 'Where did this incident occur?',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.location_on),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (_selectedImages.isNotEmpty)
+                    SizedBox(
                       height: 100,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(_selectedImage!, fit: BoxFit.cover),
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _selectedImages.length,
+                        itemBuilder: (context, index) {
+                          return Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            width: 100,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    _selectedImages[index],
+                                    fit: BoxFit.cover,
+                                    width: 100,
+                                    height: 100,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: IconButton(
+                                    icon: const Icon(Icons.close, size: 20),
+                                    color: Colors.red,
+                                    onPressed: () {
+                                      setState(() {
+                                        _selectedImages.removeAt(index);
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ),
                   const SizedBox(height: 16),
@@ -665,8 +842,14 @@ class _AddComplaintDialogState extends State<_AddComplaintDialog> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: FilledButton(
-                          onPressed: _submitComplaint,
-                          child: const Text('Submit Report'),
+                          onPressed: _isSubmitting ? null : _submitComplaint,
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Text('Submit Report'),
                         ),
                       ),
                     ],
@@ -682,36 +865,72 @@ class _AddComplaintDialogState extends State<_AddComplaintDialog> {
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
+    final List<XFile> images = await picker.pickMultiImage();
+    if (images.isNotEmpty) {
       setState(() {
-        _selectedImage = File(image.path);
+        _selectedImages.addAll(images.map((x) => File(x.path)).toList());
       });
     }
   }
 
-  void _submitComplaint() {
-    if (_formKey.currentState!.validate()) {
-      final complaint = {
-        'id':
-            'C${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
-        'title': _titleController.text,
-        'description': _descriptionController.text,
-        'status': 'Pending',
-        'date': DateTime.now().toString().split(' ')[0],
-        'priority': _selectedPriority,
-        'category': _selectedCategory,
-      };
+  Future<void> _submitComplaint() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      widget.onComplaintAdded(complaint);
-      Navigator.pop(context);
+    setState(() => _isSubmitting = true);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Complaint submitted successfully!'),
-          backgroundColor: Colors.green,
-        ),
+    try {
+      final appState = Provider.of<AppState>(context, listen: false);
+      final user = appState.currentUser;
+
+      if (user == null) {
+        throw Exception('User not logged in');
+      }
+
+      final complaintId = 'C${DateTime.now().millisecondsSinceEpoch}';
+      final complaint = ComplaintModel(
+        id: complaintId,
+        studentId: _isAnonymous ? null : user.uid,
+        studentName: _isAnonymous ? null : user.name,
+        title: _titleController.text.trim(),
+        description: _descriptionController.text.trim(),
+        category: _selectedCategory,
+        priority: _selectedPriority,
+        status: 'Pending',
+        createdAt: DateTime.now(),
+        location: _locationController.text.trim().isEmpty
+            ? null
+            : _locationController.text.trim(),
+        isAnonymous: _isAnonymous,
       );
+
+      await _complaintService.submitComplaint(
+        complaint: complaint,
+        mediaFiles: _selectedImages.isNotEmpty ? _selectedImages : null,
+      );
+
+      if (mounted) {
+        Navigator.pop(context);
+        widget.onComplaintAdded();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Complaint submitted successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 }

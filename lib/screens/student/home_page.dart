@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
+import '../../services/sos_service.dart';
 
 class StudentHomePage extends StatefulWidget {
   const StudentHomePage({super.key});
@@ -14,6 +15,8 @@ class _StudentHomePageState extends State<StudentHomePage>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  final SOSService _sosService = SOSService();
+  bool _isSendingSOS = false;
 
   @override
   void initState() {
@@ -36,6 +39,7 @@ class _StudentHomePageState extends State<StudentHomePage>
         );
 
     _animationController.forward();
+    _sosService.initializeNotifications();
   }
 
   @override
@@ -554,39 +558,107 @@ class _StudentHomePageState extends State<StudentHomePage>
   }
 
   void _showSOSDialog(BuildContext context) {
+    final messageController = TextEditingController();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(Icons.emergency, color: Colors.red),
-            const SizedBox(width: 8),
-            const Text('Emergency SOS'),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              Icon(Icons.emergency, color: Colors.red),
+              const SizedBox(width: 8),
+              const Text('Emergency SOS'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'This will immediately alert campus security, emergency services, and your linked parents. Are you sure you want to proceed?',
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: messageController,
+                decoration: const InputDecoration(
+                  labelText: 'Optional Message',
+                  hintText: 'Brief description of emergency',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: _isSendingSOS
+                  ? null
+                  : () {
+                      Navigator.pop(context);
+                    },
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: _isSendingSOS
+                  ? null
+                  : () async {
+                      setDialogState(() => _isSendingSOS = true);
+                      try {
+                        final appState =
+                            Provider.of<AppState>(context, listen: false);
+                        final user = appState.currentUser;
+
+                        if (user != null) {
+                          await _sosService.sendSOSAlert(
+                            studentId: user.uid,
+                            studentName: user.name,
+                            message: messageController.text.trim().isEmpty
+                                ? null
+                                : messageController.text.trim(),
+                          );
+
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Emergency alert sent! Help is on the way.'),
+                                backgroundColor: Colors.red,
+                                duration: Duration(seconds: 5),
+                              ),
+                            );
+                          }
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Error: ${e.toString()}'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      } finally {
+                        if (mounted) {
+                          setState(() => _isSendingSOS = false);
+                        }
+                      }
+                    },
+              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+              child: _isSendingSOS
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Send SOS'),
+            ),
           ],
         ),
-        content: const Text(
-          'This will immediately alert campus security and emergency services. Are you sure you want to proceed?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Emergency alert sent! Help is on the way.'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            },
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Send SOS'),
-          ),
-        ],
       ),
     );
   }

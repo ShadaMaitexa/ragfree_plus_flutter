@@ -253,8 +253,8 @@ class AuthService {
   Future<void> rejectUser(String userId) async {
     try {
       await _firestore.collection('users').doc(userId).delete();
-      // Also delete from auth
-      User? user = await _auth.currentUser;
+      // Also delete from auth if it's the current user
+      User? user = _auth.currentUser;
       if (user != null && user.uid == userId) {
         await user.delete();
       }

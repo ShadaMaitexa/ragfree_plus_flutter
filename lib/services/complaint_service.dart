@@ -1,0 +1,156 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
+import '../models/complaint_model.dart';
+
+class ComplaintService {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+
+  // Submit a complaint
+  Future<ComplaintModel> submitComplaint({
+    required ComplaintModel complaint,
+    List<File>? mediaFiles,
+  }) async {
+    try {
+      // Upload media files if any
+      List<String> mediaUrls = [];
+      if (mediaFiles != null && mediaFiles.isNotEmpty) {
+        for (var file in mediaFiles) {
+          final url = await _uploadMedia(file, complaint.id);
+          if (url != null) mediaUrls.add(url);
+        }
+      }
+
+      // Update complaint with media URLs
+      final complaintWithMedia = complaint.copyWith(mediaUrls: mediaUrls);
+
+      // Save to Firestore
+      await _firestore
+          .collection('complaints')
+          .doc(complaint.id)
+          .set(complaintWithMedia.toMap());
+
+      return complaintWithMedia;
+    } catch (e) {
+      throw Exception('Failed to submit complaint: ${e.toString()}');
+    }
+  }
+
+  // Upload media file to Firebase Storage
+  Future<String?> _uploadMedia(File file, String complaintId) async {
+    try {
+      final fileName = '${complaintId}_${DateTime.now().millisecondsSinceEpoch}';
+      final ref = _storage.ref().child('complaints/$complaintId/$fileName');
+      await ref.putFile(file);
+      return await ref.getDownloadURL();
+    } catch (e) {
+      throw Exception('Failed to upload media: ${e.toString()}');
+    }
+  }
+
+  // Get complaints for a student
+  Stream<List<ComplaintModel>> getStudentComplaints(String studentId) {
+    return _firestore
+        .collection('complaints')
+        .where('studentId', isEqualTo: studentId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ComplaintModel.fromMap(doc.data()))
+            .toList());
+  }
+
+  // Get all complaints (for admin/counselor)
+  Stream<List<ComplaintModel>> getAllComplaints() {
+    return _firestore
+        .collection('complaints')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ComplaintModel.fromMap(doc.data()))
+            .toList());
+  }
+
+  // Get complaints by status
+  Stream<List<ComplaintModel>> getComplaintsByStatus(String status) {
+    return _firestore
+        .collection('complaints')
+        .where('status', isEqualTo: status)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ComplaintModel.fromMap(doc.data()))
+            .toList());
+  }
+
+  // Get complaints assigned to a counselor
+  Stream<List<ComplaintModel>> getAssignedComplaints(String counselorId) {
+    return _firestore
+        .collection('complaints')
+        .where('assignedTo', isEqualTo: counselorId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ComplaintModel.fromMap(doc.data()))
+            .toList());
+  }
+
+  // Get complaints for a parent's linked students
+  Stream<List<ComplaintModel>> getParentChildComplaints(
+      List<String> studentIds) {
+    if (studentIds.isEmpty) {
+      return Stream.value([]);
+    }
+    return _firestore
+        .collection('complaints')
+        .where('studentId', whereIn: studentIds)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ComplaintModel.fromMap(doc.data()))
+            .toList());
+  }
+
+  // Update complaint status
+  Future<void> updateComplaintStatus(String complaintId, String status) async {
+    try {
+      await _firestore.collection('complaints').doc(complaintId).update({
+        'status': status,
+        'updatedAt': Timestamp.now(),
+      });
+    } catch (e) {
+      throw Exception('Failed to update complaint: ${e.toString()}');
+    }
+  }
+
+  // Assign complaint to counselor
+  Future<void> assignComplaint(
+    String complaintId,
+    String counselorId,
+    String counselorName,
+  ) async {
+    try {
+      await _firestore.collection('complaints').doc(complaintId).update({
+        'assignedTo': counselorId,
+        'assignedToName': counselorName,
+        'status': 'In Progress',
+        'updatedAt': Timestamp.now(),
+      });
+    } catch (e) {
+      throw Exception('Failed to assign complaint: ${e.toString()}');
+    }
+  }
+
+  // Get complaint by ID
+  Future<ComplaintModel?> getComplaintById(String complaintId) async {
+    try {
+      final doc = await _firestore.collection('complaints').doc(complaintId).get();
+      if (!doc.exists) return null;
+      return ComplaintModel.fromMap(doc.data()!);
+    } catch (e) {
+      throw Exception('Failed to get complaint: ${e.toString()}');
+    }
+  }
+}
+
