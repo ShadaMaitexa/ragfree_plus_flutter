@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import '../models/complaint_model.dart';
+import 'cloudinary_service.dart';
 
 class ComplaintService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final CloudinaryService _cloudinaryService = CloudinaryService();
 
   // Submit a complaint
   Future<ComplaintModel> submitComplaint({
@@ -13,11 +13,22 @@ class ComplaintService {
     List<File>? mediaFiles,
   }) async {
     try {
-      // Upload media files if any
+      // Upload media files to Cloudinary if any
       List<String> mediaUrls = [];
       if (mediaFiles != null && mediaFiles.isNotEmpty) {
         for (var file in mediaFiles) {
-          final url = await _uploadMedia(file, complaint.id);
+          final extension = file.path.split('.').last.toLowerCase();
+          String? url;
+          
+          // Determine media type and upload accordingly
+          if (['mp4', 'mov', 'avi', 'mkv', 'webm'].contains(extension)) {
+            url = await _cloudinaryService.uploadVideo(file);
+          } else if (['mp3', 'wav', 'm4a', 'aac', 'ogg'].contains(extension)) {
+            url = await _cloudinaryService.uploadAudio(file);
+          } else {
+            url = await _cloudinaryService.uploadImage(file);
+          }
+          
           if (url != null) mediaUrls.add(url);
         }
       }
@@ -34,18 +45,6 @@ class ComplaintService {
       return complaintWithMedia;
     } catch (e) {
       throw Exception('Failed to submit complaint: ${e.toString()}');
-    }
-  }
-
-  // Upload media file to Firebase Storage
-  Future<String?> _uploadMedia(File file, String complaintId) async {
-    try {
-      final fileName = '${complaintId}_${DateTime.now().millisecondsSinceEpoch}';
-      final ref = _storage.ref().child('complaints/$complaintId/$fileName');
-      await ref.putFile(file);
-      return await ref.getDownloadURL();
-    } catch (e) {
-      throw Exception('Failed to upload media: ${e.toString()}');
     }
   }
 

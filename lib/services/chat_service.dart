@@ -144,5 +144,28 @@ class ChatService {
       throw Exception('Failed to mark as read: ${e.toString()}');
     }
   }
+
+  // Get available counselors
+  Future<List<Map<String, dynamic>>> getAvailableCounselors() async {
+    try {
+      final counselors = await _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'counsellor')
+          .where('isApproved', isEqualTo: true)
+          .get();
+
+      return counselors.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'id': doc.id,
+          'name': data['name'] ?? 'Counselor',
+          'department': data['department'],
+          'email': data['email'],
+        };
+      }).toList();
+    } catch (e) {
+      throw Exception('Failed to get counselors: ${e.toString()}');
+    }
+  }
 }
 

@@ -642,8 +642,11 @@ class _AddComplaintDialogState extends State<_AddComplaintDialog> {
   String _selectedPriority = 'Medium';
   bool _isAnonymous = false;
   List<File> _selectedImages = [];
+  File? _selectedVideo;
+  File? _selectedAudio;
   bool _isSubmitting = false;
   final ComplaintService _complaintService = ComplaintService();
+  final ImagePicker _picker = ImagePicker();
 
   final List<String> _categories = [
     'Harassment',
@@ -785,49 +788,119 @@ class _AddComplaintDialogState extends State<_AddComplaintDialog> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  if (_selectedImages.isNotEmpty)
-                    SizedBox(
-                      height: 100,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _selectedImages.length,
-                        itemBuilder: (context, index) {
-                          return Container(
-                            margin: const EdgeInsets.only(right: 8),
-                            width: 100,
+                  if (_selectedImages.isNotEmpty || _selectedVideo != null || _selectedAudio != null)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_selectedImages.isNotEmpty)
+                          SizedBox(
+                            height: 100,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: _selectedImages.length,
+                              itemBuilder: (context, index) {
+                                return Container(
+                                  margin: const EdgeInsets.only(right: 8),
+                                  width: 100,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.grey.shade300),
+                                  ),
+                                  child: Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.file(
+                                          _selectedImages[index],
+                                          fit: BoxFit.cover,
+                                          width: 100,
+                                          height: 100,
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 4,
+                                        right: 4,
+                                        child: IconButton(
+                                          icon: const Icon(Icons.close, size: 20),
+                                          color: Colors.red,
+                                          onPressed: () {
+                                            setState(() {
+                                              _selectedImages.removeAt(index);
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        if (_selectedVideo != null) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(color: Colors.grey.shade300),
                             ),
-                            child: Stack(
+                            child: Row(
                               children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.file(
-                                    _selectedImages[index],
-                                    fit: BoxFit.cover,
-                                    width: 100,
-                                    height: 100,
+                                const Icon(Icons.videocam, color: Colors.red),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Video selected: ${_selectedVideo!.path.split('/').last}',
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                Positioned(
-                                  top: 4,
-                                  right: 4,
-                                  child: IconButton(
-                                    icon: const Icon(Icons.close, size: 20),
-                                    color: Colors.red,
-                                    onPressed: () {
-                                      setState(() {
-                                        _selectedImages.removeAt(index);
-                                      });
-                                    },
-                                  ),
+                                IconButton(
+                                  icon: const Icon(Icons.close, size: 20),
+                                  color: Colors.red,
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedVideo = null;
+                                    });
+                                  },
                                 ),
                               ],
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        ],
+                        if (_selectedAudio != null) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.audiotrack, color: Colors.blue),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Audio selected: ${_selectedAudio!.path.split('/').last}',
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close, size: 20),
+                                  color: Colors.red,
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedAudio = null;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   const SizedBox(height: 16),
                   Row(
@@ -835,24 +908,41 @@ class _AddComplaintDialogState extends State<_AddComplaintDialog> {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: _pickImage,
-                          icon: const Icon(Icons.camera_alt),
-                          label: const Text('Add Image'),
+                          icon: const Icon(Icons.image),
+                          label: const Text('Image'),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 8),
                       Expanded(
-                        child: FilledButton(
-                          onPressed: _isSubmitting ? null : _submitComplaint,
-                          child: _isSubmitting
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Text('Submit Report'),
+                        child: OutlinedButton.icon(
+                          onPressed: _pickVideo,
+                          icon: const Icon(Icons.videocam),
+                          label: const Text('Video'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _pickAudio,
+                          icon: const Icon(Icons.audiotrack),
+                          label: const Text('Audio'),
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: _isSubmitting ? null : _submitComplaint,
+                      child: _isSubmitting
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Submit Report'),
+                    ),
                   ),
                 ],
               ),
@@ -864,12 +954,34 @@ class _AddComplaintDialogState extends State<_AddComplaintDialog> {
   }
 
   Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final List<XFile> images = await picker.pickMultiImage();
+    final List<XFile> images = await _picker.pickMultiImage();
     if (images.isNotEmpty) {
       setState(() {
         _selectedImages.addAll(images.map((x) => File(x.path)).toList());
       });
+    }
+  }
+
+  Future<void> _pickVideo() async {
+    final XFile? video = await _picker.pickVideo(source: ImageSource.gallery);
+    if (video != null) {
+      setState(() {
+        _selectedVideo = File(video.path);
+      });
+    }
+  }
+
+  Future<void> _pickAudio() async {
+    // For audio, we'll use file_picker or similar
+    // For now, using a simple approach - you may need to add file_picker package
+    final XFile? audio = await _picker.pickMedia();
+    if (audio != null) {
+      final extension = audio.path.toLowerCase().split('.').last;
+      if (['mp3', 'wav', 'm4a', 'aac', 'ogg'].contains(extension)) {
+        setState(() {
+          _selectedAudio = File(audio.path);
+        });
+      }
     }
   }
 
@@ -903,9 +1015,15 @@ class _AddComplaintDialogState extends State<_AddComplaintDialog> {
         isAnonymous: _isAnonymous,
       );
 
+      // Collect all media files
+      List<File> allMediaFiles = [];
+      allMediaFiles.addAll(_selectedImages);
+      if (_selectedVideo != null) allMediaFiles.add(_selectedVideo!);
+      if (_selectedAudio != null) allMediaFiles.add(_selectedAudio!);
+
       await _complaintService.submitComplaint(
         complaint: complaint,
-        mediaFiles: _selectedImages.isNotEmpty ? _selectedImages : null,
+        mediaFiles: allMediaFiles.isNotEmpty ? allMediaFiles : null,
       );
 
       if (mounted) {
