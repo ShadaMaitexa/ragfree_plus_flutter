@@ -38,6 +38,7 @@ import 'screens/police/send_notification_page.dart' as police_pages;
 import 'screens/police/awareness_page.dart' as police_pages;
 import 'screens/admin/dashboard_page.dart' as admin_pages;
 import 'screens/admin/manage_users_page.dart' as admin_pages;
+import 'screens/admin/complaints_page.dart' as admin_pages;
 import 'screens/admin/departments_page.dart' as admin_pages;
 import 'screens/admin/awareness_page.dart' as admin_pages;
 import 'screens/admin/notifications_page.dart' as admin_pages;
@@ -494,6 +495,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
         label: Text('ManageUsers'),
       ),
       NavigationRailDestination(
+        icon: Icon(Icons.assignment),
+        label: Text('Complaints'),
+      ),
+      NavigationRailDestination(
         icon: Icon(Icons.apartment),
         label: Text('Departments'),
       ),
@@ -522,6 +527,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     final pages = const <Widget>[
       _AdminPages.dashboard,
       _AdminPages.manageUsers,
+      _AdminPages.complaints,
       _AdminPages.departments,
       _AdminPages.awareness,
       _AdminPages.notifications,
@@ -544,6 +550,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             items: const [
               DrawerItem(icon: Icons.dashboard, label: 'Dashboard'),
               DrawerItem(icon: Icons.group, label: 'ManageUsers'),
+              DrawerItem(icon: Icons.assignment, label: 'Complaints'),
               DrawerItem(icon: Icons.apartment, label: 'Departments'),
               DrawerItem(icon: Icons.school, label: 'Awareness'),
               DrawerItem(icon: Icons.notifications, label: 'Notifications'),
@@ -585,6 +592,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 class _AdminPages {
   static const Widget dashboard = _AdminLazy(page: _AdminPage.dashboard);
   static const Widget manageUsers = _AdminLazy(page: _AdminPage.manageUsers);
+  static const Widget complaints = _AdminLazy(page: _AdminPage.complaints);
   static const Widget departments = _AdminLazy(page: _AdminPage.departments);
   static const Widget awareness = _AdminLazy(page: _AdminPage.awareness);
   static const Widget notifications = _AdminLazy(
@@ -598,6 +606,7 @@ class _AdminPages {
 enum _AdminPage {
   dashboard,
   manageUsers,
+  complaints,
   departments,
   awareness,
   notifications,
@@ -617,6 +626,8 @@ class _AdminLazy extends StatelessWidget {
         return const _AdminDashboardProxy();
       case _AdminPage.manageUsers:
         return const _AdminManageUsersProxy();
+      case _AdminPage.complaints:
+        return const _AdminComplaintsProxy();
       case _AdminPage.departments:
         return const _AdminDepartmentsProxy();
       case _AdminPage.awareness:
@@ -646,6 +657,13 @@ class _AdminManageUsersProxy extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       const admin_pages.AdminManageUsersPage();
+}
+
+class _AdminComplaintsProxy extends StatelessWidget {
+  const _AdminComplaintsProxy();
+  @override
+  Widget build(BuildContext context) =>
+      const admin_pages.AdminComplaintsPage();
 }
 
 class _AdminDepartmentsProxy extends StatelessWidget {

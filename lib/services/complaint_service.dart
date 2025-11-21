@@ -67,7 +67,7 @@ class ComplaintService {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => ComplaintModel.fromMap(doc.data()))
+            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
             .toList());
   }
 
@@ -79,7 +79,7 @@ class ComplaintService {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => ComplaintModel.fromMap(doc.data()))
+            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
             .toList());
   }
 
@@ -91,7 +91,7 @@ class ComplaintService {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => ComplaintModel.fromMap(doc.data()))
+            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
             .toList());
   }
 
@@ -107,7 +107,7 @@ class ComplaintService {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => ComplaintModel.fromMap(doc.data()))
+            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
             .toList());
   }
 

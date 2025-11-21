@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
+import '../../services/parent_student_service.dart';
+import '../../models/parent_student_link_model.dart';
 
 class ParentHomePage extends StatefulWidget {
   const ParentHomePage({super.key});
@@ -14,6 +16,7 @@ class _ParentHomePageState extends State<ParentHomePage>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  final ParentStudentService _parentStudentService = ParentStudentService();
 
   @override
   void initState() {
@@ -172,48 +175,221 @@ class _ParentHomePageState extends State<ParentHomePage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Child Safety Summary',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
-              child: _buildSafetyCard(
-                context,
-                'Emma Johnson',
-                'Computer Science',
-                'Sophomore',
-                'assets/images/student_avatar.jpg',
-                Colors.blue,
+              child: Text(
+                'Child Safety Summary',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildSafetyCard(
-                context,
-                'Alex Johnson',
-                'Engineering',
-                'Junior',
-                'assets/images/student_avatar2.jpg',
-                Colors.green,
-              ),
+            IconButton(
+              icon: Icon(Icons.add_circle, color: color),
+              onPressed: () => _showLinkStudentDialog(context),
+              tooltip: 'Link Student',
             ),
           ],
+        ),
+        const SizedBox(height: 16),
+        StreamBuilder<List<ParentStudentLinkModel>>(
+          stream: _getLinkedStudentsStream(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+            final links = snapshot.data ?? [];
+            if (links.isEmpty) {
+              return Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      Icon(Icons.link_off, size: 48, color: Colors.grey),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No Linked Students',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Link your child\'s account to monitor their safety',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      FilledButton.icon(
+                        onPressed: () => _showLinkStudentDialog(context),
+                        icon: const Icon(Icons.link),
+                        label: const Text('Link Student Account'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final crossAxisCount = constraints.maxWidth > 600 ? 2 : 1;
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 1.5,
+                  ),
+                  itemCount: links.length,
+                  itemBuilder: (context, index) {
+                    final link = links[index];
+                    return _buildSafetyCard(
+                      context,
+                      link.studentName,
+                      link.studentEmail,
+                      link.relationship,
+                      _getColorForIndex(index),
+                    );
+                  },
+                );
+              },
+            );
+          },
         ),
       ],
     );
   }
 
+  Stream<List<ParentStudentLinkModel>> _getLinkedStudentsStream() {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+    if (user == null || user.role != 'parent') {
+      return Stream.value([]);
+    }
+    return _parentStudentService.getLinkedStudents(user.uid);
+  }
+
+  Color _getColorForIndex(int index) {
+    final colors = [Colors.blue, Colors.green, Colors.orange, Colors.purple];
+    return colors[index % colors.length];
+  }
+
+  Future<void> _showLinkStudentDialog(BuildContext context) async {
+    final emailController = TextEditingController();
+    final relationshipController = TextEditingController();
+    String selectedRelationship = 'Mother';
+    final relationships = ['Mother', 'Father', 'Guardian', 'Other'];
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Link Student Account'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Student Email',
+                  hintText: 'Enter your child\'s registered email',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
+                ),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: selectedRelationship,
+                decoration: const InputDecoration(
+                  labelText: 'Relationship',
+                  border: OutlineInputBorder(),
+                ),
+                items: relationships.map((rel) {
+                  return DropdownMenuItem(value: rel, child: Text(rel));
+                }).toList(),
+                onChanged: (value) {
+                  selectedRelationship = value ?? 'Mother';
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              if (emailController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please enter student email'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              try {
+                final appState = Provider.of<AppState>(context, listen: false);
+                final user = appState.currentUser;
+
+                if (user != null) {
+                  await _parentStudentService.linkStudent(
+                    parentId: user.uid,
+                    parentName: user.name,
+                    studentEmail: emailController.text.trim(),
+                    relationship: selectedRelationship,
+                  );
+
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Student linked successfully!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Error: ${e.toString().replaceAll('Exception: ', '')}',
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Link'),
+          ),
+        ],
+      ),
+    );
+
+    emailController.dispose();
+    relationshipController.dispose();
+  }
+
   Widget _buildSafetyCard(
     BuildContext context,
     String name,
-    String department,
-    String year,
-    String avatar,
+    String email,
+    String relationship,
     Color color,
   ) {
     return LayoutBuilder(
@@ -244,7 +420,11 @@ class _ParentHomePageState extends State<ParentHomePage>
                         radius: constraints.maxWidth > 600 ? 24 : 20,
                         backgroundColor: color.withOpacity(0.2),
                         child: Text(
-                          name.split(' ').map((n) => n[0]).join(),
+                          name
+                              .split(' ')
+                              .map((n) => n.isNotEmpty ? n[0] : '')
+                              .join()
+                              .toUpperCase(),
                           style: TextStyle(
                             color: color,
                             fontWeight: FontWeight.w600,
@@ -265,7 +445,7 @@ class _ParentHomePageState extends State<ParentHomePage>
                               overflow: TextOverflow.ellipsis,
                             ),
                             Text(
-                              '$department • $year',
+                              '$relationship • $email',
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: Theme.of(

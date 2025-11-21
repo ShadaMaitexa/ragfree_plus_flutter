@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../services/complaint_service.dart';
-import '../../services/app_state.dart';
 import '../../models/complaint_model.dart';
+import '../../services/auth_service.dart';
 import 'package:intl/intl.dart';
 
-class CounsellorAssignedComplaintsPage extends StatefulWidget {
-  const CounsellorAssignedComplaintsPage({super.key});
+class AdminComplaintsPage extends StatefulWidget {
+  const AdminComplaintsPage({super.key});
 
   @override
-  State<CounsellorAssignedComplaintsPage> createState() =>
-      _CounsellorAssignedComplaintsPageState();
+  State<AdminComplaintsPage> createState() => _AdminComplaintsPageState();
 }
 
-class _CounsellorAssignedComplaintsPageState
-    extends State<CounsellorAssignedComplaintsPage>
+class _AdminComplaintsPageState extends State<AdminComplaintsPage>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  late TabController _tabController;
   final ComplaintService _complaintService = ComplaintService();
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
@@ -27,6 +26,7 @@ class _CounsellorAssignedComplaintsPageState
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
+    _tabController = TabController(length: 4, vsync: this);
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
@@ -38,6 +38,7 @@ class _CounsellorAssignedComplaintsPageState
   @override
   void dispose() {
     _animationController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -64,8 +65,17 @@ class _CounsellorAssignedComplaintsPageState
             child: Column(
               children: [
                 _buildHeader(context, color),
+                _buildTabBar(context),
                 Expanded(
-                  child: _buildComplaintsContent(context),
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildAllComplaintsTab(context),
+                      _buildPendingTab(context),
+                      _buildInProgressTab(context),
+                      _buildResolvedTab(context),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -97,12 +107,12 @@ class _CounsellorAssignedComplaintsPageState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Assigned Complaints',
+                      'Complaints Management',
                       style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(fontWeight: FontWeight.w700, color: color),
                     ),
                     Text(
-                      'Complaints assigned to you',
+                      'Monitor and manage all complaints',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(
                           context,
@@ -114,103 +124,57 @@ class _CounsellorAssignedComplaintsPageState
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          StreamBuilder<List<ComplaintModel>>(
-            stream: _getComplaintsStream(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const SizedBox.shrink();
-              }
-              final complaints = snapshot.data!;
-              return Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      context,
-                      'Total',
-                      '${complaints.length}',
-                      Icons.assignment,
-                      Colors.blue,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
-                      context,
-                      'In Progress',
-                      '${complaints.where((c) => c.status == 'In Progress').length}',
-                      Icons.pending,
-                      Colors.orange,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
-                      context,
-                      'Resolved',
-                      '${complaints.where((c) => c.status == 'Resolved').length}',
-                      Icons.check_circle,
-                      Colors.green,
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
         ],
       ),
     );
   }
 
-  Stream<List<ComplaintModel>> _getComplaintsStream() {
-    final appState = Provider.of<AppState>(context, listen: false);
-    final user = appState.currentUser;
-    if (user == null || user.role != 'counsellor') {
-      return Stream.value([]);
-    }
-    return _complaintService.getAssignedComplaints(user.uid);
-  }
-
-  Widget _buildStatCard(
-    BuildContext context,
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildTabBar(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
       ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-            ),
-            textAlign: TextAlign.center,
-          ),
+      child: TabBar(
+        controller: _tabController,
+        indicator: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        labelColor: Colors.white,
+        unselectedLabelColor: Theme.of(context).colorScheme.onSurface,
+        tabs: const [
+          Tab(text: 'All'),
+          Tab(text: 'Pending'),
+          Tab(text: 'In Progress'),
+          Tab(text: 'Resolved'),
         ],
       ),
     );
   }
 
-  Widget _buildComplaintsContent(BuildContext context) {
+  Widget _buildAllComplaintsTab(BuildContext context) {
+    return _buildComplaintsList(context, null);
+  }
+
+  Widget _buildPendingTab(BuildContext context) {
+    return _buildComplaintsList(context, 'Pending');
+  }
+
+  Widget _buildInProgressTab(BuildContext context) {
+    return _buildComplaintsList(context, 'In Progress');
+  }
+
+  Widget _buildResolvedTab(BuildContext context) {
+    return _buildComplaintsList(context, 'Resolved');
+  }
+
+  Widget _buildComplaintsList(BuildContext context, String? status) {
     return StreamBuilder<List<ComplaintModel>>(
-      stream: _getComplaintsStream(),
+      stream: status != null
+          ? _complaintService.getComplaintsByStatus(status)
+          : _complaintService.getAllComplaints(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -234,43 +198,35 @@ class _CounsellorAssignedComplaintsPageState
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.assignment_outlined, size: 64, color: Colors.grey),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 Text(
-                  'No Assigned Complaints',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                  'No Complaints',
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Complaints assigned to you will appear here',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withOpacity(0.7),
-                      ),
-                  textAlign: TextAlign.center,
+                  status != null
+                      ? 'No ${status.toLowerCase()} complaints'
+                      : 'No complaints found',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  ),
                 ),
               ],
             ),
           );
         }
-        return _buildComplaintsList(context, complaints);
-      },
-    );
-  }
-
-  Widget _buildComplaintsList(BuildContext context, List<ComplaintModel> complaints) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return ListView.builder(
-          padding: EdgeInsets.symmetric(
-            horizontal: constraints.maxWidth > 600 ? 40 : 20,
-          ),
-          itemCount: complaints.length,
-          itemBuilder: (context, index) {
-            return _buildComplaintCard(context, complaints[index], index);
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return ListView.builder(
+              padding: EdgeInsets.symmetric(
+                horizontal: constraints.maxWidth > 600 ? 40 : 20,
+              ),
+              itemCount: complaints.length,
+              itemBuilder: (context, index) {
+                return _buildComplaintCard(context, complaints[index], index);
+              },
+            );
           },
         );
       },
@@ -443,6 +399,28 @@ class _CounsellorAssignedComplaintsPageState
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    if (complaint.assignedToName != null) ...[
+                      const Spacer(),
+                      Icon(
+                        Icons.assignment_ind,
+                        size: 16,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          complaint.assignedToName!,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withOpacity(0.6),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ],
@@ -476,6 +454,8 @@ class _CounsellorAssignedComplaintsPageState
                     : (complaint.studentName ?? 'Unknown'),
               ),
               _buildDetailRow('Date', DateFormat('MMM dd, yyyy').format(complaint.createdAt)),
+              if (complaint.assignedToName != null)
+                _buildDetailRow('Assigned To', complaint.assignedToName!),
               if (complaint.location != null)
                 _buildDetailRow('Location', complaint.location!),
               if (complaint.mediaUrls.isNotEmpty) ...[
@@ -515,10 +495,10 @@ class _CounsellorAssignedComplaintsPageState
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
           ),
-          if (complaint.status != 'Resolved')
+          if (complaint.status == 'Pending')
             FilledButton(
-              onPressed: () => _showRespondDialog(context, complaint),
-              child: const Text('Respond'),
+              onPressed: () => _showAssignDialog(context, complaint),
+              child: const Text('Assign'),
             ),
           if (complaint.status == 'In Progress')
             FilledButton(
@@ -551,76 +531,82 @@ class _CounsellorAssignedComplaintsPageState
     );
   }
 
-  Future<void> _showRespondDialog(BuildContext context, ComplaintModel complaint) async {
-    final responseController = TextEditingController();
+  Future<void> _showAssignDialog(BuildContext context, ComplaintModel complaint) async {
+    // Get available counselors
+    final counselors = await _authService.getAvailableCounselors();
     
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Respond to Complaint'),
-        content: TextField(
-          controller: responseController,
-          decoration: const InputDecoration(
-            labelText: 'Your Response',
-            hintText: 'Enter your response or action taken',
-            border: OutlineInputBorder(),
+    if (counselors.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No counselors available'),
+            backgroundColor: Colors.orange,
           ),
-          maxLines: 4,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              if (responseController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please enter a response'),
-                    backgroundColor: Colors.red,
+        );
+      }
+      return;
+    }
+
+    if (context.mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Assign Complaint'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: counselors.length,
+              itemBuilder: (context, index) {
+                final counselor = counselors[index];
+                return ListTile(
+                  leading: CircleAvatar(
+                    child: Text(counselor['name'].substring(0, 1)),
                   ),
+                  title: Text(counselor['name']),
+                  subtitle: Text(counselor['department'] ?? 'Counselor'),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    try {
+                      await _complaintService.assignComplaint(
+                        complaint.id,
+                        counselor['id'],
+                        counselor['name'],
+                      );
+                      if (context.mounted) {
+                        Navigator.pop(context); // Close details dialog
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Complaint assigned to ${counselor['name']}'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error: ${e.toString()}'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
                 );
-                return;
-              }
-
-              try {
-                // Update complaint status and add response
-                await _complaintService.updateComplaintStatus(
-                  complaint.id,
-                  'In Progress',
-                );
-                
-                // You can add response to metadata or create a separate responses collection
-                if (context.mounted) {
-                  Navigator.pop(context); // Close respond dialog
-                  Navigator.pop(context); // Close details dialog
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Response recorded'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: ${e.toString()}'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
-            child: const Text('Submit'),
+              },
+            ),
           ),
-        ],
-      ),
-    );
-
-    responseController.dispose();
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Future<void> _showResolveDialog(BuildContext context, ComplaintModel complaint) async {
@@ -667,3 +653,4 @@ class _CounsellorAssignedComplaintsPageState
     }
   }
 }
+
