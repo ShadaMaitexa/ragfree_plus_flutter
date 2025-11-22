@@ -31,8 +31,9 @@ class AuthService {
 
       if (userCredential.user == null) return null;
 
-      // Determine if approval is needed
-      bool needsApproval = role == 'police' || role == 'counsellor' || role == 'warden';
+      // All users (except admin) need approval
+      // Admin is created separately and doesn't go through this flow
+      bool needsApproval = role != 'admin';
 
       // Create user document in Firestore
       UserModel userModel = UserModel(
@@ -40,7 +41,7 @@ class AuthService {
         email: email,
         name: name,
         role: role,
-        isApproved: !needsApproval, // Students and parents are auto-approved
+        isApproved: !needsApproval, // Only admin is auto-approved
         phone: phone,
         department: department,
         idProofUrl: idProofUrl,
@@ -288,16 +289,30 @@ class AuthService {
     }
   }
 
-  // Get pending approvals (police and teachers)
+  // Get pending approvals (all users except admin)
   Stream<List<UserModel>> getPendingApprovals() {
     return _firestore
         .collection('users')
         .where('isApproved', isEqualTo: false)
-        .where('role', whereIn: ['police', 'counsellor', 'warden'])
+        .where('role', whereIn: ['student', 'parent', 'police', 'counsellor', 'warden'])
         .snapshots()
         .map((snapshot) {
       return snapshot.docs
-          .map((doc) => UserModel.fromMap(doc.data()))
+          .map((doc) => UserModel.fromMap({...doc.data(), 'uid': doc.id}))
+          .toList();
+    });
+  }
+
+  // Get all users by role
+  Stream<List<UserModel>> getUsersByRole(String role) {
+    return _firestore
+        .collection('users')
+        .where('role', isEqualTo: role)
+        .where('isApproved', isEqualTo: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => UserModel.fromMap({...doc.data(), 'uid': doc.id}))
           .toList();
     });
   }

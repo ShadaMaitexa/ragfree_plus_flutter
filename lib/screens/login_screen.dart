@@ -65,14 +65,16 @@ class _LoginScreenState extends State<LoginScreen> {
           password: password,
         );
 
-        // Check if user needs approval
-        if (user != null &&
-            (user.role == 'police' ||
-                user.role == 'counsellor' ||
-                user.role == 'warden') &&
-            !user.isApproved) {
+        // Check if user needs approval (all users except admin need approval)
+        if (user != null && user.role != 'admin' && !user.isApproved) {
           // Navigate to approval pending screen
           if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Your account is pending admin approval'),
+                backgroundColor: Colors.orange,
+              ),
+            );
             Navigator.pushReplacementNamed(context, '/approval-pending');
           }
           return;

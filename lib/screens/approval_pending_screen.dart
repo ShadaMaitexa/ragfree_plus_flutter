@@ -49,6 +49,12 @@ class _ApprovalPendingScreenState extends State<ApprovalPendingScreen> {
 
   void _navigateToDashboard(String role) {
     switch (role) {
+      case 'student':
+        Navigator.pushReplacementNamed(context, '/student');
+        break;
+      case 'parent':
+        Navigator.pushReplacementNamed(context, '/parent');
+        break;
       case 'counsellor':
         Navigator.pushReplacementNamed(context, '/counsellor');
         break;

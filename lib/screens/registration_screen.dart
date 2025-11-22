@@ -156,14 +156,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       );
 
       if (user != null && mounted) {
-        // Check if approval is needed
-        if (user.role == 'police' ||
-            user.role == 'counsellor' ||
-            user.role == 'warden') {
+        // All users need approval (except admin, but admin doesn't register)
+        if (!user.isApproved) {
           // Navigate to approval pending screen
           Navigator.pushReplacementNamed(context, '/approval-pending');
         } else {
-          // Auto-approved roles (student, parent) go to dashboard
+          // Only admin would be auto-approved, but they don't register
           context.read<AppState>().setUser(user);
           _navigateToDashboard(user.role);
         }

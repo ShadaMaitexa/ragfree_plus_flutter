@@ -372,6 +372,11 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
+                      icon: const Icon(Icons.visibility, color: Colors.blue),
+                      onPressed: () => _viewUserDetails(context, user),
+                      tooltip: 'View Details & ID Proof',
+                    ),
+                    IconButton(
                       icon: const Icon(Icons.check_circle, color: Colors.green),
                       onPressed: () => _approveUser(context, user, authService),
                       tooltip: 'Approve',
@@ -391,8 +396,277 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
     );
   }
 
+  Future<void> _viewUserDetails(BuildContext context, UserModel user) async {
+    await showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      _getRoleIcon(user.role),
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 32,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.name,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                          Text(
+                            user.email,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildDetailRow('Role', user.role.toUpperCase()),
+                      if (user.phone != null) _buildDetailRow('Phone', user.phone!),
+                      if (user.department != null)
+                        _buildDetailRow('Department', user.department!),
+                      _buildDetailRow(
+                        'Status',
+                        user.isApproved ? 'Approved' : 'Pending Approval',
+                      ),
+                      _buildDetailRow(
+                        'Registered',
+                        _formatDate(user.createdAt),
+                      ),
+                      const SizedBox(height: 24),
+                      // ID Proof Section
+                      if (user.idProofUrl != null) ...[
+                        Text(
+                          'ID Proof Document',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                        const SizedBox(height: 12),
+                        GestureDetector(
+                          onTap: () => _showFullScreenImage(context, user.idProofUrl!),
+                          child: Container(
+                            width: double.infinity,
+                            height: 300,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                user.idProofUrl!,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.broken_image, size: 48),
+                                        SizedBox(height: 8),
+                                        Text('Failed to load image'),
+                                      ],
+                                    ),
+                                  );
+                                },
+                                loadingBuilder: (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Center(
+                                    child: CircularProgressIndicator(
+                                      value: loadingProgress.expectedTotalBytes != null
+                                          ? loadingProgress.cumulativeBytesLoaded /
+                                              loadingProgress.expectedTotalBytes!
+                                          : null,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextButton.icon(
+                          onPressed: () => _showFullScreenImage(context, user.idProofUrl!),
+                          icon: const Icon(Icons.fullscreen),
+                          label: const Text('View Full Screen'),
+                        ),
+                      ] else ...[
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.orange),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.warning, color: Colors.orange),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'No ID proof document uploaded',
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(color: Colors.grey.shade300),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Close'),
+                    ),
+                    if (!user.isApproved) ...[
+                      const SizedBox(width: 8),
+                      FilledButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _approveUser(context, user, null);
+                        },
+                        icon: const Icon(Icons.check_circle),
+                        label: const Text('Approve'),
+                        style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _rejectUser(context, user, null);
+                        },
+                        icon: const Icon(Icons.cancel),
+                        label: const Text('Reject'),
+                        style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              '$label:',
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
+  void _showFullScreenImage(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.black,
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(
+                      child: Text(
+                        'Failed to load image',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   IconData _getRoleIcon(String role) {
     switch (role) {
+      case 'student':
+        return Icons.school;
+      case 'parent':
+        return Icons.family_restroom;
       case 'police':
         return Icons.local_police;
       case 'counsellor':
@@ -406,8 +680,12 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
 
   Color _getRoleColor(String role) {
     switch (role) {
-      case 'police':
+      case 'student':
         return Colors.blue;
+      case 'parent':
+        return Colors.green;
+      case 'police':
+        return Colors.blue.shade700;
       case 'counsellor':
         return Colors.purple;
       case 'warden':
@@ -420,10 +698,11 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
   Future<void> _approveUser(
     BuildContext context,
     UserModel user,
-    AuthService authService,
+    AuthService? authService,
   ) async {
+    final service = authService ?? AuthService();
     try {
-      await authService.approveUser(user.uid);
+      await service.approveUser(user.uid);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -447,8 +726,9 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
   Future<void> _rejectUser(
     BuildContext context,
     UserModel user,
-    AuthService authService,
+    AuthService? authService,
   ) async {
+    final service = authService ?? AuthService();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -472,7 +752,7 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
 
     if (confirmed == true) {
       try {
-        await authService.rejectUser(user.uid);
+        await service.rejectUser(user.uid);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -495,64 +775,272 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
   }
 
   Widget _buildStudentsTab(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: _students.length,
-      itemBuilder: (context, index) {
-        final student = _students[index];
-        return _buildUserCard(context, student, 'student');
+    final authService = AuthService();
+    return StreamBuilder<List<UserModel>>(
+      stream: authService.getUsersByRole('student'),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        final students = snapshot.data ?? [];
+        if (students.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.school, size: 64, color: Colors.grey),
+                const SizedBox(height: 16),
+                Text(
+                  'No Students Yet',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ],
+            ),
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(20),
+          itemCount: students.length,
+          itemBuilder: (context, index) {
+            final student = students[index];
+            return _buildUserCardFromModel(context, student);
+          },
+        );
       },
     );
   }
 
   Widget _buildParentsTab(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: _parents.length,
-      itemBuilder: (context, index) {
-        final parent = _parents[index];
-        return _buildUserCard(context, parent, 'parent');
+    final authService = AuthService();
+    return StreamBuilder<List<UserModel>>(
+      stream: authService.getUsersByRole('parent'),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        final parents = snapshot.data ?? [];
+        if (parents.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.family_restroom, size: 64, color: Colors.grey),
+                const SizedBox(height: 16),
+                Text(
+                  'No Parents Yet',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ],
+            ),
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(20),
+          itemCount: parents.length,
+          itemBuilder: (context, index) {
+            final parent = parents[index];
+            return _buildUserCardFromModel(context, parent);
+          },
+        );
       },
     );
   }
 
   Widget _buildCounsellorsTab(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: _counsellors.length,
-      itemBuilder: (context, index) {
-        final counsellor = _counsellors[index];
-        return _buildUserCard(context, counsellor, 'counsellor');
+    final authService = AuthService();
+    return StreamBuilder<List<UserModel>>(
+      stream: authService.getUsersByRole('counsellor'),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        final counsellors = snapshot.data ?? [];
+        if (counsellors.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.psychology, size: 64, color: Colors.grey),
+                const SizedBox(height: 16),
+                Text(
+                  'No Counsellors Yet',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ],
+            ),
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(20),
+          itemCount: counsellors.length,
+          itemBuilder: (context, index) {
+            final counsellor = counsellors[index];
+            return _buildUserCardFromModel(context, counsellor);
+          },
+        );
       },
     );
   }
 
   Widget _buildWardensTab(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.people_outline,
-            size: 64,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No Wardens Yet',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+    final authService = AuthService();
+    return StreamBuilder<List<UserModel>>(
+      stream: authService.getUsersByRole('warden'),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        final wardens = snapshot.data ?? [];
+        if (wardens.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.security,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No Wardens Yet',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Add wardens to manage hostel and student affairs',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(20),
+          itemCount: wardens.length,
+          itemBuilder: (context, index) {
+            final warden = wardens[index];
+            return _buildUserCardFromModel(context, warden);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildUserCardFromModel(BuildContext context, UserModel user) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: InkWell(
+          onTap: () => _viewUserDetails(context, user),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.1),
+                      child: Icon(
+                        _getRoleIcon(user.role),
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.name,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          Text(
+                            user.email,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withOpacity(0.7),
+                                ),
+                          ),
+                          if (user.department != null)
+                            Text(
+                              user.department!,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.green.withOpacity(0.3)),
+                      ),
+                      child: const Text(
+                        'Approved',
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _viewUserDetails(context, user),
+                        icon: const Icon(Icons.visibility, size: 16),
+                        label: const Text('View Details'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Add wardens to manage hostel and student affairs',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+        ),
       ),
     );
   }
