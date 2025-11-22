@@ -317,6 +317,15 @@ class AuthService {
     });
   }
 
+  // Send password reset email
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      throw Exception('Failed to send password reset email: ${e.toString()}');
+    }
+  }
+
   // Sign out
   Future<void> signOut() async {
     await _auth.signOut();

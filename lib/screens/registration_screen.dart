@@ -247,25 +247,83 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     style: Theme.of(context).textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 32),
-                  // Role Selection
-                  Text(
-                    'Select Your Role',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
+                  const SizedBox(height: 24),
+                  // Role Selection Dropdown
+                  DropdownButtonFormField<String>(
+                    value: _selectedRole,
+                    decoration: const InputDecoration(
+                      labelText: 'Select Your Role *',
+                      prefixIcon: Icon(Icons.person_outline),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'student',
+                        child: Row(
+                          children: [
+                            Icon(Icons.school, size: 20),
+                            SizedBox(width: 8),
+                            Text('Student'),
+                          ],
                         ),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      _buildRoleChip('student', 'Student', Icons.school),
-                      _buildRoleChip('parent', 'Parent', Icons.family_restroom),
-                      _buildRoleChip('counsellor', 'Counsellor', Icons.psychology),
-                      _buildRoleChip('warden', 'Warden', Icons.security),
-                      _buildRoleChip('police', 'Police', Icons.local_police),
+                      ),
+                      DropdownMenuItem(
+                        value: 'parent',
+                        child: Row(
+                          children: [
+                            Icon(Icons.family_restroom, size: 20),
+                            SizedBox(width: 8),
+                            Text('Parent'),
+                          ],
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'counsellor',
+                        child: Row(
+                          children: [
+                            Icon(Icons.psychology, size: 20),
+                            SizedBox(width: 8),
+                            Text('Counsellor'),
+                          ],
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'warden',
+                        child: Row(
+                          children: [
+                            Icon(Icons.security, size: 20),
+                            SizedBox(width: 8),
+                            Text('Warden'),
+                          ],
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'police',
+                        child: Row(
+                          children: [
+                            Icon(Icons.local_police, size: 20),
+                            SizedBox(width: 8),
+                            Text('Police'),
+                          ],
+                        ),
+                      ),
                     ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _selectedRole = value;
+                          // Reset ID proof when switching roles
+                          _idProofFile = null;
+                          _idProofUrl = null;
+                        });
+                      }
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a role';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 24),
                   // Name Field
@@ -533,29 +591,5 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  Widget _buildRoleChip(String role, String label, IconData icon) {
-    final isSelected = _selectedRole == role;
-    return FilterChip(
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18),
-          const SizedBox(width: 8),
-          Text(label),
-        ],
-      ),
-      selected: isSelected,
-      onSelected: (selected) {
-        setState(() {
-          _selectedRole = role;
-          // Reset ID proof when switching roles
-          _idProofFile = null;
-          _idProofUrl = null;
-        });
-      },
-      selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-      checkmarkColor: Theme.of(context).colorScheme.primary,
-    );
-  }
 }
 
