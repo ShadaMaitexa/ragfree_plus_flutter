@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/app_state.dart';
 import '../../services/parent_student_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/activity_service.dart';
 import '../../services/complaint_service.dart';
+import '../../services/emergency_alert_service.dart';
 import '../../models/parent_student_link_model.dart';
 import '../../models/notification_model.dart';
 import '../../models/activity_model.dart';
@@ -26,6 +28,7 @@ class _ParentHomePageState extends State<ParentHomePage>
   final NotificationService _notificationService = NotificationService();
   final ActivityService _activityService = ActivityService();
   final ComplaintService _complaintService = ComplaintService();
+  final EmergencyAlertService _emergencyAlertService = EmergencyAlertService();
 
   @override
   void initState() {
@@ -868,55 +871,6 @@ class _ParentHomePageState extends State<ParentHomePage>
     );
   }
 
-  Widget _buildNotificationItem(
-    BuildContext context,
-    Map<String, dynamic> notification,
-  ) {
-    Color color;
-    IconData icon;
-    switch (notification['type']) {
-      case 'success':
-        color = Colors.green;
-        icon = Icons.check_circle;
-        break;
-      case 'warning':
-        color = Colors.orange;
-        icon = Icons.warning;
-        break;
-      case 'info':
-        color = Colors.blue;
-        icon = Icons.info;
-        break;
-      default:
-        color = Colors.grey;
-        icon = Icons.notifications;
-    }
-
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color.withOpacity(0.1),
-        ),
-        child: Icon(icon, color: color, size: 20),
-      ),
-      title: Text(
-        notification['title'],
-        style: Theme.of(
-          context,
-        ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text(notification['message']),
-      trailing: Text(
-        notification['time'],
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-        ),
-      ),
-    );
-  }
-
   Widget _buildNotificationItemFromModel(
     BuildContext context,
     NotificationModel notification,
@@ -1086,39 +1040,6 @@ class _ParentHomePageState extends State<ParentHomePage>
     );
   }
 
-  Widget _buildActivityItem(
-    BuildContext context,
-    IconData icon,
-    String title,
-    String subtitle,
-    Color color,
-    String time,
-  ) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color.withOpacity(0.1),
-        ),
-        child: Icon(icon, color: color, size: 20),
-      ),
-      title: Text(
-        title,
-        style: Theme.of(
-          context,
-        ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text(subtitle),
-      trailing: Text(
-        time,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-        ),
-      ),
-    );
-  }
-
   Widget _buildActivityItemFromModel(
     BuildContext context,
     ActivityModel activity,
@@ -1197,35 +1118,177 @@ class _ParentHomePageState extends State<ParentHomePage>
             Text('Emergency Alerts'),
           ],
         ),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Current Status: All Clear'),
-            SizedBox(height: 16),
-            Text('Recent Alerts:'),
-            Text('• Campus security alert - Library area'),
-            Text('• Weather warning - Heavy rain expected'),
-            Text('• Maintenance notice - Building A'),
-          ],
+        content: StreamBuilder<List<Map<String, dynamic>>>(
+          stream: _emergencyAlertService.getRecentEmergencyAlerts(limit: 5),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SizedBox(
+                height: 200,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            if (snapshot.hasError) {
+              return SizedBox(
+                height: 200,
+                child: Center(child: Text('Error: ${snapshot.error}')),
+              );
+            }
+
+            final alerts = snapshot.data ?? [];
+            final activeAlerts = alerts
+                .where((a) => a['isActive'] == true)
+                .toList();
+
+            return SizedBox(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    FutureBuilder<String>(
+                      future: _emergencyAlertService
+                          .getCurrentEmergencyStatus(),
+                      builder: (context, statusSnapshot) {
+                        final status = statusSnapshot.data ?? 'All Clear';
+                        final statusColor = status == 'All Clear'
+                            ? Colors.green
+                            : status == 'Active Emergency'
+                            ? Colors.red
+                            : Colors.orange;
+                        return Row(
+                          children: [
+                            Text(
+                              'Current Status: ',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: statusColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                status,
+                                style: TextStyle(
+                                  color: statusColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    if (alerts.isEmpty) ...[
+                      const SizedBox(height: 16),
+                      const Text('No recent alerts'),
+                    ] else ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        activeAlerts.isNotEmpty
+                            ? 'Active Alerts:'
+                            : 'Recent Alerts:',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ...alerts.map((alert) {
+                        final priority = alert['priority'] ?? 'medium';
+                        final priorityColor = priority == 'critical'
+                            ? Colors.red
+                            : priority == 'high'
+                            ? Colors.orange
+                            : priority == 'medium'
+                            ? Colors.blue
+                            : Colors.grey;
+                        final createdAt = alert['createdAt'];
+                        DateTime? dateTime;
+                        if (createdAt is Timestamp) {
+                          dateTime = createdAt.toDate();
+                        } else if (createdAt is DateTime) {
+                          dateTime = createdAt;
+                        }
+                        final timeAgo = dateTime != null
+                            ? _getTimeAgo(dateTime)
+                            : 'Recently';
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                margin: const EdgeInsets.only(top: 6, right: 8),
+                                decoration: BoxDecoration(
+                                  color: priorityColor,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      alert['title'] ?? 'Alert',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                    if (alert['message'] != null)
+                                      Text(
+                                        alert['message'],
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withOpacity(0.7),
+                                            ),
+                                      ),
+                                    Text(
+                                      timeAgo,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withOpacity(0.5),
+                                            fontSize: 10,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          },
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Emergency contacts notified'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            },
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Alert Emergency'),
           ),
         ],
       ),

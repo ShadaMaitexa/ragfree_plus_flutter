@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
 import '../../services/activity_service.dart';
+import '../../services/emergency_alert_service.dart';
 import '../../models/activity_model.dart';
 import '../../utils/responsive.dart';
 
@@ -18,6 +19,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   final ActivityService _activityService = ActivityService();
+  final EmergencyAlertService _emergencyAlertService = EmergencyAlertService();
 
   @override
   void initState() {
@@ -823,44 +825,131 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
   }
 
   void _sendAlert(BuildContext context) {
+    final titleController = TextEditingController();
+    final messageController = TextEditingController();
+    String selectedPriority = 'medium';
+    final priorities = [
+      {'value': 'low', 'label': 'Low'},
+      {'value': 'medium', 'label': 'Medium'},
+      {'value': 'high', 'label': 'High'},
+      {'value': 'critical', 'label': 'Critical'},
+    ];
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Send Campus Alert'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
           children: [
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Alert Title',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Alert Message',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
+            Icon(Icons.emergency, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Send Campus Alert'),
           ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Alert Title',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.title),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: messageController,
+                decoration: const InputDecoration(
+                  labelText: 'Alert Message',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.message),
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: selectedPriority,
+                decoration: const InputDecoration(
+                  labelText: 'Priority',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.priority_high),
+                ),
+                items: priorities.map((priority) {
+                  return DropdownMenuItem(
+                    value: priority['value'],
+                    child: Text(priority['label']!),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  selectedPriority = value ?? 'medium';
+                },
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              titleController.dispose();
+              messageController.dispose();
+              Navigator.pop(context);
+            },
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Campus alert sent successfully!'),
-                  backgroundColor: Colors.green,
-                ),
-              );
+            onPressed: () async {
+              if (titleController.text.trim().isEmpty ||
+                  messageController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please fill in all fields'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              try {
+                final appState = Provider.of<AppState>(context, listen: false);
+                final user = appState.currentUser;
+
+                if (user != null) {
+                  await _emergencyAlertService.createEmergencyAlert(
+                    title: titleController.text.trim(),
+                    message: messageController.text.trim(),
+                    priority: selectedPriority,
+                    createdBy: user.uid,
+                  );
+
+                  titleController.dispose();
+                  messageController.dispose();
+
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Campus alert sent successfully!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Error: ${e.toString().replaceAll('Exception: ', '')}',
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
             },
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Send Alert'),
           ),
         ],
