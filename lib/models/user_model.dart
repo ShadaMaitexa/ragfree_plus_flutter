@@ -6,6 +6,7 @@ class UserModel {
   final bool isApproved; // For police and counsellor/warden
   final String? phone;
   final String? department;
+  final String? idProofUrl; // ID proof document URL
   final DateTime createdAt;
 
   UserModel({
@@ -16,6 +17,7 @@ class UserModel {
     this.isApproved = false,
     this.phone,
     this.department,
+    this.idProofUrl,
     required this.createdAt,
   });
 
@@ -28,6 +30,7 @@ class UserModel {
       'isApproved': isApproved,
       'phone': phone,
       'department': department,
+      'idProofUrl': idProofUrl,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -41,6 +44,7 @@ class UserModel {
       isApproved: map['isApproved'] ?? false,
       phone: map['phone'],
       department: map['department'],
+      idProofUrl: map['idProofUrl'],
       createdAt: map['createdAt'] != null
           ? DateTime.parse(map['createdAt'])
           : DateTime.now(),
@@ -55,6 +59,7 @@ class UserModel {
     bool? isApproved,
     String? phone,
     String? department,
+    String? idProofUrl,
     DateTime? createdAt,
   }) {
     return UserModel(
@@ -65,6 +70,7 @@ class UserModel {
       isApproved: isApproved ?? this.isApproved,
       phone: phone ?? this.phone,
       department: department ?? this.department,
+      idProofUrl: idProofUrl ?? this.idProofUrl,
       createdAt: createdAt ?? this.createdAt,
     );
   }

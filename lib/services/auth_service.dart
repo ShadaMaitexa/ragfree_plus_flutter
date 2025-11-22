@@ -20,6 +20,7 @@ class AuthService {
     required String role,
     String? phone,
     String? department,
+    String? idProofUrl,
   }) async {
     try {
       // Create user in Firebase Auth
@@ -42,6 +43,7 @@ class AuthService {
         isApproved: !needsApproval, // Students and parents are auto-approved
         phone: phone,
         department: department,
+        idProofUrl: idProofUrl,
         createdAt: DateTime.now(),
       );
 

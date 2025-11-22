@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../services/auth_service.dart';
 import '../services/app_state.dart';
+import '../services/cloudinary_service.dart';
 import '../models/user_model.dart';
 
 class RegistrationScreen extends StatefulWidget {
@@ -24,8 +27,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  File? _idProofFile;
+  String? _idProofUrl;
+  bool _isUploadingIdProof = false;
 
   final AuthService _authService = AuthService();
+  final CloudinaryService _cloudinaryService = CloudinaryService();
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void dispose() {
@@ -38,8 +46,88 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     super.dispose();
   }
 
+  Future<void> _pickIdProof() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        setState(() {
+          _idProofFile = File(image.path);
+          _idProofUrl = null; // Reset URL when new file is selected
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pick image: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _uploadIdProof() async {
+    if (_idProofFile == null) return;
+
+    setState(() => _isUploadingIdProof = true);
+
+    try {
+      final url = await _cloudinaryService.uploadImage(_idProofFile!);
+      if (url != null && mounted) {
+        setState(() {
+          _idProofUrl = url;
+          _isUploadingIdProof = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('ID proof uploaded successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        throw Exception('Failed to upload ID proof');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isUploadingIdProof = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to upload ID proof: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Check if ID proof is required and uploaded (for all roles except parent)
+    if (_selectedRole != 'parent') {
+      if (_idProofFile == null && _idProofUrl == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please upload your ID proof'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // If file is selected but not uploaded, upload it first
+      if (_idProofFile != null && _idProofUrl == null) {
+        await _uploadIdProof();
+        if (_idProofUrl == null) {
+          return; // Upload failed, don't proceed
+        }
+      }
+    }
 
     setState(() => _isLoading = true);
 
@@ -64,6 +152,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         department: _departmentController.text.trim().isEmpty
             ? null
             : _departmentController.text.trim(),
+        idProofUrl: _selectedRole != 'parent' ? _idProofUrl : null,
       );
 
       if (user != null && mounted) {
@@ -244,6 +333,121 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       _selectedRole == 'counsellor' ||
                       _selectedRole == 'warden')
                     const SizedBox(height: 16),
+                  // ID Proof Upload (for all roles except parent)
+                  if (_selectedRole != 'parent') ...[
+                    Text(
+                      'ID Proof Document *',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: _idProofFile == null && _idProofUrl == null
+                              ? Colors.red
+                              : Colors.grey,
+                          width: 2,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          if (_idProofFile != null || _idProofUrl != null)
+                            Container(
+                              height: 200,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(10),
+                                ),
+                                color: Colors.grey.shade100,
+                              ),
+                              child: _idProofUrl != null
+                                  ? ClipRRect(
+                                      borderRadius: const BorderRadius.vertical(
+                                        top: Radius.circular(10),
+                                      ),
+                                      child: Image.network(
+                                        _idProofUrl!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return const Center(
+                                            child: Icon(
+                                              Icons.broken_image,
+                                              size: 48,
+                                              color: Colors.grey,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    )
+                                  : _idProofFile != null
+                                      ? ClipRRect(
+                                          borderRadius: const BorderRadius.vertical(
+                                            top: Radius.circular(10),
+                                          ),
+                                          child: Image.file(
+                                            _idProofFile!,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        )
+                                      : const SizedBox(),
+                            ),
+                          Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: _isUploadingIdProof ? null : _pickIdProof,
+                                    icon: const Icon(Icons.photo_library),
+                                    label: const Text('Select ID Proof'),
+                                  ),
+                                ),
+                                if (_idProofFile != null && _idProofUrl == null) ...[
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: FilledButton.icon(
+                                      onPressed: _isUploadingIdProof
+                                          ? null
+                                          : _uploadIdProof,
+                                      icon: _isUploadingIdProof
+                                          ? const SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : const Icon(Icons.cloud_upload),
+                                      label: Text(
+                                        _isUploadingIdProof
+                                            ? 'Uploading...'
+                                            : 'Upload',
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (_idProofFile == null && _idProofUrl == null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4, left: 12),
+                        child: Text(
+                          'ID proof is required for ${_selectedRole == 'student' ? 'students' : _selectedRole == 'counsellor' ? 'counsellors' : _selectedRole == 'warden' ? 'wardens' : _selectedRole == 'police' ? 'police officers' : 'this role'}',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.red,
+                              ),
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                  ],
                   // Password Field
                   TextFormField(
                     controller: _passwordController,
@@ -344,7 +548,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       ),
       selected: isSelected,
       onSelected: (selected) {
-        setState(() => _selectedRole = role);
+        setState(() {
+          _selectedRole = role;
+          // Reset ID proof when switching roles
+          _idProofFile = null;
+          _idProofUrl = null;
+        });
       },
       selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
       checkmarkColor: Theme.of(context).colorScheme.primary,
