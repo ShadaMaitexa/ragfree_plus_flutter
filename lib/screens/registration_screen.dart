@@ -71,6 +71,95 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     }
   }
 
+  Widget _buildHeroPanel(BuildContext context, Color color) {
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Join the RagFree+ community',
+            style: textTheme.headlineMedium?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildHeroBullet(
+            context,
+            icon: Icons.shield,
+            title: 'Secure onboarding',
+            subtitle:
+                'Verified ID proofs and admin approvals keep the campus safe.',
+          ),
+          _buildHeroBullet(
+            context,
+            icon: Icons.group,
+            title: 'Role-specific dashboards',
+            subtitle:
+                'Students, parents, teachers, and staff get tailored tools.',
+          ),
+          _buildHeroBullet(
+            context,
+            icon: Icons.notifications_active,
+            title: 'Real-time alerts',
+            subtitle: 'Stay informed with emergency alerts and campus updates.',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroBullet(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    final color = Theme.of(context).colorScheme.primary;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Icon(icon, color: color),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  subtitle,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _uploadIdProof() async {
     if (_idProofFile == null) return;
 
@@ -134,9 +223,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     try {
       // Check if passwords match
       if (_passwordController.text != _confirmPasswordController.text) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Passwords do not match')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Passwords do not match')));
         setState(() => _isLoading = false);
         return;
       }
@@ -152,7 +241,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         department: _departmentController.text.trim().isEmpty
             ? null
             : _departmentController.text.trim(),
-        idProofUrl: (_selectedRole != 'parent' && _selectedRole != 'teacher') ? _idProofUrl : null,
+        idProofUrl: (_selectedRole != 'parent' && _selectedRole != 'teacher')
+            ? _idProofUrl
+            : null,
       );
 
       if (user != null && mounted) {
@@ -222,387 +313,429 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 20),
-                  Icon(
-                    Icons.person_add,
-                    size: 64,
-                    color: color,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Create Account',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: color,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Join RagFree+ to ensure campus safety',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  // Role Selection Dropdown
-                  DropdownButtonFormField<String>(
-                    value: _selectedRole,
-                    decoration: const InputDecoration(
-                      labelText: 'Select Your Role *',
-                      prefixIcon: Icon(Icons.person_outline),
-                      border: OutlineInputBorder(),
-                    ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'student',
-                        child: Row(
-                          children: [
-                            Icon(Icons.school, size: 20),
-                            SizedBox(width: 8),
-                            Text('Student'),
-                          ],
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value: 'parent',
-                        child: Row(
-                          children: [
-                            Icon(Icons.family_restroom, size: 20),
-                            SizedBox(width: 8),
-                            Text('Parent'),
-                          ],
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value: 'counsellor',
-                        child: Row(
-                          children: [
-                            Icon(Icons.psychology, size: 20),
-                            SizedBox(width: 8),
-                            Text('Counsellor'),
-                          ],
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value: 'warden',
-                        child: Row(
-                          children: [
-                            Icon(Icons.security, size: 20),
-                            SizedBox(width: 8),
-                            Text('Warden'),
-                          ],
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value: 'police',
-                        child: Row(
-                          children: [
-                            Icon(Icons.local_police, size: 20),
-                            SizedBox(width: 8),
-                            Text('Police'),
-                          ],
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value: 'teacher',
-                        child: Row(
-                          children: [
-                            Icon(Icons.person_outline, size: 20),
-                            SizedBox(width: 8),
-                            Text('Teacher'),
-                          ],
-                        ),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _selectedRole = value;
-                          // Reset ID proof when switching roles
-                          _idProofFile = null;
-                          _idProofUrl = null;
-                        });
-                      }
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please select a role';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  // Name Field
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Full Name',
-                      prefixIcon: Icon(Icons.person),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your name';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  // Email Field
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email),
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  // Phone Field (optional)
-                  TextFormField(
-                    controller: _phoneController,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone (Optional)',
-                      prefixIcon: Icon(Icons.phone),
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: 16),
-                  // Department Field (optional for some roles)
-                  if (_selectedRole == 'student' ||
-                      _selectedRole == 'counsellor' ||
-                      _selectedRole == 'warden')
-                    TextFormField(
-                      controller: _departmentController,
-                      decoration: const InputDecoration(
-                        labelText: 'Department',
-                        prefixIcon: Icon(Icons.business),
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  if (_selectedRole == 'student' ||
-                      _selectedRole == 'counsellor' ||
-                      _selectedRole == 'warden')
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 900;
+
+              final form = Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 20),
+                    Icon(Icons.person_add, size: 64, color: color),
                     const SizedBox(height: 16),
-                  // ID Proof Upload (for all roles except parent)
-                  if (_selectedRole != 'parent' && _selectedRole != 'teacher') ...[
                     Text(
-                      'ID Proof Document *',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                      'Create Account',
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.bold, color: color),
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: _idProofFile == null && _idProofUrl == null
-                              ? Colors.red
-                              : Colors.grey,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
+                    Text(
+                      'Join RagFree+ to ensure campus safety',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    DropdownButtonFormField<String>(
+                      value: _selectedRole,
+                      decoration: const InputDecoration(
+                        labelText: 'Select Your Role *',
+                        prefixIcon: Icon(Icons.person_outline),
+                        border: OutlineInputBorder(),
                       ),
-                      child: Column(
-                        children: [
-                          if (_idProofFile != null || _idProofUrl != null)
-                            Container(
-                              height: 200,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(10),
-                                ),
-                                color: Colors.grey.shade100,
-                              ),
-                              child: _idProofUrl != null
-                                  ? ClipRRect(
-                                      borderRadius: const BorderRadius.vertical(
-                                        top: Radius.circular(10),
-                                      ),
-                                      child: Image.network(
-                                        _idProofUrl!,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return const Center(
-                                            child: Icon(
-                                              Icons.broken_image,
-                                              size: 48,
-                                              color: Colors.grey,
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    )
-                                  : _idProofFile != null
-                                      ? ClipRRect(
-                                          borderRadius: const BorderRadius.vertical(
-                                            top: Radius.circular(10),
-                                          ),
-                                          child: Image.file(
-                                            _idProofFile!,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        )
-                                      : const SizedBox(),
-                            ),
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: _isUploadingIdProof ? null : _pickIdProof,
-                                    icon: const Icon(Icons.photo_library),
-                                    label: const Text('Select ID Proof'),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'student',
+                          child: Row(
+                            children: [
+                              Icon(Icons.school, size: 20),
+                              SizedBox(width: 8),
+                              Text('Student'),
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'parent',
+                          child: Row(
+                            children: [
+                              Icon(Icons.family_restroom, size: 20),
+                              SizedBox(width: 8),
+                              Text('Parent'),
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'counsellor',
+                          child: Row(
+                            children: [
+                              Icon(Icons.psychology, size: 20),
+                              SizedBox(width: 8),
+                              Text('Counsellor'),
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'warden',
+                          child: Row(
+                            children: [
+                              Icon(Icons.security, size: 20),
+                              SizedBox(width: 8),
+                              Text('Warden'),
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'police',
+                          child: Row(
+                            children: [
+                              Icon(Icons.local_police, size: 20),
+                              SizedBox(width: 8),
+                              Text('Police'),
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'teacher',
+                          child: Row(
+                            children: [
+                              Icon(Icons.person_outline, size: 20),
+                              SizedBox(width: 8),
+                              Text('Teacher'),
+                            ],
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _selectedRole = value;
+                            _idProofFile = null;
+                            _idProofUrl = null;
+                          });
+                        }
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please select a role';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Full Name',
+                        prefixIcon: Icon(Icons.person),
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your name';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _emailController,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        prefixIcon: Icon(Icons.email),
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your email';
+                        }
+                        if (!value.contains('@')) {
+                          return 'Please enter a valid email';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _phoneController,
+                      decoration: const InputDecoration(
+                        labelText: 'Phone (Optional)',
+                        prefixIcon: Icon(Icons.phone),
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 16),
+                    if (_selectedRole == 'student' ||
+                        _selectedRole == 'counsellor' ||
+                        _selectedRole == 'warden')
+                      TextFormField(
+                        controller: _departmentController,
+                        decoration: const InputDecoration(
+                          labelText: 'Department',
+                          prefixIcon: Icon(Icons.business),
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    if (_selectedRole == 'student' ||
+                        _selectedRole == 'counsellor' ||
+                        _selectedRole == 'warden')
+                      const SizedBox(height: 16),
+                    if (_selectedRole != 'parent' &&
+                        _selectedRole != 'teacher') ...[
+                      Text(
+                        'ID Proof Document *',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: _idProofFile == null && _idProofUrl == null
+                                ? Colors.red
+                                : Colors.grey,
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            if (_idProofFile != null || _idProofUrl != null)
+                              Container(
+                                height: 200,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(10),
                                   ),
+                                  color: Colors.grey.shade100,
                                 ),
-                                if (_idProofFile != null && _idProofUrl == null) ...[
-                                  const SizedBox(width: 8),
+                                child: _idProofUrl != null
+                                    ? ClipRRect(
+                                        borderRadius:
+                                            const BorderRadius.vertical(
+                                              top: Radius.circular(10),
+                                            ),
+                                        child: Image.network(
+                                          _idProofUrl!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                                return const Center(
+                                                  child: Icon(
+                                                    Icons.broken_image,
+                                                    size: 48,
+                                                    color: Colors.grey,
+                                                  ),
+                                                );
+                                              },
+                                        ),
+                                      )
+                                    : _idProofFile != null
+                                    ? ClipRRect(
+                                        borderRadius:
+                                            const BorderRadius.vertical(
+                                              top: Radius.circular(10),
+                                            ),
+                                        child: Image.file(
+                                          _idProofFile!,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      )
+                                    : const SizedBox(),
+                              ),
+                            Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                children: [
                                   Expanded(
-                                    child: FilledButton.icon(
+                                    child: OutlinedButton.icon(
                                       onPressed: _isUploadingIdProof
                                           ? null
-                                          : _uploadIdProof,
-                                      icon: _isUploadingIdProof
-                                          ? const SizedBox(
-                                              width: 16,
-                                              height: 16,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                              ),
-                                            )
-                                          : const Icon(Icons.cloud_upload),
-                                      label: Text(
-                                        _isUploadingIdProof
-                                            ? 'Uploading...'
-                                            : 'Upload',
-                                      ),
+                                          : _pickIdProof,
+                                      icon: const Icon(Icons.photo_library),
+                                      label: const Text('Select ID Proof'),
                                     ),
                                   ),
+                                  if (_idProofFile != null &&
+                                      _idProofUrl == null) ...[
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: FilledButton.icon(
+                                        onPressed: _isUploadingIdProof
+                                            ? null
+                                            : _uploadIdProof,
+                                        icon: _isUploadingIdProof
+                                            ? const SizedBox(
+                                                width: 16,
+                                                height: 16,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                    ),
+                                              )
+                                            : const Icon(Icons.cloud_upload),
+                                        label: Text(
+                                          _isUploadingIdProof
+                                              ? 'Uploading...'
+                                              : 'Upload',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ],
-                              ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (_idProofFile == null && _idProofUrl == null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4, left: 12),
+                          child: Text(
+                            'ID proof is required for ${_selectedRole == 'student'
+                                ? 'students'
+                                : _selectedRole == 'counsellor'
+                                ? 'counsellors'
+                                : _selectedRole == 'warden'
+                                ? 'wardens'
+                                : _selectedRole == 'police'
+                                ? 'police officers'
+                                : 'this role'}',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(color: Colors.red),
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                    ],
+                    TextFormField(
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
+                          onPressed: () {
+                            setState(
+                              () => _obscurePassword = !_obscurePassword,
+                            );
+                          },
+                        ),
+                        border: const OutlineInputBorder(),
+                      ),
+                      obscureText: _obscurePassword,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a password';
+                        }
+                        if (value.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _confirmPasswordController,
+                      decoration: InputDecoration(
+                        labelText: 'Confirm Password',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirmPassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
+                          onPressed: () {
+                            setState(
+                              () => _obscureConfirmPassword =
+                                  !_obscureConfirmPassword,
+                            );
+                          },
+                        ),
+                        border: const OutlineInputBorder(),
+                      ),
+                      obscureText: _obscureConfirmPassword,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please confirm your password';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 32),
+                    FilledButton(
+                      onPressed: _isLoading ? null : _register,
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Register'),
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, '/login');
+                      },
+                      child: const Text('Already have an account? Login'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (!isWide) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: form,
+                );
+              }
+
+              return Row(
+                children: [
+                  Expanded(child: _buildHeroPanel(context, color)),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 48,
+                        vertical: 32,
+                      ),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 520),
+                          child: Card(
+                            elevation: 6,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(32),
+                              child: form,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    if (_idProofFile == null && _idProofUrl == null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4, left: 12),
-                        child: Text(
-                          'ID proof is required for ${_selectedRole == 'student' ? 'students' : _selectedRole == 'counsellor' ? 'counsellors' : _selectedRole == 'warden' ? 'wardens' : _selectedRole == 'police' ? 'police officers' : 'this role'}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.red,
-                              ),
                         ),
                       ),
-                    const SizedBox(height: 16),
-                  ],
-                  // Password Field
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                        ),
-                        onPressed: () {
-                          setState(() => _obscurePassword = !_obscurePassword);
-                        },
-                      ),
-                      border: const OutlineInputBorder(),
                     ),
-                    obscureText: _obscurePassword,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a password';
-                      }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  // Confirm Password Field
-                  TextFormField(
-                    controller: _confirmPasswordController,
-                    decoration: InputDecoration(
-                      labelText: 'Confirm Password',
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureConfirmPassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
-                        onPressed: () {
-                          setState(
-                              () => _obscureConfirmPassword = !_obscureConfirmPassword);
-                        },
-                      ),
-                      border: const OutlineInputBorder(),
-                    ),
-                    obscureText: _obscureConfirmPassword,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please confirm your password';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 32),
-                  // Register Button
-                  FilledButton(
-                    onPressed: _isLoading ? null : _register,
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Register'),
-                  ),
-                  const SizedBox(height: 16),
-                  // Login Link
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/login');
-                    },
-                    child: const Text('Already have an account? Login'),
                   ),
                 ],
-              ),
-            ),
+              );
+            },
           ),
         ),
       ),
     );
   }
-
 }
-
