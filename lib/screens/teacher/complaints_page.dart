@@ -1,0 +1,304 @@
+import 'package:flutter/material.dart';
+import '../../services/complaint_service.dart';
+import '../../models/complaint_model.dart';
+import 'package:intl/intl.dart';
+
+class TeacherComplaintsPage extends StatefulWidget {
+  const TeacherComplaintsPage({super.key});
+
+  @override
+  State<TeacherComplaintsPage> createState() => _TeacherComplaintsPageState();
+}
+
+class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
+    with TickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  final ComplaintService _complaintService = ComplaintService();
+  String _selectedFilter = 'All';
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return FadeTransition(
+          opacity: _fadeAnimation,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark
+                    ? [color.withOpacity(0.05), Colors.transparent]
+                    : [Colors.grey.shade50, Colors.white],
+              ),
+            ),
+            child: Column(
+              children: [
+                _buildHeader(context, color),
+                _buildFilterChips(context),
+                Expanded(
+                  child: _buildComplaintsList(context),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.assignment, color: color, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Student Complaints',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                Text(
+                  'Monitor and respond to student safety reports',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChips(BuildContext context) {
+    final filters = ['All', 'Pending', 'In Progress', 'Resolved'];
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      height: 50,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: filters.length,
+        itemBuilder: (context, index) {
+          final filter = filters[index];
+          final isSelected = _selectedFilter == filter;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: FilterChip(
+              label: Text(filter),
+              selected: isSelected,
+              onSelected: (selected) {
+                setState(() => _selectedFilter = filter);
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildComplaintsList(BuildContext context) {
+    return StreamBuilder<List<ComplaintModel>>(
+      stream: _complaintService.getAllComplaints(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        final complaints = snapshot.data ?? [];
+        final filteredComplaints = _selectedFilter == 'All'
+            ? complaints
+            : complaints.where((c) {
+                switch (_selectedFilter) {
+                  case 'Pending':
+                    return c.status == 'Pending';
+                  case 'In Progress':
+                    return c.status == 'In Progress';
+                  case 'Resolved':
+                    return c.status == 'Resolved';
+                  default:
+                    return true;
+                }
+              }).toList();
+
+        if (filteredComplaints.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.assignment_outlined, size: 64, color: Colors.grey),
+                const SizedBox(height: 16),
+                Text(
+                  'No Complaints',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'No complaints found for the selected filter',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(20),
+          itemCount: filteredComplaints.length,
+          itemBuilder: (context, index) {
+            final complaint = filteredComplaints[index];
+            return _buildComplaintCard(context, complaint);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildComplaintCard(BuildContext context, ComplaintModel complaint) {
+    Color statusColor;
+    switch (complaint.status) {
+      case 'Resolved':
+        statusColor = Colors.green;
+        break;
+      case 'In Progress':
+        statusColor = Colors.orange;
+        break;
+      default:
+        statusColor = Colors.red;
+    }
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ExpansionTile(
+        leading: CircleAvatar(
+          backgroundColor: statusColor.withOpacity(0.1),
+          child: Icon(Icons.assignment, color: statusColor, size: 20),
+        ),
+        title: Text(
+          complaint.title,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Student: ${complaint.studentName ?? "Anonymous"}'),
+            Text(
+              DateFormat('MMM dd, yyyy').format(complaint.createdAt),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: statusColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            complaint.status,
+            style: TextStyle(
+              color: statusColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+          ),
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Description:',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text(complaint.description),
+                if (complaint.mediaUrls.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    'Media Attachments:',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: complaint.mediaUrls.map((url) {
+                      return Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            url,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(Icons.broken_image);
+                            },
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

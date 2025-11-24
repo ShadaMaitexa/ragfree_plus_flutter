@@ -108,8 +108,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Check if ID proof is required and uploaded (for all roles except parent)
-    if (_selectedRole != 'parent') {
+    // Check if ID proof is required and uploaded (for all roles except parent and teacher)
+    if (_selectedRole != 'parent' && _selectedRole != 'teacher') {
       if (_idProofFile == null && _idProofUrl == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -152,7 +152,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         department: _departmentController.text.trim().isEmpty
             ? null
             : _departmentController.text.trim(),
-        idProofUrl: _selectedRole != 'parent' ? _idProofUrl : null,
+        idProofUrl: (_selectedRole != 'parent' && _selectedRole != 'teacher') ? _idProofUrl : null,
       );
 
       if (user != null && mounted) {
@@ -198,6 +198,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         break;
       case 'police':
         Navigator.pushReplacementNamed(context, '/police');
+        break;
+      case 'teacher':
+        Navigator.pushReplacementNamed(context, '/teacher');
         break;
     }
   }
@@ -307,6 +310,16 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           ],
                         ),
                       ),
+                      DropdownMenuItem(
+                        value: 'teacher',
+                        child: Row(
+                          children: [
+                            Icon(Icons.person_outline, size: 20),
+                            SizedBox(width: 8),
+                            Text('Teacher'),
+                          ],
+                        ),
+                      ),
                     ],
                     onChanged: (value) {
                       if (value != null) {
@@ -390,7 +403,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       _selectedRole == 'warden')
                     const SizedBox(height: 16),
                   // ID Proof Upload (for all roles except parent)
-                  if (_selectedRole != 'parent') ...[
+                  if (_selectedRole != 'parent' && _selectedRole != 'teacher') ...[
                     Text(
                       'ID Proof Document *',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(

@@ -3,7 +3,11 @@ import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
 import '../../services/activity_service.dart';
 import '../../services/emergency_alert_service.dart';
+import '../../services/complaint_service.dart';
+import '../../services/auth_service.dart';
 import '../../models/activity_model.dart';
+import '../../models/complaint_model.dart';
+import '../../models/user_model.dart';
 import '../../utils/responsive.dart';
 
 class AdminDashboardPage extends StatefulWidget {
@@ -20,6 +24,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
   late Animation<Offset> _slideAnimation;
   final ActivityService _activityService = ActivityService();
   final EmergencyAlertService _emergencyAlertService = EmergencyAlertService();
+  final ComplaintService _complaintService = ComplaintService();
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
@@ -184,57 +190,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
   }
 
   Widget _buildStatsGrid(BuildContext context, Color color) {
-    final stats = [
-      {
-        'label': 'Total Complaints',
-        'value': '247',
-        'icon': Icons.assignment,
-        'color': Colors.blue,
-        'change': '+12%',
-        'changeColor': Colors.green,
-      },
-      {
-        'label': 'Resolved',
-        'value': '189',
-        'icon': Icons.check_circle,
-        'color': Colors.green,
-        'change': '+8%',
-        'changeColor': Colors.green,
-      },
-      {
-        'label': 'Pending',
-        'value': '45',
-        'icon': Icons.pending,
-        'color': Colors.orange,
-        'change': '-5%',
-        'changeColor': Colors.red,
-      },
-      {
-        'label': 'Active Users',
-        'value': '1,234',
-        'icon': Icons.people,
-        'color': Colors.purple,
-        'change': '+15%',
-        'changeColor': Colors.green,
-      },
-      {
-        'label': 'Counsellors',
-        'value': '12',
-        'icon': Icons.psychology,
-        'color': Colors.teal,
-        'change': '+2',
-        'changeColor': Colors.blue,
-      },
-      {
-        'label': 'Response Time',
-        'value': '2.3h',
-        'icon': Icons.timer,
-        'color': Colors.red,
-        'change': '-0.5h',
-        'changeColor': Colors.green,
-      },
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -245,41 +200,138 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
           ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 16),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final crossAxisCount = Responsive.getGridCrossAxisCount(
-              context,
-              mobile: 2,
-              tablet: 3,
-              desktop: 3,
-            );
-            final childAspectRatio = Responsive.getGridAspectRatio(
-              context,
-              mobile: 1.4,
-              tablet: 1.3,
-              desktop: 1.1,
-            );
+        StreamBuilder<List<ComplaintModel>>(
+          stream: _complaintService.getAllComplaints(),
+          builder: (context, complaintsSnapshot) {
+            return StreamBuilder<List<UserModel>>(
+              stream: _authService.getUsersByRole('student'),
+              builder: (context, studentsSnapshot) {
+                return StreamBuilder<List<UserModel>>(
+                  stream: _authService.getUsersByRole('counsellor'),
+                  builder: (context, counsellorsSnapshot) {
+                    return StreamBuilder<List<UserModel>>(
+                      stream: _authService.getUsersByRole('teacher'),
+                      builder: (context, teachersSnapshot) {
+                        final complaints = complaintsSnapshot.data ?? [];
+                        final students = studentsSnapshot.data ?? [];
+                        final counsellors = counsellorsSnapshot.data ?? [];
+                        final teachers = teachersSnapshot.data ?? [];
+                        
+                        final totalComplaints = complaints.length;
+                        final resolvedComplaints = complaints.where((c) => c.status == 'Resolved').length;
+                        final pendingComplaints = complaints.where((c) => c.status == 'Pending').length;
+                        final totalUsers = students.length + counsellors.length + teachers.length;
+                        
+                        // Calculate average response time (hours between created and updated)
+                        double avgResponseTime = 0.0;
+                        if (resolvedComplaints > 0) {
+                          final resolved = complaints.where((c) => c.status == 'Resolved' && c.updatedAt != null).toList();
+                          if (resolved.isNotEmpty) {
+                            final totalHours = resolved.fold<double>(0.0, (sum, c) {
+                              if (c.updatedAt != null) {
+                                final diff = c.updatedAt!.difference(c.createdAt);
+                                return sum + diff.inHours.toDouble();
+                              }
+                              return sum;
+                            });
+                            avgResponseTime = totalHours / resolved.length;
+                          }
+                        }
 
-            return GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: childAspectRatio,
-              ),
-              itemCount: stats.length,
-              itemBuilder: (context, index) {
-                final stat = stats[index];
-                return _buildStatCard(
-                  context,
-                  stat['icon'] as IconData,
-                  stat['label'] as String,
-                  stat['value'] as String,
-                  stat['color'] as Color,
-                  stat['change'] as String,
-                  stat['changeColor'] as Color,
+                        final stats = [
+                          {
+                            'label': 'Total Complaints',
+                            'value': totalComplaints.toString(),
+                            'icon': Icons.assignment,
+                            'color': Colors.blue,
+                            'change': '',
+                            'changeColor': Colors.transparent,
+                          },
+                          {
+                            'label': 'Resolved',
+                            'value': resolvedComplaints.toString(),
+                            'icon': Icons.check_circle,
+                            'color': Colors.green,
+                            'change': totalComplaints > 0 ? '${((resolvedComplaints / totalComplaints) * 100).toStringAsFixed(0)}%' : '0%',
+                            'changeColor': Colors.green,
+                          },
+                          {
+                            'label': 'Pending',
+                            'value': pendingComplaints.toString(),
+                            'icon': Icons.pending,
+                            'color': Colors.orange,
+                            'change': totalComplaints > 0 ? '${((pendingComplaints / totalComplaints) * 100).toStringAsFixed(0)}%' : '0%',
+                            'changeColor': Colors.orange,
+                          },
+                          {
+                            'label': 'Active Users',
+                            'value': totalUsers.toString(),
+                            'icon': Icons.people,
+                            'color': Colors.purple,
+                            'change': '',
+                            'changeColor': Colors.transparent,
+                          },
+                          {
+                            'label': 'Counsellors',
+                            'value': counsellors.length.toString(),
+                            'icon': Icons.psychology,
+                            'color': Colors.teal,
+                            'change': '',
+                            'changeColor': Colors.transparent,
+                          },
+                          {
+                            'label': 'Response Time',
+                            'value': avgResponseTime > 0 ? '${avgResponseTime.toStringAsFixed(1)}h' : 'N/A',
+                            'icon': Icons.timer,
+                            'color': Colors.red,
+                            'change': '',
+                            'changeColor': Colors.transparent,
+                          },
+                        ];
+
+                        return LayoutBuilder(
+                          builder: (context, constraints) {
+                            final crossAxisCount = Responsive.getGridCrossAxisCount(
+                              context,
+                              mobile: 2,
+                              tablet: 3,
+                              desktop: 3,
+                            );
+                            final childAspectRatio = Responsive.getGridAspectRatio(
+                              context,
+                              mobile: 1.4,
+                              tablet: 1.3,
+                              desktop: 1.1,
+                            );
+
+                            return GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: crossAxisCount,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                                childAspectRatio: childAspectRatio,
+                              ),
+                              itemCount: stats.length,
+                              itemBuilder: (context, index) {
+                                final stat = stats[index];
+                                return _buildStatCard(
+                                  context,
+                                  stat['icon'] as IconData,
+                                  stat['label'] as String,
+                                  stat['value'] as String,
+                                  stat['color'] as Color,
+                                  stat['change'] as String,
+                                  stat['changeColor'] as Color,
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
                 );
               },
             );

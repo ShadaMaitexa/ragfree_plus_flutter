@@ -121,6 +121,9 @@ class _LoginScreenState extends State<LoginScreen> {
       case 'police':
         Navigator.pushReplacementNamed(context, '/police');
         break;
+      case 'teacher':
+        Navigator.pushReplacementNamed(context, '/teacher');
+        break;
     }
   }
 

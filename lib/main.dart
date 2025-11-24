@@ -37,6 +37,11 @@ import 'screens/police/verify_page.dart' as police_pages;
 import 'screens/police/generate_report_page.dart' as police_pages;
 import 'screens/police/send_notification_page.dart' as police_pages;
 import 'screens/police/awareness_page.dart' as police_pages;
+import 'screens/teacher/dashboard_page.dart' as teacher_pages;
+import 'screens/teacher/complaints_page.dart' as teacher_pages;
+import 'screens/teacher/chat_page.dart' as teacher_pages;
+import 'screens/teacher/awareness_page.dart' as teacher_pages;
+import 'screens/teacher/profile_page.dart' as teacher_pages;
 import 'screens/admin/dashboard_page.dart' as admin_pages;
 import 'screens/admin/manage_users_page.dart' as admin_pages;
 import 'screens/admin/complaints_page.dart' as admin_pages;
@@ -104,6 +109,9 @@ class RagFreePlusApp extends StatelessWidget {
           case Routes.police:
             page = const PoliceDashboard();
             break;
+          case Routes.teacher:
+            page = const TeacherDashboard();
+            break;
           default:
             page = const SplashScreen();
         }
@@ -124,6 +132,7 @@ class Routes {
   static const String counsellor = '/counsellor';
   static const String warden = '/warden';
   static const String police = '/police';
+  static const String teacher = '/teacher';
 }
 
 class SplashScreen extends StatefulWidget {
@@ -184,7 +193,8 @@ class _SplashScreenState extends State<SplashScreen>
         // Check if approval is needed
         if ((userData.role == 'police' ||
                 userData.role == 'counsellor' ||
-                userData.role == 'warden') &&
+                userData.role == 'warden' ||
+                userData.role == 'teacher') &&
             !userData.isApproved) {
           Navigator.of(context).pushReplacementNamed(Routes.approvalPending);
         } else {
@@ -207,6 +217,9 @@ class _SplashScreenState extends State<SplashScreen>
               break;
             case 'police':
               Navigator.of(context).pushReplacementNamed(Routes.police);
+              break;
+            case 'teacher':
+              Navigator.of(context).pushReplacementNamed(Routes.teacher);
               break;
             default:
               Navigator.of(context).pushReplacementNamed(Routes.login);
@@ -1147,6 +1160,145 @@ class _PoliceAwarenessProxy extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       const police_pages.PoliceAwarenessPage();
+}
+
+class TeacherDashboard extends StatefulWidget {
+  const TeacherDashboard({super.key});
+
+  @override
+  State<TeacherDashboard> createState() => _TeacherDashboardState();
+}
+
+class _TeacherDashboardState extends State<TeacherDashboard> {
+  final PageController _pageController = PageController();
+  int selectedIndex = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pages = <Widget>[
+      _TeacherDashboardPages.dashboard,
+      _TeacherDashboardPages.complaints,
+      _TeacherDashboardPages.chat,
+      _TeacherDashboardPages.awareness,
+      _TeacherDashboardPages.profile,
+    ];
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          Navigator.of(context).pushReplacementNamed(Routes.login);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Teacher Dashboard')),
+        body: PageView(
+          controller: _pageController,
+          onPageChanged: (i) => setState(() => selectedIndex = i),
+          children: pages,
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: selectedIndex,
+          onTap: (i) {
+            setState(() => selectedIndex = i);
+            _pageController.animateToPage(
+              i,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
+            );
+          },
+          type: BottomNavigationBarType.fixed,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.assignment),
+              label: 'Complaints',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.chat_bubble),
+              label: 'Chat',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.school),
+              label: 'Awareness',
+            ),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TeacherDashboardPages {
+  static const Widget dashboard = _TeacherLazy(page: _TeacherPage.dashboard);
+  static const Widget complaints = _TeacherLazy(page: _TeacherPage.complaints);
+  static const Widget chat = _TeacherLazy(page: _TeacherPage.chat);
+  static const Widget awareness = _TeacherLazy(page: _TeacherPage.awareness);
+  static const Widget profile = _TeacherLazy(page: _TeacherPage.profile);
+}
+
+enum _TeacherPage { dashboard, complaints, chat, awareness, profile }
+
+class _TeacherLazy extends StatelessWidget {
+  final _TeacherPage page;
+  const _TeacherLazy({required this.page});
+
+  @override
+  Widget build(BuildContext context) {
+    switch (page) {
+      case _TeacherPage.dashboard:
+        return const _TeacherDashboardProxy();
+      case _TeacherPage.complaints:
+        return const _TeacherComplaintsProxy();
+      case _TeacherPage.chat:
+        return const _TeacherChatProxy();
+      case _TeacherPage.awareness:
+        return const _TeacherAwarenessProxy();
+      case _TeacherPage.profile:
+        return const _TeacherProfileProxy();
+    }
+  }
+}
+
+class _TeacherDashboardProxy extends StatelessWidget {
+  const _TeacherDashboardProxy();
+  @override
+  Widget build(BuildContext context) =>
+      const teacher_pages.TeacherDashboardPage();
+}
+
+class _TeacherComplaintsProxy extends StatelessWidget {
+  const _TeacherComplaintsProxy();
+  @override
+  Widget build(BuildContext context) =>
+      const teacher_pages.TeacherComplaintsPage();
+}
+
+class _TeacherChatProxy extends StatelessWidget {
+  const _TeacherChatProxy();
+  @override
+  Widget build(BuildContext context) =>
+      const teacher_pages.TeacherChatPage();
+}
+
+class _TeacherAwarenessProxy extends StatelessWidget {
+  const _TeacherAwarenessProxy();
+  @override
+  Widget build(BuildContext context) =>
+      const teacher_pages.TeacherAwarenessPage();
+}
+
+class _TeacherProfileProxy extends StatelessWidget {
+  const _TeacherProfileProxy();
+  @override
+  Widget build(BuildContext context) =>
+      const teacher_pages.TeacherProfilePage();
 }
 
 class DrawerItem {

@@ -7,9 +7,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class ParentProfilePage extends StatefulWidget {
   const ParentProfilePage({super.key});
 
-  @override
+  @override 
   State<ParentProfilePage> createState() => _ParentProfilePageState();
-}
+} 
 
 class _ParentProfilePageState extends State<ParentProfilePage>
     with TickerProviderStateMixin {

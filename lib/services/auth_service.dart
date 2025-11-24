@@ -294,7 +294,7 @@ class AuthService {
     return _firestore
         .collection('users')
         .where('isApproved', isEqualTo: false)
-        .where('role', whereIn: ['student', 'parent', 'police', 'counsellor', 'warden'])
+        .where('role', whereIn: ['student', 'parent', 'police', 'counsellor', 'warden', 'teacher'])
         .snapshots()
         .map((snapshot) {
       return snapshot.docs

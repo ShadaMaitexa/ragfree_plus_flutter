@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 
-enum UserRole { student, parent, admin, counsellor, warden, police, none }
+enum UserRole { student, parent, admin, counsellor, warden, police, teacher, none }
 
 class AppState extends ChangeNotifier {
   UserRole _role = UserRole.none;
@@ -46,6 +46,9 @@ class AppState extends ChangeNotifier {
           break;
         case 'police':
           _role = UserRole.police;
+          break;
+        case 'teacher':
+          _role = UserRole.teacher;
           break;
         default:
           _role = UserRole.none;
