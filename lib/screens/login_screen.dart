@@ -311,7 +311,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: () {
                             setState(
                               () => _obscurePassword = !_obscurePassword,
-                            );
+                            ); 
                           },
                         ),
                         border: const OutlineInputBorder(),
