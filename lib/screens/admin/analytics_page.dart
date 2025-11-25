@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../services/complaint_service.dart';
+import '../../services/auth_service.dart';
+import '../../models/complaint_model.dart';
+import '../../models/user_model.dart';
 
 class AdminAnalyticsPage extends StatefulWidget {
   const AdminAnalyticsPage({super.key});
@@ -12,6 +16,8 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late TabController _tabController;
+  final ComplaintService _complaintService = ComplaintService();
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
@@ -405,28 +411,41 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatItem(context, 'Total', '1,247', Colors.blue),
-                ),
-                Expanded(
-                  child: _buildStatItem(
-                    context,
-                    'Resolved',
-                    '1,089',
-                    Colors.green,
-                  ),
-                ),
-                Expanded(
-                  child: _buildStatItem(
-                    context,
-                    'Pending',
-                    '158',
-                    Colors.orange,
-                  ),
-                ),
-              ],
+            StreamBuilder<List<ComplaintModel>>(
+              stream: _complaintService.getAllComplaints(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final complaints = snapshot.data ?? [];
+                final total = complaints.length;
+                final resolved = complaints.where((c) => c.status == 'Resolved').length;
+                final pending = complaints.where((c) => c.status == 'Pending').length;
+                
+                return Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatItem(context, 'Total', total.toString(), Colors.blue),
+                    ),
+                    Expanded(
+                      child: _buildStatItem(
+                        context,
+                        'Resolved',
+                        resolved.toString(),
+                        Colors.green,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildStatItem(
+                        context,
+                        'Pending',
+                        pending.toString(),
+                        Colors.orange,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -435,64 +454,155 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
   }
 
   Widget _buildComplaintsByCategory(BuildContext context) {
-    final categories = [
-      {'name': 'Harassment', 'count': 45, 'color': Colors.red},
-      {'name': 'Bullying', 'count': 32, 'color': Colors.orange},
-      {'name': 'Discrimination', 'count': 28, 'color': Colors.purple},
-      {'name': 'Cyber Bullying', 'count': 25, 'color': Colors.blue},
-      {'name': 'Other', 'count': 18, 'color': Colors.grey},
-    ];
+    return StreamBuilder<List<ComplaintModel>>(
+      stream: _complaintService.getAllComplaints(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: const Padding(
+              padding: EdgeInsets.all(20),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          );
+        }
+        
+        final complaints = snapshot.data ?? [];
+        final categoryCounts = <String, int>{};
+        final categoryColors = {
+          'Harassment': Colors.red,
+          'Bullying': Colors.orange,
+          'Discrimination': Colors.purple,
+          'Cyber Bullying': Colors.blue,
+          'Other': Colors.grey,
+        };
+        
+        for (var complaint in complaints) {
+          final category = complaint.category.isEmpty ? 'Other' : complaint.category;
+          categoryCounts[category] = (categoryCounts[category] ?? 0) + 1;
+        }
+        
+        final categories = categoryCounts.entries.map((entry) {
+          return {
+            'name': entry.key,
+            'count': entry.value,
+            'color': categoryColors[entry.key] ?? Colors.grey,
+          };
+        }).toList()
+          ..sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
+        
+        if (categories.isEmpty) {
+          return Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Complaints by Category',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 16),
+                  const Center(child: Text('No complaints yet')),
+                ],
+              ),
+            ),
+          );
+        }
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Complaints by Category',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+        return Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Complaints by Category',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 16),
+                ...categories.map(
+                  (category) => _buildCategoryItem(context, category),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            ...categories.map(
-              (category) => _buildCategoryItem(context, category),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildComplaintsByStatus(BuildContext context) {
-    final statuses = [
-      {'name': 'Resolved', 'count': 1, 'color': Colors.green},
-      {'name': 'In Progress', 'count': 45, 'color': Colors.blue},
-      {'name': 'Pending', 'count': 12, 'color': Colors.orange},
-    ];
-
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Complaints by Status',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+    return StreamBuilder<List<ComplaintModel>>(
+      stream: _complaintService.getAllComplaints(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: const Padding(
+              padding: EdgeInsets.all(20),
+              child: Center(child: CircularProgressIndicator()),
             ),
-            const SizedBox(height: 16),
-            ...statuses.map((status) => _buildStatusItem(context, status)),
-          ],
-        ),
-      ),
+          );
+        }
+        
+        final complaints = snapshot.data ?? [];
+        final statusCounts = <String, int>{};
+        final statusColors = {
+          'Resolved': Colors.green,
+          'In Progress': Colors.blue,
+          'Pending': Colors.orange,
+        };
+        
+        for (var complaint in complaints) {
+          final status = complaint.status;
+          statusCounts[status] = (statusCounts[status] ?? 0) + 1;
+        }
+        
+        final statuses = statusCounts.entries.map((entry) {
+          return {
+            'name': entry.key,
+            'count': entry.value,
+            'color': statusColors[entry.key] ?? Colors.grey,
+          };
+        }).toList()
+          ..sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
+
+        return Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Complaints by Status',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 16),
+                statuses.isEmpty
+                    ? const Center(child: Text('No complaints yet'))
+                    : Column(
+                        children: statuses.map((status) => _buildStatusItem(context, status)).toList(),
+                      ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -512,28 +622,54 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatItem(
-                    context,
-                    'Students',
-                    '1,234',
-                    Colors.blue,
-                  ),
-                ),
-                Expanded(
-                  child: _buildStatItem(
-                    context,
-                    'Parents',
-                    '456',
-                    Colors.green,
-                  ),
-                ),
-                Expanded(
-                  child: _buildStatItem(context, 'Staff', '89', Colors.orange),
-                ),
-              ],
+            StreamBuilder<List<UserModel>>(
+              stream: _authService.getUsersByRole('student'),
+              builder: (context, studentsSnapshot) {
+                return StreamBuilder<List<UserModel>>(
+                  stream: _authService.getUsersByRole('parent'),
+                  builder: (context, parentsSnapshot) {
+                    return StreamBuilder<List<UserModel>>(
+                      stream: _authService.getUsersByRole('teacher'),
+                      builder: (context, teachersSnapshot) {
+                        return StreamBuilder<List<UserModel>>(
+                          stream: _authService.getUsersByRole('counsellor'),
+                          builder: (context, counsellorsSnapshot) {
+                            final students = studentsSnapshot.data ?? [];
+                            final parents = parentsSnapshot.data ?? [];
+                            final teachers = teachersSnapshot.data ?? [];
+                            final counsellors = counsellorsSnapshot.data ?? [];
+                            final staff = teachers.length + counsellors.length;
+                            
+                            return Row(
+                              children: [
+                                Expanded(
+                                  child: _buildStatItem(
+                                    context,
+                                    'Students',
+                                    students.length.toString(),
+                                    Colors.blue,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _buildStatItem(
+                                    context,
+                                    'Parents',
+                                    parents.length.toString(),
+                                    Colors.green,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _buildStatItem(context, 'Staff', staff.toString(), Colors.orange),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                );
+              },
             ),
           ],
         ),
@@ -542,32 +678,97 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
   }
 
   Widget _buildUserActivity(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'User Activity',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 16),
-            _buildActivityItem(
-              context,
-              'Active Users Today',
-              '1,180',
-              Colors.green,
-            ),
-            _buildActivityItem(context, 'New Registrations', '23', Colors.blue),
-            _buildActivityItem(context, 'Login Rate', '95.2%', Colors.orange),
-          ],
-        ),
-      ),
+    return StreamBuilder<List<UserModel>>(
+      stream: _authService.getUsersByRole('student'),
+      builder: (context, studentsSnapshot) {
+        return StreamBuilder<List<UserModel>>(
+          stream: _authService.getUsersByRole('parent'),
+          builder: (context, parentsSnapshot) {
+            return StreamBuilder<List<UserModel>>(
+              stream: _authService.getUsersByRole('teacher'),
+              builder: (context, teachersSnapshot) {
+                return StreamBuilder<List<UserModel>>(
+                  stream: _authService.getUsersByRole('counsellor'),
+                  builder: (context, counsellorsSnapshot) {
+                    return StreamBuilder<List<UserModel>>(
+                      stream: _authService.getUsersByRole('warden'),
+                      builder: (context, wardensSnapshot) {
+                        return StreamBuilder<List<UserModel>>(
+                          stream: _authService.getUsersByRole('police'),
+                          builder: (context, policeSnapshot) {
+                            final students = studentsSnapshot.data ?? [];
+                            final parents = parentsSnapshot.data ?? [];
+                            final teachers = teachersSnapshot.data ?? [];
+                            final counsellors = counsellorsSnapshot.data ?? [];
+                            final wardens = wardensSnapshot.data ?? [];
+                            final police = policeSnapshot.data ?? [];
+                            
+                            final totalUsers = students.length + parents.length + 
+                                            teachers.length + counsellors.length + 
+                                            wardens.length + police.length;
+                            
+                            // Count new registrations (created in last 7 days)
+                            final now = DateTime.now();
+                            final weekAgo = now.subtract(const Duration(days: 7));
+                            final newRegistrations = [
+                              ...students,
+                              ...parents,
+                              ...teachers,
+                              ...counsellors,
+                              ...wardens,
+                              ...police,
+                            ].where((user) {
+                              return user.createdAt.isAfter(weekAgo);
+                            }).length;
+                            
+                            return Card(
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'User Activity',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    _buildActivityItem(
+                                      context,
+                                      'Active Users',
+                                      totalUsers.toString(),
+                                      Colors.green,
+                                    ),
+                                    _buildActivityItem(
+                                      context, 
+                                      'New Registrations (7 days)', 
+                                      newRegistrations.toString(), 
+                                      Colors.blue
+                                    ),
+                                    _buildActivityItem(
+                                      context, 
+                                      'Total Users', 
+                                      totalUsers.toString(), 
+                                      Colors.orange
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 

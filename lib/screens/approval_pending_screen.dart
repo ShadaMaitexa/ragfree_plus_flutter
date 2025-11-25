@@ -64,6 +64,9 @@ class _ApprovalPendingScreenState extends State<ApprovalPendingScreen> {
       case 'police':
         Navigator.pushReplacementNamed(context, '/police');
         break;
+      case 'teacher':
+        Navigator.pushReplacementNamed(context, '/teacher');
+        break;
     }
   }
 

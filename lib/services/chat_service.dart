@@ -143,6 +143,20 @@ class ChatService {
             .toList());
   }
 
+  // Get conversations for a teacher (can see all student conversations)
+  Stream<List<ChatConversationModel>> getTeacherConversations(String teacherId) {
+    return _firestore
+        .collection('chat_conversations')
+        .orderBy('lastMessageAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ChatConversationModel.fromMap({
+                  ...doc.data(),
+                  'id': doc.id,
+                }))
+            .toList());
+  }
+
   // Mark messages as read
   Future<void> markAsRead(String chatId, String userId) async {
     try {
