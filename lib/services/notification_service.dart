@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/notification_model.dart';
+import 'emailjs_service.dart';
 
 class NotificationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final EmailJSService _emailJSService = EmailJSService();
 
   // Get notifications for a user
   Stream<List<NotificationModel>> getUserNotifications(String userId) {
@@ -12,12 +14,14 @@ class NotificationService {
         .orderBy('createdAt', descending: true)
         .limit(10)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => NotificationModel.fromMap({
-                  ...doc.data(),
-                  'id': doc.id,
-                }))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) =>
+                    NotificationModel.fromMap({...doc.data(), 'id': doc.id}),
+              )
+              .toList(),
+        );
   }
 
   // Get unread notifications count
@@ -49,6 +53,7 @@ class NotificationService {
     required String type,
     String? relatedId,
     String? relatedType,
+    bool sendEmail = true,
   }) async {
     try {
       await _firestore.collection('notifications').add({
@@ -61,6 +66,31 @@ class NotificationService {
         'relatedId': relatedId,
         'relatedType': relatedType,
       });
+
+      // Send email notification if enabled
+      if (sendEmail) {
+        try {
+          final userEmail = await _emailJSService.getUserEmail(userId);
+          if (userEmail != null) {
+            final userDoc = await _firestore
+                .collection('users')
+                .doc(userId)
+                .get();
+            final userName = userDoc.data()?['name'] as String? ?? 'User';
+
+            await _emailJSService.sendNotificationEmail(
+              userEmail: userEmail,
+              userName: userName,
+              notificationTitle: title,
+              notificationMessage: message,
+              notificationType: type,
+            );
+          }
+        } catch (e) {
+          // Email sending failed, but notification was created - continue silently
+          print('Email notification failed: $e');
+        }
+      }
     } catch (e) {
       throw Exception('Failed to create notification: ${e.toString()}');
     }
@@ -99,4 +129,3 @@ class NotificationService {
     }
   }
 }
-

@@ -1,10 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
+import 'emailjs_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final EmailJSService _emailJSService = EmailJSService();
 
   // Get current user
   User? get currentUser => _auth.currentUser;
@@ -52,6 +54,20 @@ class AuthService {
           .collection('users')
           .doc(userCredential.user!.uid)
           .set(userModel.toMap());
+
+      // Send registration confirmation email
+      try {
+        if (needsApproval) {
+          await _emailJSService.sendPendingApprovalEmail(
+            userEmail: email,
+            userName: name,
+            userRole: role,
+          );
+        }
+      } catch (e) {
+        // Email sending failed, but registration succeeded - continue silently
+        print('Registration email failed: $e');
+      }
 
       return userModel;
     } catch (e) {
@@ -267,9 +283,34 @@ class AuthService {
   // Admin approve user (police or teacher)
   Future<void> approveUser(String userId) async {
     try {
+      // Get user data before updating
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      if (!userDoc.exists) {
+        throw Exception('User not found');
+      }
+      
+      final userData = userDoc.data()!;
+      final userEmail = userData['email'] as String?;
+      final userName = userData['name'] as String?;
+      final userRole = userData['role'] as String?;
+
       await _firestore.collection('users').doc(userId).update({
         'isApproved': true,
       });
+
+      // Send approval email
+      if (userEmail != null && userName != null && userRole != null) {
+        try {
+          await _emailJSService.sendApprovalEmail(
+            userEmail: userEmail,
+            userName: userName,
+            userRole: userRole,
+          );
+        } catch (e) {
+          // Email sending failed, but approval succeeded - continue silently
+          print('Approval email failed: $e');
+        }
+      }
     } catch (e) {
       throw Exception('Failed to approve user: ${e.toString()}');
     }

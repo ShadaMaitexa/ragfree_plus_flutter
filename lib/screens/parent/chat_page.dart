@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../services/chat_service.dart';
+import '../../services/app_state.dart';
+import '../../models/chat_message_model.dart';
+import 'package:intl/intl.dart';
 
 class ParentChatPage extends StatefulWidget {
   const ParentChatPage({super.key});
@@ -11,41 +16,7 @@ class _ParentChatPageState extends State<ParentChatPage>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-
-  final List<Map<String, dynamic>> _conversations = [
-    {
-      'id': 'C001',
-      'name': 'Dr. Sarah Wilson',
-      'role': 'Student Counselor',
-      'lastMessage':
-          'Emma\'s case is progressing well. We\'ll have an update soon.',
-      'time': '2 hours ago',
-      'unread': 1,
-      'isOnline': true,
-      'avatar': 'SW',
-    },
-    {
-      'id': 'C002',
-      'name': 'Campus Security',
-      'role': 'Security Team',
-      'lastMessage':
-          'The incident report has been filed and is under investigation.',
-      'time': '1 day ago',
-      'unread': 0,
-      'isOnline': true,
-      'avatar': 'CS',
-    },
-    {
-      'id': 'C003',
-      'name': 'Dr. Michael Chen',
-      'role': 'Mental Health Counselor',
-      'lastMessage': 'Thank you for your concern. Alex is doing well.',
-      'time': '3 days ago',
-      'unread': 0,
-      'isOnline': false,
-      'avatar': 'MC',
-    },
-  ];
+  final ChatService _chatService = ChatService();
 
   @override
   void initState() {
@@ -92,9 +63,7 @@ class _ParentChatPageState extends State<ParentChatPage>
               children: [
                 _buildHeader(context, color),
                 Expanded(
-                  child: _conversations.isEmpty
-                      ? _buildEmptyState(context, color)
-                      : _buildConversationsList(context),
+                  child: _buildConversationsContent(context),
                 ),
               ],
             ),
@@ -146,24 +115,38 @@ class _ParentChatPageState extends State<ParentChatPage>
           const SizedBox(height: 20),
           Row(
             children: [
-              Expanded(
-                child: _buildStatCard(
-                  context,
-                  'Active Chats',
-                  '${_conversations.where((c) => c['isOnline'] == true).length}',
-                  Icons.chat_bubble,
-                  Colors.blue,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  context,
-                  'Unread',
-                  '${_conversations.fold(0, (sum, c) => sum + (c['unread'] as int))}',
-                  Icons.mark_email_unread,
-                  Colors.orange,
-                ),
+              StreamBuilder<List<ChatConversationModel>>(
+                stream: _getConversationsStream(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const SizedBox.shrink();
+                  }
+                  final conversations = snapshot.data!;
+                  final unreadCount = conversations.fold(0, (sum, c) => sum + c.unreadCount);
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          'Active Chats',
+                          '${conversations.length}',
+                          Icons.chat_bubble,
+                          Colors.blue,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          'Unread',
+                          '$unreadCount',
+                          Icons.mark_email_unread,
+                          Colors.orange,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -262,12 +245,51 @@ class _ParentChatPageState extends State<ParentChatPage>
     );
   }
 
-  Widget _buildConversationsList(BuildContext context) {
+  Stream<List<ChatConversationModel>> _getConversationsStream() {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+    if (user == null || user.role != 'parent') {
+      return Stream.value([]);
+    }
+    // Parents can see conversations related to their linked students
+    // For now, return empty - can be enhanced to show student conversations
+    return Stream.value([]);
+  }
+
+  Widget _buildConversationsContent(BuildContext context) {
+    return StreamBuilder<List<ChatConversationModel>>(
+      stream: _getConversationsStream(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                Text('Error: ${snapshot.error}'),
+              ],
+            ),
+          );
+        }
+        final conversations = snapshot.data ?? [];
+        if (conversations.isEmpty) {
+          return _buildEmptyState(context, Theme.of(context).colorScheme.primary);
+        }
+        return _buildConversationsList(context, conversations);
+      },
+    );
+  }
+
+  Widget _buildConversationsList(BuildContext context, List<ChatConversationModel> conversations) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: _conversations.length,
+      itemCount: conversations.length,
       itemBuilder: (context, index) {
-        final conversation = _conversations[index];
+        final conversation = conversations[index];
         return _buildConversationCard(context, conversation, index);
       },
     );
@@ -275,11 +297,10 @@ class _ParentChatPageState extends State<ParentChatPage>
 
   Widget _buildConversationCard(
     BuildContext context,
-    Map<String, dynamic> conversation,
+    ChatConversationModel conversation,
     int index,
   ) {
-    final unread = conversation['unread'] as int;
-    final isOnline = conversation['isOnline'] as bool;
+    final unread = conversation.unreadCount;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -301,27 +322,15 @@ class _ParentChatPageState extends State<ParentChatPage>
                         context,
                       ).colorScheme.primary.withOpacity(0.1),
                       child: Text(
-                        conversation['avatar'],
+                        conversation.counselorName != null
+                            ? conversation.counselorName!.substring(0, 1).toUpperCase()
+                            : 'C',
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
-                    if (isOnline)
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                        ),
-                      ),
                   ],
                 ),
                 const SizedBox(width: 16),
@@ -333,13 +342,15 @@ class _ParentChatPageState extends State<ParentChatPage>
                         children: [
                           Expanded(
                             child: Text(
-                              conversation['name'],
+                              conversation.counselorName ?? 'Counselor',
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.w600),
                             ),
                           ),
                           Text(
-                            conversation['time'],
+                            conversation.lastMessageAt != null
+                                ? DateFormat('MMM dd, HH:mm').format(conversation.lastMessageAt!)
+                                : '',
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: Theme.of(
@@ -351,7 +362,7 @@ class _ParentChatPageState extends State<ParentChatPage>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        conversation['role'],
+                        'Counselor',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w500,
@@ -362,12 +373,13 @@ class _ParentChatPageState extends State<ParentChatPage>
                         children: [
                           Expanded(
                             child: Text(
-                              conversation['lastMessage'],
+                              conversation.lastMessage ?? 'No messages yet',
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
                                     color: Theme.of(
                                       context,
                                     ).colorScheme.onSurface.withOpacity(0.7),
+                                    fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.normal,
                                   ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -407,55 +419,134 @@ class _ParentChatPageState extends State<ParentChatPage>
     );
   }
 
-  void _openChat(BuildContext context, Map<String, dynamic> conversation) {
+  void _openChat(BuildContext context, ChatConversationModel conversation) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => _ChatDetailPage(conversation: conversation),
-      ),
-    );
-  }
-
-  void _showStartChatDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Start New Chat'),
-        content: const Text(
-          'Choose who you would like to chat with for support and guidance.',
+        builder: (context) => _ChatDetailPage(
+          conversation: conversation,
+          chatService: _chatService,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _startNewChat(context, 'Counselor');
-            },
-            child: const Text('Start Chat'),
-          ),
-        ],
       ),
     );
   }
 
-  void _startNewChat(BuildContext context, String type) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Starting new chat with $type...'),
-        backgroundColor: Colors.green,
-      ),
-    );
+  Future<void> _showStartChatDialog(BuildContext context) async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+    
+    if (user == null) return;
+
+    try {
+      final counselors = await _chatService.getAvailableCounselors();
+      
+      if (counselors.isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No counselors available at the moment'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text('Start New Chat'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: counselors.length,
+                itemBuilder: (context, index) {
+                  final counselor = counselors[index];
+                  return ListTile(
+                    leading: CircleAvatar(
+                      child: Text(counselor['name'].substring(0, 1)),
+                    ),
+                    title: Text(counselor['name']),
+                    subtitle: Text(counselor['department'] ?? 'Counselor'),
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await _startNewChat(context, counselor);
+                    },
+                  );
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _startNewChat(BuildContext context, Map<String, dynamic> counselor) async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+    
+    if (user == null) return;
+
+    try {
+      // For parents, we need to link to a student - simplified for now
+      final chatId = await _chatService.getOrCreateConversation(
+        studentId: user.uid, // Simplified - should link to child's ID
+        studentName: user.name,
+        counselorId: counselor['id'],
+        counselorName: counselor['name'],
+      );
+
+      if (context.mounted) {
+        final conversation = ChatConversationModel(
+          id: chatId,
+          studentId: user.uid,
+          studentName: user.name,
+          counselorId: counselor['id'],
+          counselorName: counselor['name'],
+          createdAt: DateTime.now(),
+        );
+        _openChat(context, conversation);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error starting chat: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
 
 class _ChatDetailPage extends StatefulWidget {
-  final Map<String, dynamic> conversation;
+  final ChatConversationModel conversation;
+  final ChatService chatService;
 
-  const _ChatDetailPage({required this.conversation});
+  const _ChatDetailPage({
+    required this.conversation,
+    required this.chatService,
+  });
 
   @override
   State<_ChatDetailPage> createState() => _ChatDetailPageState();
@@ -463,29 +554,12 @@ class _ChatDetailPage extends StatefulWidget {
 
 class _ChatDetailPageState extends State<_ChatDetailPage> {
   final TextEditingController _messageController = TextEditingController();
-  final List<Map<String, dynamic>> _messages = [
-    {
-      'text': 'Hello! I\'m here to help with your child\'s case.',
-      'isMe': false,
-      'time': '10:30 AM',
-    },
-    {
-      'text':
-          'Thank you for reaching out. I\'m concerned about Emma\'s situation.',
-      'isMe': true,
-      'time': '10:32 AM',
-    },
-    {
-      'text':
-          'I understand your concern. We\'re taking this very seriously and will ensure Emma\'s safety.',
-      'isMe': false,
-      'time': '10:33 AM',
-    },
-  ];
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void dispose() {
     _messageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -501,7 +575,9 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                 context,
               ).colorScheme.primary.withOpacity(0.1),
               child: Text(
-                widget.conversation['avatar'],
+                widget.conversation.counselorName != null
+                    ? widget.conversation.counselorName!.substring(0, 1).toUpperCase()
+                    : 'C',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,
@@ -515,14 +591,14 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.conversation['name'],
+                    widget.conversation.counselorName ?? 'Counselor',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   Text(
-                    widget.conversation['role'],
+                    'Counselor',
                     style: TextStyle(
                       fontSize: 12,
                       color: Theme.of(
@@ -545,12 +621,35 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                return _buildMessageBubble(context, message);
+            child: StreamBuilder<List<ChatMessageModel>>(
+              stream: widget.chatService.getMessages(widget.conversation.id),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+                final messages = snapshot.data ?? [];
+                if (messages.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No messages yet. Start the conversation!',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                    ),
+                  );
+                }
+                return ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final message = messages[index];
+                    return _buildMessageBubble(context, message);
+                  },
+                );
               },
             ),
           ),
@@ -562,9 +661,11 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
 
   Widget _buildMessageBubble(
     BuildContext context,
-    Map<String, dynamic> message,
+    ChatMessageModel message,
   ) {
-    final isMe = message['isMe'] as bool;
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+    final isMe = message.senderId == user?.uid;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -580,7 +681,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                 context,
               ).colorScheme.primary.withOpacity(0.1),
               child: Text(
-                widget.conversation['avatar'],
+                message.senderName.substring(0, 1).toUpperCase(),
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,
@@ -617,7 +718,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    message['text'],
+                    message.message,
                     style: TextStyle(
                       color: isMe
                           ? Colors.white
@@ -626,7 +727,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    message['time'],
+                    DateFormat('HH:mm').format(message.timestamp),
                     style: TextStyle(
                       fontSize: 11,
                       color: isMe
@@ -692,23 +793,44 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
     );
   }
 
-  void _sendMessage() {
-    if (_messageController.text.trim().isNotEmpty) {
-      setState(() {
-        _messages.add({
-          'text': _messageController.text.trim(),
-          'isMe': true,
-          'time': _formatTime(DateTime.now()),
-        });
-      });
-      _messageController.clear();
-    }
-  }
+  Future<void> _sendMessage() async {
+    if (_messageController.text.trim().isEmpty) return;
 
-  String _formatTime(DateTime time) {
-    final hour = time.hour.toString().padLeft(2, '0');
-    final minute = time.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+    
+    if (user == null) return;
+
+    final messageText = _messageController.text.trim();
+    _messageController.clear();
+
+    try {
+      await widget.chatService.sendMessage(
+        chatId: widget.conversation.id,
+        senderId: user.uid,
+        senderName: user.name,
+        senderRole: user.role,
+        message: messageText,
+      );
+      
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error sending message: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      _messageController.text = messageText;
+    }
   }
 
   void _showChatOptions(BuildContext context) {
@@ -761,11 +883,9 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Name: ${widget.conversation['name']}'),
-            Text('Role: ${widget.conversation['role']}'),
-            Text(
-              'Status: ${widget.conversation['isOnline'] ? 'Online' : 'Offline'}',
-            ),
+            Text('Name: ${widget.conversation.counselorName ?? 'Counselor'}'),
+            Text('Role: Counselor'),
+            Text('Chat ID: ${widget.conversation.id}'),
           ],
         ),
         actions: [

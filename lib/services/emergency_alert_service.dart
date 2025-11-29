@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'emailjs_service.dart';
 
 class EmergencyAlertService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final EmailJSService _emailJSService = EmailJSService();
 
   // Get all active emergency alerts
   Stream<List<Map<String, dynamic>>> getActiveEmergencyAlerts() {
@@ -126,6 +128,31 @@ class EmergencyAlertService {
       }
 
       await batch.commit();
+
+      // Send email notifications to all users
+      try {
+        for (var userDoc in users.docs) {
+          final userData = userDoc.data();
+          final userEmail = userData['email'] as String?;
+          final userName = userData['name'] as String?;
+
+          if (userEmail != null && userEmail.isNotEmpty && userName != null) {
+            await _emailJSService.sendEmergencyAlertEmail(
+              userEmail: userEmail,
+              userName: userName,
+              alertTitle: title,
+              alertMessage: message,
+              priority: priority,
+            );
+            
+            // Add delay to avoid rate limiting
+            await Future.delayed(const Duration(milliseconds: 300));
+          }
+        }
+      } catch (e) {
+        // Email sending failed, but notifications were created - continue silently
+        print('Emergency alert email failed: $e');
+      }
     } catch (e) {
       // Handle error silently - notification creation shouldn't fail the alert
     }

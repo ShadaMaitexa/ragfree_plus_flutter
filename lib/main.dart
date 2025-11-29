@@ -51,10 +51,20 @@ import 'screens/admin/notifications_page.dart' as admin_pages;
 import 'screens/admin/reports_page.dart' as admin_pages;
 import 'screens/admin/feedback_page.dart' as admin_pages;
 import 'screens/admin/analytics_page.dart' as admin_pages;
+import 'services/emailjs_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Initialize EmailJS for email notifications
+  try {
+    final emailJSService = EmailJSService();
+    await emailJSService.initialize();
+  } catch (e) {
+    // EmailJS initialization failed - app will continue without email notifications
+    print('EmailJS initialization failed: $e');
+  }
 
   runApp(
     ChangeNotifierProvider(

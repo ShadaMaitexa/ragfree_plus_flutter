@@ -2,10 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
 import '../models/complaint_model.dart';
 import 'cloudinary_service.dart';
+import 'emailjs_service.dart';
 
 class ComplaintService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final CloudinaryService _cloudinaryService = CloudinaryService();
+  final EmailJSService _emailJSService = EmailJSService();
 
   // Submit a complaint
   Future<ComplaintModel> submitComplaint({
@@ -45,8 +47,29 @@ class ComplaintService {
       
       await docRef.set(complaintMap);
 
+      final complaintId = docRef.id;
+      final finalComplaint = complaintWithMedia.copyWith(id: complaintId);
+
+      // Send email notification to student (if not anonymous)
+      if (complaint.studentId != null) {
+        try {
+          final userEmail = await _emailJSService.getUserEmail(complaint.studentId!);
+          if (userEmail != null) {
+            await _emailJSService.sendComplaintSubmittedEmail(
+              userEmail: userEmail,
+              userName: complaint.studentName ?? 'Student',
+              complaintTitle: complaint.title,
+              complaintId: complaintId,
+            );
+          }
+        } catch (e) {
+          // Email sending failed, but complaint was submitted - continue silently
+          print('Complaint submission email failed: $e');
+        }
+      }
+
       // Return complaint with the actual Firestore document ID
-      return complaintWithMedia.copyWith(id: docRef.id);
+      return finalComplaint;
     } catch (e) {
       throw Exception('Failed to submit complaint: ${e.toString()}');
     }
@@ -123,10 +146,35 @@ class ComplaintService {
   // Update complaint status
   Future<void> updateComplaintStatus(String complaintId, String status) async {
     try {
+      // Get complaint data before updating
+      final complaint = await getComplaintById(complaintId);
+      if (complaint == null) {
+        throw Exception('Complaint not found');
+      }
+
       await _firestore.collection('complaints').doc(complaintId).update({
         'status': status,
         'updatedAt': Timestamp.now(),
       });
+
+      // Send email notification to student (if not anonymous)
+      if (complaint.studentId != null) {
+        try {
+          final userEmail = await _emailJSService.getUserEmail(complaint.studentId!);
+          if (userEmail != null) {
+            await _emailJSService.sendComplaintStatusUpdateEmail(
+              userEmail: userEmail,
+              userName: complaint.studentName ?? 'Student',
+              complaintTitle: complaint.title,
+              complaintId: complaintId,
+              status: status,
+            );
+          }
+        } catch (e) {
+          // Email sending failed, but status was updated - continue silently
+          print('Complaint status update email failed: $e');
+        }
+      }
     } catch (e) {
       throw Exception('Failed to update complaint: ${e.toString()}');
     }
@@ -139,12 +187,38 @@ class ComplaintService {
     String counselorName,
   ) async {
     try {
+      // Get complaint data before updating
+      final complaint = await getComplaintById(complaintId);
+      if (complaint == null) {
+        throw Exception('Complaint not found');
+      }
+
       await _firestore.collection('complaints').doc(complaintId).update({
         'assignedTo': counselorId,
         'assignedToName': counselorName,
         'status': 'In Progress',
         'updatedAt': Timestamp.now(),
       });
+
+      // Send email notification to student (if not anonymous)
+      if (complaint.studentId != null) {
+        try {
+          final userEmail = await _emailJSService.getUserEmail(complaint.studentId!);
+          if (userEmail != null) {
+            await _emailJSService.sendComplaintStatusUpdateEmail(
+              userEmail: userEmail,
+              userName: complaint.studentName ?? 'Student',
+              complaintTitle: complaint.title,
+              complaintId: complaintId,
+              status: 'In Progress',
+              assignedTo: counselorName,
+            );
+          }
+        } catch (e) {
+          // Email sending failed, but complaint was assigned - continue silently
+          print('Complaint assignment email failed: $e');
+        }
+      }
     } catch (e) {
       throw Exception('Failed to assign complaint: ${e.toString()}');
     }
