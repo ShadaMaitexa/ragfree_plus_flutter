@@ -181,7 +181,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       } else {
         throw Exception('Failed to upload ID proof');
       }
-    } catch (e) {
+    } 
+    catch (e) {
       if (mounted) {
         setState(() => _isUploadingIdProof = false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -191,10 +192,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           ),
         );
       }
-    }
-  }
+    } 
+  }                                                           
 
-  Future<void> _register() async {
+  Future<void> _register() async { 
     if (!_formKey.currentState!.validate()) return;
 
     // Check if ID proof is required and uploaded (for all roles except parent and teacher)

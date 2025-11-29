@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../services/awareness_service.dart';
+import '../../models/awareness_model.dart';
 
 class AdminAwarenessPage extends StatefulWidget {
   const AdminAwarenessPage({super.key});
@@ -13,39 +15,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
   late Animation<double> _fadeAnimation;
   late PageController _pageController;
   int _currentPage = 0;
-
-  final List<Map<String, dynamic>> _awarenessItems = [
-    {
-      'title': 'Understanding Consent',
-      'subtitle': 'Learn about boundaries and respect',
-      'content':
-          'Consent is a clear, enthusiastic, and ongoing agreement to engage in any activity.',
-      'image': 'assets/images/consent.jpg',
-      'category': 'Safety',
-      'views': 1250,
-      'likes': 89,
-    },
-    {
-      'title': 'Cyber Safety',
-      'subtitle': 'Protect yourself online',
-      'content':
-          'Be cautious about sharing personal information online and use strong passwords.',
-      'image': 'assets/images/cyber_safety.jpg',
-      'category': 'Digital Safety',
-      'views': 980,
-      'likes': 67,
-    },
-    {
-      'title': 'Mental Health Support',
-      'subtitle': 'Your wellbeing matters',
-      'content':
-          'It\'s okay to not be okay. Reach out to counselors when you need support.',
-      'image': 'assets/images/mental_health.jpg',
-      'category': 'Wellness',
-      'views': 2100,
-      'likes': 156,
-    },
-  ];
+  final AwarenessService _awarenessService = AwarenessService();
 
   @override
   void initState() {
@@ -91,11 +61,32 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
               ),
             ),
             child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  _buildHeader(context, color),
-                  _buildContent(context),
-                ],
+              child: StreamBuilder<List<AwarenessModel>>(
+                stream: _awarenessService.getAwarenessForRole('all'),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+                  if (snapshot.hasError) {
+                    return Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Center(
+                        child: Text('Error: ${snapshot.error}'),
+                      ),
+                    );
+                  }
+
+                  final items = snapshot.data ?? [];
+                  return Column(
+                    children: [
+                      _buildHeader(context, color, items),
+                      _buildContent(context, items),
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -104,7 +95,15 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
     );
   }
 
-  Widget _buildHeader(BuildContext context, Color color) {
+  Widget _buildHeader(
+    BuildContext context,
+    Color color,
+    List<AwarenessModel> items,
+  ) {
+    final totalViews =
+        items.fold<int>(0, (sum, item) => sum + (item.views));
+    final totalLikes =
+        items.fold<int>(0, (sum, item) => sum + (item.likes));
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -156,7 +155,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
                 child: _buildStatCard(
                   context,
                   'Total Content',
-                  '${_awarenessItems.length}',
+                  '${items.length}',
                   Icons.library_books,
                   Colors.blue,
                 ),
@@ -166,7 +165,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
                 child: _buildStatCard(
                   context,
                   'Total Views',
-                  '${_awarenessItems.fold(0, (sum, item) => sum + (item['views'] as int))}',
+                  '$totalViews',
                   Icons.visibility,
                   Colors.green,
                 ),
@@ -176,7 +175,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
                 child: _buildStatCard(
                   context,
                   'Total Likes',
-                  '${_awarenessItems.fold(0, (sum, item) => sum + (item['likes'] as int))}',
+                  '$totalLikes',
                   Icons.favorite,
                   Colors.red,
                 ),
@@ -235,7 +234,10 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
     );
   }
 
-  Widget _buildContent(BuildContext context) {
+  Widget _buildContent(
+    BuildContext context,
+    List<AwarenessModel> items,
+  ) {
     return Column(
       children: [
         SizedBox(
@@ -247,22 +249,25 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
                 _currentPage = index;
               });
             },
-            itemCount: _awarenessItems.length,
+            itemCount: items.length,
             itemBuilder: (context, index) {
-              final item = _awarenessItems[index];
+              final item = items[index];
               return _buildAwarenessCard(context, item);
             },
           ),
         ),
-        _buildPageIndicator(context),
+        _buildPageIndicator(context, items.length),
         const SizedBox(height: 20),
-        _buildContentList(context),
+        _buildContentList(context, items),
         const SizedBox(height: 20),
       ],
     );
   }
 
-  Widget _buildAwarenessCard(BuildContext context, Map<String, dynamic> item) {
+  Widget _buildAwarenessCard(
+    BuildContext context,
+    AwarenessModel item,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
@@ -317,7 +322,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                item['title'],
+                                item.title,
                                 style: Theme.of(context).textTheme.titleLarge
                                     ?.copyWith(
                                       fontWeight: FontWeight.w700,
@@ -332,7 +337,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                item['subtitle'],
+                                item.subtitle,
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       color: Theme.of(
@@ -353,7 +358,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
                     SizedBox(height: constraints.maxWidth > 600 ? 12 : 8),
                     Flexible(
                       child: Text(
-                        item['content'],
+                        item.content,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           height: 1.3,
                           color: Theme.of(
@@ -372,7 +377,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
                           child: _buildStatItem(
                             context,
                             'Views',
-                            item['views'].toString(),
+                            item.views.toString(),
                             Icons.visibility,
                           ),
                         ),
@@ -381,7 +386,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
                           child: _buildStatItem(
                             context,
                             'Likes',
-                            item['likes'].toString(),
+                            item.likes.toString(),
                             Icons.favorite,
                           ),
                         ),
@@ -390,7 +395,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
                           child: _buildStatItem(
                             context,
                             'Category',
-                            item['category'],
+                            item.category ?? 'General',
                             Icons.category,
                           ),
                         ),
@@ -464,11 +469,11 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
     );
   }
 
-  Widget _buildPageIndicator(BuildContext context) {
+  Widget _buildPageIndicator(BuildContext context, int itemCount) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
-        _awarenessItems.length,
+        itemCount,
         (index) => Container(
           margin: const EdgeInsets.symmetric(horizontal: 4),
           width: _currentPage == index ? 24 : 8,
@@ -484,7 +489,10 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
     );
   }
 
-  Widget _buildContentList(BuildContext context) {
+  Widget _buildContentList(
+    BuildContext context,
+    List<AwarenessModel> items,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -497,7 +505,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
             ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 16),
-          ..._awarenessItems.map(
+          ...items.map(
             (item) => _buildContentListItem(context, item),
           ),
         ],
@@ -507,7 +515,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
 
   Widget _buildContentListItem(
     BuildContext context,
-    Map<String, dynamic> item,
+    AwarenessModel item,
   ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -528,12 +536,12 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
             ),
           ),
           title: Text(
-            item['title'],
+            item.title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
-          subtitle: Text('${item['views']} views • ${item['likes']} likes'),
+          subtitle: Text('${item.views} views • ${item.likes} likes'),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -553,42 +561,53 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
   }
 
   void _showAddContentDialog(BuildContext context) {
+    final titleController = TextEditingController();
+    final subtitleController = TextEditingController();
+    final contentController = TextEditingController();
+    final categoryController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Add New Content'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Title',
-                border: OutlineInputBorder(),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Title',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Subtitle',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 16),
+              TextField(
+                controller: subtitleController,
+                decoration: const InputDecoration(
+                  labelText: 'Subtitle',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Content',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 16),
+              TextField(
+                controller: contentController,
+                decoration: const InputDecoration(
+                  labelText: 'Content',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
               ),
-              maxLines: 3,
-            ),
-            SizedBox(height: 16),
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Category',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 16),
+              TextField(
+                controller: categoryController,
+                decoration: const InputDecoration(
+                  labelText: 'Category (optional)',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -596,14 +615,27 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Content added successfully!'),
-                  backgroundColor: Colors.green,
-                ),
+            onPressed: () async {
+              final model = AwarenessModel(
+                id: '',
+                title: titleController.text.trim(),
+                subtitle: subtitleController.text.trim(),
+                content: contentController.text.trim(),
+                role: 'all',
+                category: categoryController.text.trim().isEmpty
+                    ? null
+                    : categoryController.text.trim(),
               );
+              await _awarenessService.addAwareness(model);
+              if (mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Content added successfully!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
             },
             child: const Text('Add Content'),
           ),
@@ -612,29 +644,55 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
     );
   }
 
-  void _editContent(BuildContext context, Map<String, dynamic> item) {
+  void _editContent(BuildContext context, AwarenessModel item) {
+    final titleController = TextEditingController(text: item.title);
+    final subtitleController = TextEditingController(text: item.subtitle);
+    final contentController = TextEditingController(text: item.content);
+    final categoryController =
+        TextEditingController(text: item.category ?? '');
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit ${item['title']}'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Title',
-                border: OutlineInputBorder(),
+        title: Text('Edit ${item.title}'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Title',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Content',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 16),
+              TextField(
+                controller: subtitleController,
+                decoration: const InputDecoration(
+                  labelText: 'Subtitle',
+                  border: OutlineInputBorder(),
+                ),
               ),
-              maxLines: 3,
-            ),
-          ],
+              const SizedBox(height: 16),
+              TextField(
+                controller: contentController,
+                decoration: const InputDecoration(
+                  labelText: 'Content',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: categoryController,
+                decoration: const InputDecoration(
+                  labelText: 'Category (optional)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -642,11 +700,24 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Content updated successfully!')),
+            onPressed: () async {
+              final updated = item.copyWith(
+                title: titleController.text.trim(),
+                subtitle: subtitleController.text.trim(),
+                content: contentController.text.trim(),
+                category: categoryController.text.trim().isEmpty
+                    ? null
+                    : categoryController.text.trim(),
               );
+              await _awarenessService.updateAwareness(updated);
+              if (mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Content updated successfully!'),
+                  ),
+                );
+              }
             },
             child: const Text('Save Changes'),
           ),
@@ -655,22 +726,22 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
     );
   }
 
-  void _shareContent(BuildContext context, Map<String, dynamic> item) {
+  void _shareContent(BuildContext context, AwarenessModel item) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Sharing: ${item['title']}'),
+        content: Text('Sharing: ${item.title}'),
         backgroundColor: Colors.green,
       ),
     );
   }
 
-  void _deleteContent(BuildContext context, Map<String, dynamic> item) {
+  void _deleteContent(BuildContext context, AwarenessModel item) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Content'),
         content: Text(
-          'Are you sure you want to delete "${item['title']}"? This action cannot be undone.',
+          'Are you sure you want to delete "${item.title}"? This action cannot be undone.',
         ),
         actions: [
           TextButton(
@@ -678,17 +749,17 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              setState(() {
-                _awarenessItems.remove(item);
-              });
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Content deleted successfully!'),
-                  backgroundColor: Colors.red,
-                ),
-              );
+            onPressed: () async {
+              await _awarenessService.deleteAwareness(item.id);
+              if (mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Content deleted successfully!'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
             },
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Delete'),

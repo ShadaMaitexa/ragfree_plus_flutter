@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../services/awareness_service.dart';
+import '../../models/awareness_model.dart';
+import '../../services/app_state.dart';
 
 class TeacherAwarenessPage extends StatefulWidget {
   const TeacherAwarenessPage({super.key});
@@ -11,41 +15,7 @@ class _TeacherAwarenessPageState extends State<TeacherAwarenessPage>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-
-  final List<Map<String, dynamic>> _awarenessItems = [
-    {
-      'title': 'Student Safety Guidelines',
-      'subtitle': 'Supporting student wellbeing',
-      'content':
-          'As a teacher, you play a crucial role in maintaining campus safety. Be observant, listen to students, and report any concerns immediately.',
-      'icon': Icons.school,
-      'color': Colors.blue,
-    },
-    {
-      'title': 'Recognizing Signs of Distress',
-      'subtitle': 'Identifying students who need help',
-      'content':
-          'Watch for changes in behavior, attendance, or academic performance. These may indicate a student needs support or intervention.',
-      'icon': Icons.psychology,
-      'color': Colors.purple,
-    },
-    {
-      'title': 'Reporting Procedures',
-      'subtitle': 'How to report incidents',
-      'content':
-          'If you witness or learn about harassment, bullying, or safety concerns, report them through the app immediately. Your reports are confidential.',
-      'icon': Icons.report,
-      'color': Colors.orange,
-    },
-    {
-      'title': 'Creating Safe Spaces',
-      'subtitle': 'Fostering inclusive environments',
-      'content':
-          'Create an environment where all students feel safe, respected, and valued. Encourage open communication and mutual respect.',
-      'icon': Icons.people,
-      'color': Colors.green,
-    },
-  ];
+  final AwarenessService _awarenessService = AwarenessService();
 
   @override
   void initState() {
@@ -139,18 +109,79 @@ class _TeacherAwarenessPageState extends State<TeacherAwarenessPage>
   }
 
   Widget _buildAwarenessContent(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: _awarenessItems.length,
-      itemBuilder: (context, index) {
-        final item = _awarenessItems[index];
-        return _buildAwarenessCard(context, item);
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+
+    return StreamBuilder<List<AwarenessModel>>(
+      stream: _awarenessService.getAwarenessForRole('teacher'),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+
+        final items = snapshot.data ?? [];
+        if (items.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.info_outline,
+                      size: 56, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No awareness content yet',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    user?.role == 'admin'
+                        ? 'Use the admin awareness module to add content for teachers.'
+                        : 'Please check back later. Admins can publish safety content for teachers.',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: Colors.grey[700]),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(20),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return _buildAwarenessCard(context, item, index);
+          },
+        );
       },
     );
   }
 
   Widget _buildAwarenessCard(
-      BuildContext context, Map<String, dynamic> item) {
+    BuildContext context,
+    AwarenessModel item,
+    int index,
+  ) {
+    // Simple color palette based on index for visual variety
+    final colors = [
+      Colors.blue,
+      Colors.purple,
+      Colors.orange,
+      Colors.green,
+      Colors.teal,
+    ];
+    final color = colors[index % colors.length];
+    final icon = Icons.school;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
@@ -162,8 +193,8 @@ class _TeacherAwarenessPageState extends State<TeacherAwarenessPage>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              (item['color'] as Color).withOpacity(0.1),
-              (item['color'] as Color).withOpacity(0.05),
+              color.withOpacity(0.1),
+              color.withOpacity(0.05),
             ],
           ),
         ),
@@ -176,12 +207,12 @@ class _TeacherAwarenessPageState extends State<TeacherAwarenessPage>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: (item['color'] as Color).withOpacity(0.1),
+                    color: color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    item['icon'] as IconData,
-                    color: item['color'] as Color,
+                    icon,
+                    color: color,
                     size: 24,
                   ),
                 ),
@@ -191,13 +222,13 @@ class _TeacherAwarenessPageState extends State<TeacherAwarenessPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        item['title'] as String,
+                        item.title,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
                       ),
                       Text(
-                        item['subtitle'] as String,
+                        item.subtitle,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Theme.of(context)
                                   .colorScheme
@@ -212,7 +243,7 @@ class _TeacherAwarenessPageState extends State<TeacherAwarenessPage>
             ),
             const SizedBox(height: 16),
             Text(
-              item['content'] as String,
+              item.content,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],

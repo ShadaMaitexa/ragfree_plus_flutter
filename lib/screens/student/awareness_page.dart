@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../services/awareness_service.dart';
+import '../../models/awareness_model.dart';
 
 class StudentAwarenessPage extends StatefulWidget {
   const StudentAwarenessPage({super.key});
@@ -13,54 +15,7 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
   late Animation<double> _fadeAnimation;
   late PageController _pageController;
   int _currentPage = 0;
-
-  final List<Map<String, dynamic>> _awarenessItems = [
-    {
-      'title': 'Understanding Consent',
-      'subtitle': 'Learn about boundaries and respect',
-      'content':
-          'Consent is a clear, enthusiastic, and ongoing agreement to engage in any activity. It must be freely given, reversible, informed, enthusiastic, and specific.',
-      'icon': Icons.favorite,
-      'color': Colors.pink,
-      'image': 'assets/images/consent.jpg',
-    },
-    {
-      'title': 'Cyber Safety',
-      'subtitle': 'Protect yourself online',
-      'content':
-          'Be cautious about sharing personal information online. Use strong passwords, be aware of phishing attempts, and think before you post.',
-      'icon': Icons.security,
-      'color': Colors.blue,
-      'image': 'assets/images/cyber_safety.jpg',
-    },
-    {
-      'title': 'Mental Health Support',
-      'subtitle': 'Your wellbeing matters',
-      'content':
-          'It\'s okay to not be okay. Reach out to counselors, friends, or family when you need support. Mental health is just as important as physical health.',
-      'icon': Icons.psychology,
-      'color': Colors.green,
-      'image': 'assets/images/mental_health.jpg',
-    },
-    {
-      'title': 'Reporting Procedures',
-      'subtitle': 'Know your rights and options',
-      'content':
-          'If you experience harassment, bullying, or discrimination, you have the right to report it. The process is confidential and designed to protect you.',
-      'icon': Icons.report,
-      'color': Colors.orange,
-      'image': 'assets/images/reporting.jpg',
-    },
-    {
-      'title': 'Campus Safety',
-      'subtitle': 'Stay safe on campus',
-      'content':
-          'Be aware of your surroundings, use well-lit paths at night, and don\'t hesitate to call campus security if you feel unsafe. Your safety is our priority.',
-      'icon': Icons.shield,
-      'color': Colors.purple,
-      'image': 'assets/images/campus_safety.jpg',
-    },
-  ];
+  final AwarenessService _awarenessService = AwarenessService();
 
   @override
   void initState() {
@@ -163,7 +118,7 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                 child: _buildStatCard(
                   context,
                   'Topics',
-                  '${_awarenessItems.length}',
+                  '—',
                   Icons.topic,
                   Colors.blue,
                 ),
@@ -173,7 +128,7 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                 child: _buildStatCard(
                   context,
                   'Resources',
-                  '15+',
+                  '—',
                   Icons.library_books,
                   Colors.green,
                 ),
@@ -183,7 +138,7 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                 child: _buildStatCard(
                   context,
                   'Support',
-                  '24/7',
+                  'On Campus',
                   Icons.support_agent,
                   Colors.orange,
                 ),
@@ -243,32 +198,95 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
   }
 
   Widget _buildAwarenessContent(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: PageView.builder(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
-              });
-            },
-            itemCount: _awarenessItems.length,
-            itemBuilder: (context, index) {
-              final item = _awarenessItems[index];
-              return _buildAwarenessCard(context, item);
-            },
-          ),
-        ),
-        _buildPageIndicator(context),
-        const SizedBox(height: 20),
-        _buildQuickActions(context),
-        const SizedBox(height: 20),
-      ],
+    return StreamBuilder<List<AwarenessModel>>(
+      stream: _awarenessService.getAwarenessForRole('student'),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        final items = snapshot.data ?? [];
+
+        if (items.isEmpty) {
+          return Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.info_outline,
+                            size: 56, color: Colors.grey),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No awareness content yet',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Once your college admin publishes safety and awareness content, it will appear here for you.',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: Colors.grey[700]),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              _buildQuickActions(context),
+              const SizedBox(height: 20),
+            ],
+          );
+        }
+
+        return Column(
+          children: [
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPage = index;
+                  });
+                },
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  return _buildAwarenessCard(context, item, index);
+                },
+              ),
+            ),
+            _buildPageIndicator(context, items.length),
+            const SizedBox(height: 20),
+            _buildQuickActions(context),
+            const SizedBox(height: 20),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildAwarenessCard(BuildContext context, Map<String, dynamic> item) {
+  Widget _buildAwarenessCard(
+    BuildContext context,
+    AwarenessModel item,
+    int index,
+  ) {
+    final colors = [
+      Colors.pink,
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+    ];
+    final color = colors[index % colors.length];
+    final icon = Icons.school;
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
@@ -285,8 +303,8 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    item['color'].withOpacity(0.1),
-                    item['color'].withOpacity(0.05),
+                    color.withOpacity(0.1),
+                    color.withOpacity(0.05),
                   ],
                 ),
               ),
@@ -304,11 +322,11 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                           ),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: item['color'].withOpacity(0.1),
+                            color: color.withOpacity(0.1),
                           ),
                           child: Icon(
-                            item['icon'],
-                            color: item['color'],
+                            icon,
+                            color: color,
                             size: constraints.maxWidth > 600 ? 32 : 24,
                           ),
                         ),
@@ -318,22 +336,27 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                item['title'],
-                                style: Theme.of(context).textTheme.headlineSmall
+                                item.title,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
                                     ?.copyWith(
                                       fontWeight: FontWeight.w700,
-                                      color: item['color'],
+                                      color: color,
                                     ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                item['subtitle'],
-                                style: Theme.of(context).textTheme.titleMedium
+                                item.subtitle,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
                                     ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface.withOpacity(0.7),
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withOpacity(0.7),
                                     ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -346,13 +369,17 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                     SizedBox(height: constraints.maxWidth > 600 ? 24 : 16),
                     Flexible(
                       child: Text(
-                        item['content'],
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          height: 1.6,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withOpacity(0.8),
-                        ),
+                        item.content,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(
+                              height: 1.6,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withOpacity(0.8),
+                            ),
                         maxLines: constraints.maxWidth > 600 ? 4 : 3,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -362,23 +389,36 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () => _showMoreInfo(context, item),
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      'More about ${item.title} coming from your institution.'),
+                                ),
+                              );
+                            },
                             icon: const Icon(Icons.info_outline),
                             label: const Text('Learn More'),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: item['color'],
-                              side: BorderSide(color: item['color']),
+                              foregroundColor: color,
+                              side: BorderSide(color: color),
                             ),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: FilledButton.icon(
-                            onPressed: () => _shareContent(context, item),
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Sharing "${item.title}"'),
+                                ),
+                              );
+                            },
                             icon: const Icon(Icons.share),
                             label: const Text('Share'),
                             style: FilledButton.styleFrom(
-                              backgroundColor: item['color'],
+                              backgroundColor: color,
                             ),
                           ),
                         ),
@@ -394,11 +434,11 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
     );
   }
 
-  Widget _buildPageIndicator(BuildContext context) {
+  Widget _buildPageIndicator(BuildContext context, int itemCount) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
-        _awarenessItems.length,
+        itemCount,
         (index) => Container(
           margin: const EdgeInsets.symmetric(horizontal: 4),
           width: _currentPage == index ? 24 : 8,
@@ -564,70 +604,6 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  void _showMoreInfo(BuildContext context, Map<String, dynamic> item) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(item['icon'], color: item['color']),
-            const SizedBox(width: 8),
-            Text(item['title']),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                item['subtitle'],
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(color: item['color']),
-              ),
-              const SizedBox(height: 16),
-              Text(item['content']),
-              const SizedBox(height: 16),
-              const Text(
-                'Additional Resources:',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              const Text('• Campus counseling services'),
-              const Text('• Online safety guidelines'),
-              const Text('• Support group meetings'),
-              const Text('• Emergency contact numbers'),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _shareContent(context, item);
-            },
-            child: const Text('Share'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _shareContent(BuildContext context, Map<String, dynamic> item) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Sharing: ${item['title']}'),
-        backgroundColor: Colors.green,
       ),
     );
   }

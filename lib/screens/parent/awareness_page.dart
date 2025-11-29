@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../services/awareness_service.dart';
+import '../../models/awareness_model.dart';
 
 class ParentAwarenessPage extends StatefulWidget {
   const ParentAwarenessPage({super.key});
@@ -13,49 +15,7 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
   late Animation<double> _fadeAnimation;
   late PageController _pageController;
   int _currentPage = 0;
-
-  final List<Map<String, dynamic>> _awarenessItems = [
-    {
-      'title': 'Supporting Your Child',
-      'subtitle': 'How to help during difficult times',
-      'content':
-          'Be a supportive listener, validate their feelings, and encourage them to seek help when needed. Your understanding and patience can make a significant difference.',
-      'icon': Icons.family_restroom,
-      'color': Colors.pink,
-    },
-    {
-      'title': 'Recognizing Warning Signs',
-      'subtitle': 'Know when your child needs help',
-      'content':
-          'Watch for changes in behavior, mood, sleep patterns, or academic performance. Early intervention can prevent more serious issues.',
-      'icon': Icons.warning,
-      'color': Colors.orange,
-    },
-    {
-      'title': 'Communication Strategies',
-      'subtitle': 'Effective ways to talk with your child',
-      'content':
-          'Create a safe space for open dialogue, ask open-ended questions, and listen without judgment. Regular check-ins can help maintain trust.',
-      'icon': Icons.chat,
-      'color': Colors.blue,
-    },
-    {
-      'title': 'Campus Safety Resources',
-      'subtitle': 'Available support services',
-      'content':
-          'Familiarize yourself with campus counseling services, emergency procedures, and support groups. Knowledge of resources helps you guide your child.',
-      'icon': Icons.school,
-      'color': Colors.green,
-    },
-    {
-      'title': 'Mental Health Awareness',
-      'subtitle': 'Understanding mental health challenges',
-      'content':
-          'Learn about common mental health issues in college students, their symptoms, and available treatments. Early recognition leads to better outcomes.',
-      'icon': Icons.psychology,
-      'color': Colors.purple,
-    },
-  ];
+  final AwarenessService _awarenessService = AwarenessService();
 
   @override
   void initState() {
@@ -158,7 +118,7 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
                 child: _buildStatCard(
                   context,
                   'Topics',
-                  '${_awarenessItems.length}',
+                  '—',
                   Icons.topic,
                   Colors.blue,
                 ),
@@ -168,7 +128,7 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
                 child: _buildStatCard(
                   context,
                   'Resources',
-                  '20+',
+                  '—',
                   Icons.library_books,
                   Colors.green,
                 ),
@@ -178,7 +138,7 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
                 child: _buildStatCard(
                   context,
                   'Support',
-                  '24/7',
+                  'On Campus',
                   Icons.support_agent,
                   Colors.orange,
                 ),
@@ -228,32 +188,95 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
   }
 
   Widget _buildAwarenessContent(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: PageView.builder(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
-              });
-            },
-            itemCount: _awarenessItems.length,
-            itemBuilder: (context, index) {
-              final item = _awarenessItems[index];
-              return _buildAwarenessCard(context, item);
-            },
-          ),
-        ),
-        _buildPageIndicator(context),
-        const SizedBox(height: 20),
-        _buildQuickActions(context),
-        const SizedBox(height: 20),
-      ],
+    return StreamBuilder<List<AwarenessModel>>(
+      stream: _awarenessService.getAwarenessForRole('parent'),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+
+        final items = snapshot.data ?? [];
+        if (items.isEmpty) {
+          return Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.info_outline,
+                            size: 56, color: Colors.grey),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No awareness content yet',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Once your institution publishes guidance for parents, it will appear here.',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: Colors.grey[700]),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              _buildQuickActions(context),
+              const SizedBox(height: 20),
+            ],
+          );
+        }
+
+        return Column(
+          children: [
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPage = index;
+                  });
+                },
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  return _buildAwarenessCard(context, item, index);
+                },
+              ),
+            ),
+            _buildPageIndicator(context, items.length),
+            const SizedBox(height: 20),
+            _buildQuickActions(context),
+            const SizedBox(height: 20),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildAwarenessCard(BuildContext context, Map<String, dynamic> item) {
+  Widget _buildAwarenessCard(
+    BuildContext context,
+    AwarenessModel item,
+    int index,
+  ) {
+    final colors = [
+      Colors.pink,
+      Colors.orange,
+      Colors.blue,
+      Colors.green,
+      Colors.purple,
+    ];
+    final color = colors[index % colors.length];
+    final icon = Icons.family_restroom;
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
@@ -270,8 +293,8 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    item['color'].withOpacity(0.1),
-                    item['color'].withOpacity(0.05),
+                    color.withOpacity(0.1),
+                    color.withOpacity(0.05),
                   ],
                 ),
               ),
@@ -289,11 +312,11 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
                           ),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: item['color'].withOpacity(0.1),
+                            color: color.withOpacity(0.1),
                           ),
                           child: Icon(
-                            item['icon'],
-                            color: item['color'],
+                            icon,
+                            color: color,
                             size: constraints.maxWidth > 600 ? 32 : 24,
                           ),
                         ),
@@ -303,22 +326,27 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                item['title'],
-                                style: Theme.of(context).textTheme.titleLarge
+                                item.title,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
                                     ?.copyWith(
                                       fontWeight: FontWeight.w700,
-                                      color: item['color'],
+                                      color: color,
                                     ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                item['subtitle'],
-                                style: Theme.of(context).textTheme.bodyMedium
+                                item.subtitle,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
                                     ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface.withOpacity(0.7),
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withOpacity(0.7),
                                     ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -331,7 +359,7 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
                     SizedBox(height: constraints.maxWidth > 600 ? 20 : 16),
                     Flexible(
                       child: Text(
-                        item['content'],
+                        item.content,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           height: 1.4,
                           color: Theme.of(
@@ -347,23 +375,36 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () => _showMoreInfo(context, item),
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      'More about ${item.title} coming from your institution.'),
+                                ),
+                              );
+                            },
                             icon: const Icon(Icons.info_outline),
                             label: const Text('Learn More'),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: item['color'],
-                              side: BorderSide(color: item['color']),
+                              foregroundColor: color,
+                              side: BorderSide(color: color),
                             ),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: FilledButton.icon(
-                            onPressed: () => _shareContent(context, item),
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Sharing "${item.title}"'),
+                                ),
+                              );
+                            },
                             icon: const Icon(Icons.share),
                             label: const Text('Share'),
                             style: FilledButton.styleFrom(
-                              backgroundColor: item['color'],
+                              backgroundColor: color,
                             ),
                           ),
                         ),
@@ -379,11 +420,11 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
     );
   }
 
-  Widget _buildPageIndicator(BuildContext context) {
+  Widget _buildPageIndicator(BuildContext context, int itemCount) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
-        _awarenessItems.length,
+        itemCount,
         (index) => Container(
           margin: const EdgeInsets.symmetric(horizontal: 4),
           width: _currentPage == index ? 24 : 8,
@@ -549,70 +590,6 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  void _showMoreInfo(BuildContext context, Map<String, dynamic> item) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(item['icon'], color: item['color']),
-            const SizedBox(width: 8),
-            Text(item['title']),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                item['subtitle'],
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(color: item['color']),
-              ),
-              const SizedBox(height: 16),
-              Text(item['content']),
-              const SizedBox(height: 16),
-              const Text(
-                'Additional Resources:',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              const Text('• Parent support groups'),
-              const Text('• Family counseling services'),
-              const Text('• Crisis intervention resources'),
-              const Text('• Educational workshops'),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _shareContent(context, item);
-            },
-            child: const Text('Share'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _shareContent(BuildContext context, Map<String, dynamic> item) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Sharing: ${item['title']}'),
-        backgroundColor: Colors.green,
       ),
     );
   }
