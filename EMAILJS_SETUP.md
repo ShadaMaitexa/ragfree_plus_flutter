@@ -113,3 +113,4 @@ The application sends emails for:
 
 For higher limits, upgrade to a paid plan on EmailJS.
 
+

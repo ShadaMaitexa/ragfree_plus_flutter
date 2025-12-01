@@ -162,43 +162,43 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
                                   final activeUsers = totalUsers; // All approved users are considered active
                                   
                                   return Row(
-                                    children: [
-                                      Expanded(
-                                        child: _buildStatCard(
-                                          context,
-                                          'Total Users',
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  context,
+                  'Total Users',
                                           totalUsers.toString(),
-                                          Icons.people,
-                                          Colors.blue,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: _buildStatCard(
-                                          context,
-                                          'Active',
+                  Icons.people,
+                  Colors.blue,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildStatCard(
+                  context,
+                  'Active',
                                           activeUsers.toString(),
-                                          Icons.check_circle,
-                                          Colors.green,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
+                  Icons.check_circle,
+                  Colors.green,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
                                         child: StreamBuilder<List<UserModel>>(
                                           stream: _authService.getPendingApprovals(),
                                           builder: (context, pendingSnapshot) {
                                             final pending = pendingSnapshot.data ?? [];
                                             return _buildStatCard(
-                                              context,
+                  context,
                                               'Pending',
                                               pending.length.toString(),
-                                              Icons.pending,
-                                              Colors.orange,
+                  Icons.pending,
+                  Colors.orange,
                                             );
                                           },
-                                        ),
-                                      ),
-                                    ],
+                ),
+              ),
+            ],
                                   );
                                 },
                               );
@@ -808,10 +808,10 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
             ),
           );
         }
-        return ListView.builder(
-          padding: const EdgeInsets.all(20),
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
           itemCount: students.length,
-          itemBuilder: (context, index) {
+      itemBuilder: (context, index) {
             final student = students[index];
             return _buildUserCardFromModel(context, student);
           },
@@ -847,10 +847,10 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
             ),
           );
         }
-        return ListView.builder(
-          padding: const EdgeInsets.all(20),
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
           itemCount: parents.length,
-          itemBuilder: (context, index) {
+      itemBuilder: (context, index) {
             final parent = parents[index];
             return _buildUserCardFromModel(context, parent);
           },
@@ -925,10 +925,10 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
             ),
           );
         }
-        return ListView.builder(
-          padding: const EdgeInsets.all(20),
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
           itemCount: counsellors.length,
-          itemBuilder: (context, index) {
+      itemBuilder: (context, index) {
             final counsellor = counsellors[index];
             return _buildUserCardFromModel(context, counsellor);
           },
@@ -950,34 +950,34 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
         }
         final wardens = snapshot.data ?? [];
         if (wardens.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
                   Icons.security,
-                  size: 64,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'No Wardens Yet',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Add wardens to manage hostel and student affairs',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+            size: 64,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No Wardens Yet',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
             ),
-          );
-        }
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Add wardens to manage hostel and student affairs',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
         return ListView.builder(
           padding: const EdgeInsets.all(20),
           itemCount: wardens.length,
@@ -999,15 +999,15 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
         child: InkWell(
           onTap: () => _viewUserDetails(context, user),
           borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 24,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
                       backgroundColor: Theme.of(context)
                           .colorScheme
                           .primary
@@ -1015,19 +1015,19 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
                       child: Icon(
                         _getRoleIcon(user.role),
                         color: Theme.of(context).colorScheme.primary,
-                      ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
                             user.name,
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                   fontWeight: FontWeight.w600,
-                                ),
-                          ),
+                              ),
+                        ),
                           Text(
                             user.email,
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -1038,52 +1038,52 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
                                 ),
                           ),
                           if (user.department != null)
-                            Text(
+                          Text(
                               user.department!,
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
-                            ),
-                        ],
-                      ),
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                          ),
+                      ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
                         color: Colors.green.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: Colors.green.withOpacity(0.3)),
-                      ),
+                    ),
                       child: const Text(
                         'Approved',
-                        style: TextStyle(
+                      style: TextStyle(
                           color: Colors.green,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                        ),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
                         onPressed: () => _viewUserDetails(context, user),
                         icon: const Icon(Icons.visibility, size: 16),
                         label: const Text('View Details'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                        ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
                       ),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
+            ],
             ),
           ),
         ),
@@ -1262,12 +1262,12 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
               try {
                 await _authService.rejectUser(user.uid);
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('User deleted successfully!'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('User deleted successfully!'),
+                  backgroundColor: Colors.red,
+                ),
+              );
                 }
               } catch (e) {
                 if (context.mounted) {
