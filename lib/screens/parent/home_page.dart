@@ -11,6 +11,7 @@ import '../../models/parent_student_link_model.dart';
 import '../../models/notification_model.dart';
 import '../../models/activity_model.dart';
 import '../../utils/responsive.dart';
+import '../../widgets/animated_widgets.dart';
 
 class ParentHomePage extends StatefulWidget {
   const ParentHomePage({super.key});
@@ -117,183 +118,248 @@ class _ParentHomePageState extends State<ParentHomePage>
   }
 
   Widget _buildWelcomeCard(BuildContext context, Color color) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [color, color.withOpacity(0.8)],
+    return AnimatedWidgets.hoverCard(
+      elevation: 12,
+      hoverElevation: 20,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [color, color.withOpacity(0.8)],
+          ),
+          borderRadius: BorderRadius.circular(20),
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                AnimatedWidgets.bounceIn(
+                  delay: const Duration(milliseconds: 200),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.family_restroom,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
                 ),
-                child: const Icon(
-                  Icons.family_restroom,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome back!',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AnimatedWidgets.slideIn(
+                        beginOffset: const Offset(0.2, 0),
+                        delay: const Duration(milliseconds: 300),
+                        child: Text(
+                          'Welcome back!',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
-                    Consumer<AppState>(
-                      builder: (context, appState, _) {
-                        final userName = appState.currentUser?.name ?? 'User';
-                        return Text(
-                          userName,
-                          style: Theme.of(context).textTheme.headlineSmall
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                              ),
-                        );
-                      },
-                    ),
-                  ],
+                      Consumer<AppState>(
+                        builder: (context, appState, _) {
+                          final userName = appState.currentUser?.name ?? 'User';
+                          return AnimatedWidgets.slideIn(
+                            beginOffset: const Offset(0.2, 0),
+                            delay: const Duration(milliseconds: 400),
+                            child: Text(
+                              userName,
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            AnimatedWidgets.fadeIn(
+              delay: const Duration(milliseconds: 500),
+              child: Text(
+                'Stay connected with your child\'s safety and wellbeing on campus.',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Colors.white.withOpacity(0.9),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Stay connected with your child\'s safety and wellbeing on campus.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.white.withOpacity(0.9),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildChildSafetySummary(BuildContext context, Color color) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Child Safety Summary',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-              ),
-            ),
-            IconButton(
-              icon: Icon(Icons.add_circle, color: color),
-              onPressed: () => _showLinkStudentDialog(context),
-              tooltip: 'Link Student',
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        StreamBuilder<List<ParentStudentLinkModel>>(
-          stream: _getLinkedStudentsStream(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            }
-            final links = snapshot.data ?? [];
-            if (links.isEmpty) {
-              return Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      Icon(Icons.link_off, size: 48, color: Colors.grey),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No Linked Students',
-                        style: Theme.of(context).textTheme.titleMedium,
+    return AnimatedWidgets.fadeIn(
+      delay: const Duration(milliseconds: 600),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Child Safety Summary',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: color,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Link your child\'s account to monitor their safety',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withOpacity(0.7),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      FilledButton.icon(
-                        onPressed: () => _showLinkStudentDialog(context),
-                        icon: const Icon(Icons.link),
-                        label: const Text('Link Student Account'),
-                      ),
-                    ],
-                  ),
                 ),
-              );
-            }
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                final crossAxisCount = Responsive.getGridCrossAxisCount(
-                  context,
-                  mobile: 1,
-                  tablet: 2,
-                  desktop: 2,
-                );
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 1.5,
+              ),
+              AnimatedWidgets.bounceIn(
+                delay: const Duration(milliseconds: 800),
+                child: AnimatedWidgets.scaleButton(
+                  child: IconButton(
+                    icon: Icon(Icons.add_circle, color: color, size: 28),
+                    onPressed: () => _showLinkStudentDialog(context),
+                    tooltip: 'Link Student',
                   ),
-                  itemCount: links.length,
-                  itemBuilder: (context, index) {
-                    final link = links[index];
-                    return _buildSafetyCard(
-                      context,
-                      link.studentName,
-                      link.studentEmail,
-                      link.relationship,
-                      _getColorForIndex(index),
-                      link.studentId,
-                    );
-                  },
+                  onPressed: () => _showLinkStudentDialog(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          StreamBuilder<List<ParentStudentLinkModel>>(
+            stream: _getLinkedStudentsStream(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return AnimatedWidgets.shimmer(
+                  child: Card(
+                    child: Container(
+                      height: 200,
+                      padding: const EdgeInsets.all(24),
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  ),
                 );
-              },
-            );
-          },
-        ),
-      ],
+              }
+              if (snapshot.hasError) {
+                return AnimatedWidgets.fadeIn(
+                  delay: const Duration(milliseconds: 1000),
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Center(
+                        child: Text('Error: ${snapshot.error}'),
+                      ),
+                    ),
+                  ),
+                );
+              }
+              final links = snapshot.data ?? [];
+              if (links.isEmpty) {
+                return AnimatedWidgets.hoverCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        AnimatedWidgets.bounceIn(
+                          delay: const Duration(milliseconds: 1000),
+                          child: Icon(
+                            Icons.link_off,
+                            size: 48,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        AnimatedWidgets.slideIn(
+                          beginOffset: const Offset(0, 0.2),
+                          delay: const Duration(milliseconds: 1100),
+                          child: Text(
+                            'No Linked Students',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        AnimatedWidgets.slideIn(
+                          beginOffset: const Offset(0, 0.2),
+                          delay: const Duration(milliseconds: 1200),
+                          child: Text(
+                            'Link your child\'s account to monitor their safety',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        AnimatedWidgets.slideIn(
+                          beginOffset: const Offset(0, 0.3),
+                          delay: const Duration(milliseconds: 1300),
+                          child: AnimatedWidgets.scaleButton(
+                            child: FilledButton.icon(
+                              onPressed: () => _showLinkStudentDialog(context),
+                              icon: const Icon(Icons.link),
+                              label: const Text('Link Student Account'),
+                            ),
+                            onPressed: () => _showLinkStudentDialog(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final crossAxisCount = Responsive.getGridCrossAxisCount(
+                    context,
+                    mobile: 1,
+                    tablet: 2,
+                    desktop: 2,
+                  );
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 1.5,
+                    ),
+                    itemCount: links.length,
+                    itemBuilder: (context, index) {
+                      final link = links[index];
+                      return AnimatedWidgets.slideIn(
+                        beginOffset: const Offset(0, 0.2),
+                        delay: Duration(milliseconds: 800 + (index * 100)),
+                        child: _buildSafetyCard(
+                          context,
+                          link.studentName,
+                          link.studentEmail,
+                          link.relationship,
+                          _getColorForIndex(index),
+                          link.studentId,
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -652,56 +718,70 @@ class _ParentHomePageState extends State<ParentHomePage>
       },
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Quick Actions',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 16),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final crossAxisCount = Responsive.getGridCrossAxisCount(
-              context,
-              mobile: 2,
-              tablet: 3,
-              desktop: 4,
-            );
-            final childAspectRatio = Responsive.getGridAspectRatio(
-              context,
-              mobile: 1.4,
-              tablet: 1.3,
-              desktop: 1.2,
-            );
+    return AnimatedWidgets.fadeIn(
+      delay: const Duration(milliseconds: 1400),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AnimatedWidgets.slideIn(
+            beginOffset: const Offset(-0.2, 0),
+            delay: const Duration(milliseconds: 1500),
+            child: Text(
+              'Quick Actions',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final crossAxisCount = Responsive.getGridCrossAxisCount(
+                context,
+                mobile: 2,
+                tablet: 3,
+                desktop: 4,
+              );
+              final childAspectRatio = Responsive.getGridAspectRatio(
+                context,
+                mobile: 1.4,
+                tablet: 1.3,
+                desktop: 1.2,
+              );
 
-            return GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: childAspectRatio,
-              ),
-              itemCount: actions.length,
-              itemBuilder: (context, index) {
-                final action = actions[index];
-                return _buildActionCard(
-                  context,
-                  action['icon'] as IconData,
-                  action['title'] as String,
-                  action['subtitle'] as String,
-                  action['color'] as Color,
-                  action['onTap'] as VoidCallback,
-                );
-              },
-            );
-          },
-        ),
-      ],
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: childAspectRatio,
+                ),
+                itemCount: actions.length,
+                itemBuilder: (context, index) {
+                  final action = actions[index];
+                  return AnimatedWidgets.slideIn(
+                    beginOffset: const Offset(0, 0.2),
+                    delay: Duration(milliseconds: 1600 + (index * 100)),
+                    child: AnimatedWidgets.hoverCard(
+                      child: _buildActionCard(
+                        context,
+                        action['icon'] as IconData,
+                        action['title'] as String,
+                        action['subtitle'] as String,
+                        action['color'] as Color,
+                        action['onTap'] as VoidCallback,
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -786,88 +866,110 @@ class _ParentHomePageState extends State<ParentHomePage>
       return const SizedBox.shrink();
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Recent Notifications',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 16),
-        StreamBuilder<List<NotificationModel>>(
-          stream: _notificationService.getUserNotifications(user.uid),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              );
-            }
-            if (snapshot.hasError) {
-              return Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(child: Text('Error: ${snapshot.error}')),
-                ),
-              );
-            }
-            final notifications = snapshot.data ?? [];
-            if (notifications.isEmpty) {
-              return Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.notifications_none,
-                          size: 48,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No Notifications',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'You\'ll see notifications here when there are updates',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withOpacity(0.7),
-                              ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+    return AnimatedWidgets.fadeIn(
+      delay: const Duration(milliseconds: 2000),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AnimatedWidgets.slideIn(
+            beginOffset: const Offset(-0.2, 0),
+            delay: const Duration(milliseconds: 2100),
+            child: Text(
+              'Recent Notifications',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          StreamBuilder<List<NotificationModel>>(
+            stream: _notificationService.getUserNotifications(user.uid),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return AnimatedWidgets.shimmer(
+                  child: Card(
+                    child: Container(
+                      height: 120,
+                      padding: const EdgeInsets.all(24),
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
                     ),
                   ),
+                );
+              }
+              if (snapshot.hasError) {
+                return AnimatedWidgets.fadeIn(
+                  delay: const Duration(milliseconds: 2200),
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Center(child: Text('Error: ${snapshot.error}')),
+                    ),
+                  ),
+                );
+              }
+              final notifications = snapshot.data ?? [];
+              if (notifications.isEmpty) {
+                return AnimatedWidgets.hoverCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          AnimatedWidgets.bounceIn(
+                            delay: const Duration(milliseconds: 2300),
+                            child: Icon(
+                              Icons.notifications_none,
+                              size: 48,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          AnimatedWidgets.slideIn(
+                            beginOffset: const Offset(0, 0.2),
+                            delay: const Duration(milliseconds: 2400),
+                            child: Text(
+                              'No Notifications',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          AnimatedWidgets.slideIn(
+                            beginOffset: const Offset(0, 0.2),
+                            delay: const Duration(milliseconds: 2500),
+                            child: Text(
+                              'You\'ll see notifications here when there are updates',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return AnimatedWidgets.hoverCard(
+                child: Column(
+                  children: notifications.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final notification = entry.value;
+                    return AnimatedWidgets.slideIn(
+                      beginOffset: const Offset(0.1, 0),
+                      delay: Duration(milliseconds: 2200 + (index * 100)),
+                      child: _buildNotificationItemFromModel(context, notification),
+                    );
+                  }).toList(),
                 ),
               );
-            }
-            return Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: notifications.map((notification) {
-                  return _buildNotificationItemFromModel(context, notification);
-                }).toList(),
-              ),
-            );
-          },
-        ),
-      ],
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -951,92 +1053,116 @@ class _ParentHomePageState extends State<ParentHomePage>
       return const SizedBox.shrink();
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Recent Activity',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 16),
-        StreamBuilder<List<ActivityModel>>(
-          stream: _activityService.getUserActivities(user.uid, limit: 5),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              );
-            }
-            if (snapshot.hasError) {
-              return Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(child: Text('Error: ${snapshot.error}')),
-                ),
-              );
-            }
-            final activities = snapshot.data ?? [];
-            if (activities.isEmpty) {
-              return Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(Icons.history, size: 48, color: Colors.grey),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No Recent Activity',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Your recent activities will appear here',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withOpacity(0.7),
-                              ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+    return AnimatedWidgets.fadeIn(
+      delay: const Duration(milliseconds: 2600),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AnimatedWidgets.slideIn(
+            beginOffset: const Offset(-0.2, 0),
+            delay: const Duration(milliseconds: 2700),
+            child: Text(
+              'Recent Activity',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          StreamBuilder<List<ActivityModel>>(
+            stream: _activityService.getUserActivities(user.uid, limit: 5),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return AnimatedWidgets.shimmer(
+                  child: Card(
+                    child: Container(
+                      height: 150,
+                      padding: const EdgeInsets.all(24),
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
                     ),
                   ),
+                );
+              }
+              if (snapshot.hasError) {
+                return AnimatedWidgets.fadeIn(
+                  delay: const Duration(milliseconds: 2800),
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Center(child: Text('Error: ${snapshot.error}')),
+                    ),
+                  ),
+                );
+              }
+              final activities = snapshot.data ?? [];
+              if (activities.isEmpty) {
+                return AnimatedWidgets.hoverCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          AnimatedWidgets.bounceIn(
+                            delay: const Duration(milliseconds: 2900),
+                            child: Icon(
+                              Icons.history,
+                              size: 48,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          AnimatedWidgets.slideIn(
+                            beginOffset: const Offset(0, 0.2),
+                            delay: const Duration(milliseconds: 3000),
+                            child: Text(
+                              'No Recent Activity',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          AnimatedWidgets.slideIn(
+                            beginOffset: const Offset(0, 0.2),
+                            delay: const Duration(milliseconds: 3100),
+                            child: Text(
+                              'Your recent activities will appear here',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return AnimatedWidgets.hoverCard(
+                child: Column(
+                  children: activities.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final activity = entry.value;
+                    return AnimatedWidgets.slideIn(
+                      beginOffset: const Offset(0.1, 0),
+                      delay: Duration(milliseconds: 2800 + (index * 150)),
+                      child: Column(
+                        children: [
+                          _buildActivityItemFromModel(context, activity),
+                          if (index < activities.length - 1)
+                            const Divider(height: 1),
+                        ],
+                      ),
+                    );
+                  }).toList(),
                 ),
               );
-            }
-            return Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: activities.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final activity = entry.value;
-                  return Column(
-                    children: [
-                      _buildActivityItemFromModel(context, activity),
-                      if (index < activities.length - 1)
-                        const Divider(height: 1),
-                    ],
-                  );
-                }).toList(),
-              ),
-            );
-          },
-        ),
-      ],
+            },
+          ),
+        ],
+      ),
     );
   }
 
