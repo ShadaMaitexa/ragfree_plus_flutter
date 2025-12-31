@@ -242,7 +242,6 @@ class _PoliceSendNotificationPageState
         StreamBuilder<QuerySnapshot>(
           stream: _firestore
               .collection('notifications')
-              .orderBy('createdAt', descending: true)
               .limit(10)
               .snapshots(),
           builder: (context, snapshot) {

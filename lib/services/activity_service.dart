@@ -11,7 +11,6 @@ class ActivityService {
     return _firestore
         .collection('activities')
         .where('userId', isEqualTo: userId)
-        .orderBy('timestamp', descending: true)
         .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
@@ -117,7 +116,6 @@ class ActivityService {
   Stream<List<ActivityModel>> getAllActivities({int limit = 10}) {
     return _firestore
         .collection('activities')
-        .orderBy('timestamp', descending: true)
         .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
@@ -128,4 +126,3 @@ class ActivityService {
             .toList());
   }
 }
-

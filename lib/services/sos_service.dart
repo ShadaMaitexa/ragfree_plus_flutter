@@ -149,7 +149,6 @@ class SOSService {
     return _firestore
         .collection('sos_alerts')
         .where('status', isEqualTo: 'Active')
-        .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => {
@@ -172,4 +171,3 @@ class SOSService {
     }
   }
 }
-

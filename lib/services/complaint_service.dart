@@ -77,11 +77,9 @@ class ComplaintService {
 
   // Get complaints for a student
   Stream<List<ComplaintModel>> getStudentComplaints(String studentId) {
-    // Note: This requires a composite index in Firestore: studentId (ASC) + createdAt (DESC)
     return _firestore
         .collection('complaints')
         .where('studentId', isEqualTo: studentId)
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
@@ -92,7 +90,6 @@ class ComplaintService {
   Stream<List<ComplaintModel>> getAllComplaints() {
     return _firestore
         .collection('complaints')
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
@@ -104,7 +101,6 @@ class ComplaintService {
     return _firestore
         .collection('complaints')
         .where('status', isEqualTo: status)
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
@@ -113,11 +109,9 @@ class ComplaintService {
 
   // Get complaints assigned to a counselor
   Stream<List<ComplaintModel>> getAssignedComplaints(String counselorId) {
-    // Note: This requires a composite index in Firestore: assignedTo (ASC) + createdAt (DESC)
     return _firestore
         .collection('complaints')
         .where('assignedTo', isEqualTo: counselorId)
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
@@ -130,13 +124,11 @@ class ComplaintService {
     if (studentIds.isEmpty) {
       return Stream.value([]);
     }
-    // Note: whereIn with orderBy requires a composite index in Firestore
     // Limit to 10 IDs as Firestore whereIn supports max 10 items
     final limitedIds = studentIds.length > 10 ? studentIds.sublist(0, 10) : studentIds;
     return _firestore
         .collection('complaints')
         .where('studentId', whereIn: limitedIds)
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
@@ -235,4 +227,3 @@ class ComplaintService {
     }
   }
 }
-

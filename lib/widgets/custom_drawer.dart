@@ -6,6 +6,7 @@ class CustomDrawer extends StatelessWidget {
   final Function(int) onSelect;
   final String? userName;
   final String? userEmail;
+  final String? userId;
   final VoidCallback? onLogout;
 
   const CustomDrawer({
@@ -15,6 +16,7 @@ class CustomDrawer extends StatelessWidget {
     required this.onSelect,
     this.userName,
     this.userEmail,
+    this.userId,
     this.onLogout,
   });
 
@@ -95,6 +97,13 @@ class CustomDrawer extends StatelessWidget {
                 userEmail!,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.white.withOpacity(0.8),
+                ),
+              ),
+            if (userId != null && userId!.isNotEmpty)
+              Text(
+                'ID: $userId',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white.withOpacity(0.7),
                 ),
               ),
           ],

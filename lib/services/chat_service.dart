@@ -31,12 +31,10 @@ class ChatService {
             .where('studentId', isEqualTo: studentId)
             .get();
         // Filter to find ones without counselor
-        final filteredDocs = allConversations.docs
-            .where((doc) {
-              final data = doc.data();
-              return data['counselorId'] == null || data['counselorId'] == '';
-            })
-            .toList();
+        final filteredDocs = allConversations.docs.where((doc) {
+          final data = doc.data();
+          return data['counselorId'] == null || data['counselorId'] == '';
+        }).toList();
         // Return the first matching conversation ID if found
         if (filteredDocs.isNotEmpty) {
           return filteredDocs.first.id;
@@ -104,7 +102,6 @@ class ChatService {
         .collection('chat_conversations')
         .doc(chatId)
         .collection('messages')
-        .orderBy('timestamp', descending: false)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => ChatMessageModel.fromMap({...doc.data(), 'id': doc.id}))
@@ -112,12 +109,10 @@ class ChatService {
   }
 
   // Get conversations for a student
-  Stream<List<ChatConversationModel>> getStudentConversations(
-      String studentId) {
+  Stream<List<ChatConversationModel>> getStudentConversations(String studentId) {
     return _firestore
         .collection('chat_conversations')
         .where('studentId', isEqualTo: studentId)
-        .orderBy('lastMessageAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => ChatConversationModel.fromMap({
@@ -128,12 +123,10 @@ class ChatService {
   }
 
   // Get conversations for a counselor
-  Stream<List<ChatConversationModel>> getCounselorConversations(
-      String counselorId) {
+  Stream<List<ChatConversationModel>> getCounselorConversations(String counselorId) {
     return _firestore
         .collection('chat_conversations')
         .where('counselorId', isEqualTo: counselorId)
-        .orderBy('lastMessageAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => ChatConversationModel.fromMap({
@@ -147,7 +140,6 @@ class ChatService {
   Stream<List<ChatConversationModel>> getTeacherConversations(String teacherId) {
     return _firestore
         .collection('chat_conversations')
-        .orderBy('lastMessageAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => ChatConversationModel.fromMap({
@@ -201,4 +193,3 @@ class ChatService {
     }
   }
 }
-

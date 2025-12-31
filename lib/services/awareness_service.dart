@@ -7,9 +7,7 @@ class AwarenessService {
   /// Get awareness content for a specific role.
   /// If role is 'all', returns content for all roles.
   Stream<List<AwarenessModel>> getAwarenessForRole(String role) {
-    Query collection = _firestore
-        .collection('awareness')
-        .orderBy('createdAt', descending: true);
+    Query collection = _firestore.collection('awareness');
 
     if (role != 'all') {
       collection = collection.where('role', whereIn: [role, 'all']);
@@ -42,5 +40,3 @@ class AwarenessService {
     await _firestore.collection('awareness').doc(id).delete();
   }
 }
-
-

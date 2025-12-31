@@ -8,7 +8,6 @@ class EmergencyAlertService {
     return _firestore
         .collection('emergency_alerts')
         .where('isActive', isEqualTo: true)
-        .orderBy('createdAt', descending: true)
         .limit(10)
         .snapshots()
         .map((snapshot) => snapshot.docs
@@ -23,7 +22,6 @@ class EmergencyAlertService {
   Stream<List<Map<String, dynamic>>> getRecentEmergencyAlerts({int limit = 5}) {
     return _firestore
         .collection('emergency_alerts')
-        .orderBy('createdAt', descending: true)
         .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
@@ -50,7 +48,6 @@ class EmergencyAlertService {
 
       final recentAlerts = await _firestore
           .collection('emergency_alerts')
-          .orderBy('createdAt', descending: true)
           .limit(1)
           .get();
 
@@ -143,4 +140,3 @@ class EmergencyAlertService {
     }
   }
 }
-
