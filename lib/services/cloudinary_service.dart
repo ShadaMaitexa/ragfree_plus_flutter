@@ -7,8 +7,8 @@ class CloudinaryService {
   CloudinaryService._internal();
 
   // REPLACE THESE WITH YOUR CLOUDINARY CREDENTIALS
-  final String _cloudName = 'dwu3v3v3v'; // Dummy cloud name
-  final String _uploadPreset = 'ragfree_uploads'; // Dummy upload preset
+  final String _cloudName = 'dsoz2xlwg'; // Dummy cloud name
+  final String _uploadPreset = 'ragfree_images'; // Dummy upload preset
 
   late final CloudinaryPublic _cloudinary;
 
