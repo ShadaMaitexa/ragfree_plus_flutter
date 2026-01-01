@@ -4,6 +4,7 @@ import 'book_appointment_page.dart';
 import '../../services/app_state.dart';
 import '../../services/complaint_service.dart';
 import '../../services/activity_service.dart';
+import '../../services/emergency_alert_service.dart';
 import '../../models/activity_model.dart';
 import '../../utils/responsive.dart';
 
@@ -21,6 +22,7 @@ class _StudentHomePageState extends State<StudentHomePage>
   late Animation<Offset> _slideAnimation;
   final ComplaintService _complaintService = ComplaintService();
   final ActivityService _activityService = ActivityService();
+  final EmergencyAlertService _emergencyService = EmergencyAlertService();
   bool _isSendingSOS = false;
 
   @override
@@ -44,7 +46,6 @@ class _StudentHomePageState extends State<StudentHomePage>
         );
 
     _animationController.forward();
-    //_sosService.initializeNotifications();
   }
 
   @override
@@ -730,64 +731,64 @@ class _StudentHomePageState extends State<StudentHomePage>
                     },
               child: const Text('Cancel'),
             ),
-            //FilledButton(
-              // onPressed: _isSendingSOS
-              //     ? null
-              //     : () async {
-              //         setDialogState(() => _isSendingSOS = true);
-              //         try {
-              //           final appState =
-              //               Provider.of<AppState>(context, listen: false);
-              //           final user = appState.currentUser;
+            FilledButton(
+              onPressed: _isSendingSOS
+                  ? null
+                  : () async {
+                      setDialogState(() => _isSendingSOS = true);
+                      try {
+                        final appState =
+                            Provider.of<AppState>(context, listen: false);
+                        final user = appState.currentUser;
 
-              //           if (user != null) {
-              //             await _sosService.sendSOSAlert(
-              //               studentId: user.uid,
-              //               studentName: user.name,
-              //               message: messageController.text.trim().isEmpty
-              //                   ? null
-              //                   : messageController.text.trim(),
-              //             );
+                        if (user != null) {
+                          await _emergencyService.sendSOSAlert(
+                            studentId: user.uid,
+                            studentName: user.name,
+                            message: messageController.text.trim().isEmpty
+                                ? null
+                                : messageController.text.trim(),
+                          );
 
-              //             if (context.mounted) {
-              //               Navigator.pop(context);
-              //               ScaffoldMessenger.of(context).showSnackBar(
-              //                 const SnackBar(
-              //                   content: Text(
-              //                       'Emergency alert sent! Help is on the way.'),
-              //                   backgroundColor: Colors.red,
-              //                   duration: Duration(seconds: 5),
-              //                 ),
-              //               );
-              //             }
-              //           }
-              //         } catch (e) {
-              //           if (context.mounted) {
-              //             ScaffoldMessenger.of(context).showSnackBar(
-              //               SnackBar(
-              //                 content: Text('Error: ${e.toString()}'),
-              //                 backgroundColor: Colors.red,
-              //               ),
-              //             );
-              //           }
-              //         } finally {
-              //           if (mounted) {
-              //             setState(() => _isSendingSOS = false);
-              //           }
-              //         }
-              //       },
-            //   style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            //   child: _isSendingSOS
-            //       ? const SizedBox(
-            //           height: 20,
-            //           width: 20,
-            //           child: CircularProgressIndicator(
-            //             strokeWidth: 2,
-            //             color: Colors.white,
-            //           ),
-            //         )
-            //       : const Text('Send SOS'),
-            // ),
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Emergency alert sent! Help is on the way.'),
+                                backgroundColor: Colors.red,
+                                duration: Duration(seconds: 5),
+                              ),
+                            );
+                          }
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Error: ${e.toString()}'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      } finally {
+                        if (mounted) {
+                          setState(() => _isSendingSOS = false);
+                        }
+                      }
+                    },
+              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+              child: _isSendingSOS
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Send SOS'),
+            ),
           ],
         ),
       ),
@@ -804,17 +805,14 @@ class _StudentHomePageState extends State<StudentHomePage>
   }
 
   void _navigateToComplaints(BuildContext context) {
-    // Navigate to complaints tab
-    DefaultTabController.of(context).animateTo(1);
+    Provider.of<AppState>(context, listen: false).setNavIndex(1);
   }
 
   void _navigateToChat(BuildContext context) {
-    // Navigate to chat tab
-    DefaultTabController.of(context).animateTo(2);
+    Provider.of<AppState>(context, listen: false).setNavIndex(2);
   }
 
   void _navigateToAwareness(BuildContext context) {
-    // Navigate to awareness tab
-    DefaultTabController.of(context).animateTo(3);
+    Provider.of<AppState>(context, listen: false).setNavIndex(3);
   }
 }

@@ -112,6 +112,29 @@ class ActivityService {
     }
   }
 
+  // Create SOS activity
+  Future<void> createSOSActivity({
+    required String userId,
+    required String studentName,
+    String? message,
+  }) async {
+    try {
+      await _firestore.collection('activities').add({
+        'userId': userId,
+        'type': 'system', // or 'emergency' if we add it
+        'title': '🚨 EMERGENCY SOS TRIGGERED',
+        'description': '$studentName has triggered an SOS alert: ${message ?? 'No message provided'}',
+        'timestamp': Timestamp.now(),
+        'metadata': {
+          'isEmergency': true,
+          'priority': 'critical',
+        },
+      });
+    } catch (e) {
+      // Handle error silently
+    }
+  }
+
   // Get activities for admin (all activities)
   Stream<List<ActivityModel>> getAllActivities({int limit = 10}) {
     return _firestore

@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'activity_service.dart';
 
 class EmergencyAlertService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ActivityService _activityService = ActivityService();
 
   // Get all active emergency alerts
   Stream<List<Map<String, dynamic>>> getActiveEmergencyAlerts() {
@@ -137,6 +139,36 @@ class EmergencyAlertService {
       });
     } catch (e) {
       throw Exception('Failed to deactivate alert: ${e.toString()}');
+    }
+  }
+
+  // Send SOS alert (student specific)
+  Future<void> sendSOSAlert({
+    required String studentId,
+    required String studentName,
+    String? message,
+    String? location,
+  }) async {
+    try {
+      final alertTitle = 'SOS: Emergency Help Required';
+      final alertMessage = message ?? '$studentName has triggered an emergency SOS alert. Please respond immediately.';
+      
+      await createEmergencyAlert(
+        title: alertTitle,
+        message: alertMessage,
+        priority: 'critical',
+        createdBy: studentId,
+        location: location,
+      );
+
+      // Log activity
+      await _activityService.createSOSActivity(
+        userId: studentId,
+        studentName: studentName,
+        message: message,
+      );
+    } catch (e) {
+      throw Exception('Failed to send SOS: ${e.toString()}');
     }
   }
 }

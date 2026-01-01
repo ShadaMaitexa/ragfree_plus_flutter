@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/complaint_service.dart';
 import '../../models/complaint_model.dart';
+import '../../services/pdf_service.dart';
 import 'package:intl/intl.dart';
 
 class PoliceGenerateReportPage extends StatefulWidget {
@@ -16,6 +17,7 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   final ComplaintService _complaintService = ComplaintService();
+  final PdfService _pdfService = PdfService();
   DateTimeRange? _selectedDateRange;
   String _selectedStatus = 'All';
   String _selectedPriority = 'All';
@@ -109,6 +111,7 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
                   style: Theme.of(context).textTheme.headlineSmall
                       ?.copyWith(fontWeight: FontWeight.w700, color: color),
                 ),
+                const SizedBox(height: 4),
                 Text(
                   'Create comprehensive reports on ragging complaints',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -219,25 +222,7 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
         }
         final allComplaints = snapshot.data ?? [];
         
-        // Apply filters
-        var filteredComplaints = allComplaints;
-        if (_selectedStatus != 'All') {
-          filteredComplaints = filteredComplaints
-              .where((c) => c.status == _selectedStatus)
-              .toList();
-        }
-        if (_selectedPriority != 'All') {
-          filteredComplaints = filteredComplaints
-              .where((c) => c.priority == _selectedPriority)
-              .toList();
-        }
-        if (_selectedDateRange != null) {
-          filteredComplaints = filteredComplaints
-              .where((c) =>
-                  c.createdAt.isAfter(_selectedDateRange!.start) &&
-                  c.createdAt.isBefore(_selectedDateRange!.end.add(const Duration(days: 1))))
-              .toList();
-        }
+        final filteredComplaints = _getFilteredComplaints(allComplaints);
 
         final total = filteredComplaints.length;
         final pending = filteredComplaints.where((c) => c.status == 'Pending').length;
@@ -289,6 +274,24 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
     );
   }
 
+  List<ComplaintModel> _getFilteredComplaints(List<ComplaintModel> all) {
+    var filtered = all;
+    if (_selectedStatus != 'All') {
+      filtered = filtered.where((c) => c.status == _selectedStatus).toList();
+    }
+    if (_selectedPriority != 'All') {
+      filtered = filtered.where((c) => c.priority == _selectedPriority).toList();
+    }
+    if (_selectedDateRange != null) {
+      filtered = filtered
+          .where((c) =>
+              c.createdAt.isAfter(_selectedDateRange!.start) &&
+              c.createdAt.isBefore(_selectedDateRange!.end.add(const Duration(days: 1))))
+          .toList();
+    }
+    return filtered;
+  }
+
   Widget _buildStatRow(String label, String value, Color color) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -320,19 +323,24 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
   }
 
   Widget _buildGenerateButton(BuildContext context, Color color) {
-    return FilledButton.icon(
-      onPressed: () => _generateReport(context),
-      icon: const Icon(Icons.picture_as_pdf),
-      label: const Text('Generate PDF Report'),
-      style: FilledButton.styleFrom(
-        backgroundColor: color,
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-      ),
+    return StreamBuilder<List<ComplaintModel>>(
+      stream: _complaintService.getAllComplaints(),
+      builder: (context, snapshot) {
+        final complaints = _getFilteredComplaints(snapshot.data ?? []);
+        return FilledButton.icon(
+          onPressed: complaints.isEmpty ? null : () => _generateReport(context, complaints),
+          icon: const Icon(Icons.picture_as_pdf),
+          label: const Text('Generate PDF Report'),
+          style: FilledButton.styleFrom(
+            backgroundColor: color,
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          ),
+        );
+      },
     );
   }
 
-  Future<void> _generateReport(BuildContext context) async {
-    // Show loading
+  Future<void> _generateReport(BuildContext context, List<ComplaintModel> complaints) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -340,15 +348,26 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
     );
 
     try {
-      // In a real app, you would generate a PDF here
-      // For now, we'll just show a success message
-      await Future.delayed(const Duration(seconds: 2));
+      final data = complaints.map((c) => {
+        'Title': c.title,
+        'Student': c.studentName ?? 'Anonymous',
+        'Category': c.category,
+        'Status': c.status,
+        'Priority': c.priority,
+        'Date': DateFormat('yyyy-MM-dd').format(c.createdAt),
+      }).toList();
+
+      await _pdfService.generateReport(
+        reportTitle: 'Campus Safety - Ragging Complaints Report',
+        category: 'Status: $_selectedStatus, Priority: $_selectedPriority',
+        data: data,
+      );
 
       if (context.mounted) {
         Navigator.pop(context); // Close loading
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Report generated successfully! (PDF generation would be implemented here)'),
+            content: Text('Report generated successfully!'),
             backgroundColor: Colors.green,
           ),
         );

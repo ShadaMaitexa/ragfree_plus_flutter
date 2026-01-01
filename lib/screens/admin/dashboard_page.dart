@@ -89,6 +89,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          _buildEmergencyBanner(context),
                           _buildWelcomeCard(context, color),
                           const SizedBox(height: 24),
                           _buildStatsGrid(context, color),
@@ -105,6 +106,52 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
                 },
               ),
             ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmergencyBanner(BuildContext context) {
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: _emergencyAlertService.getActiveEmergencyAlerts(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final alerts = snapshot.data!;
+        final criticalAlerts = alerts.where((a) => a['priority'] == 'critical').toList();
+        
+        if (criticalAlerts.isEmpty) return const SizedBox.shrink();
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 24),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.red.shade100,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.red.shade300, width: 2),
+          ),
+          child: Column(
+            children: criticalAlerts.map((alert) {
+              return ListTile(
+                leading: const Icon(Icons.emergency, color: Colors.red, size: 32),
+                title: Text(
+                  alert['title'] ?? 'EmergencySOS',
+                  style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                subtitle: Text(
+                  '${alert['message']}\nLocation: ${alert['location'] ?? 'Unknown'}',
+                  style: TextStyle(color: Colors.red.shade900),
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.check_circle_outline, color: Colors.red),
+                  onPressed: () => _emergencyAlertService.deactivateAlert(alert['id']),
+                  tooltip: 'Resolve Alert',
+                ),
+              );
+            }).toList(),
           ),
         );
       },
@@ -859,21 +906,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
   }
 
   void _navigateToUsers(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Navigating to user management...'),
-        backgroundColor: Colors.blue,
-      ),
-    );
+    Provider.of<AppState>(context, listen: false).setNavIndex(1);
   }
 
   void _navigateToDepartments(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Navigating to departments...'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    Provider.of<AppState>(context, listen: false).setNavIndex(3);
   }
 
   void _sendAlert(BuildContext context) {
@@ -1010,11 +1047,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
   }
 
   void _navigateToAnalytics(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Navigating to analytics...'),
-        backgroundColor: Colors.purple,
-      ),
-    );
+    Provider.of<AppState>(context, listen: false).setNavIndex(8);
   }
 }

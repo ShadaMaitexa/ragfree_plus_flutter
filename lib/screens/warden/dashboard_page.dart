@@ -125,18 +125,18 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
         const SizedBox(height: 16),
         Row(
           children: [
-            Expanded(child: _buildActionBtn(context, 'View Complaints', Icons.assignment, Colors.blue)),
+            Expanded(child: _buildActionBtn(context, 'View Complaints', Icons.assignment, Colors.blue, 1)),
             const SizedBox(width: 12),
-            Expanded(child: _buildActionBtn(context, 'Manage Students', Icons.people, Colors.purple)),
+            Expanded(child: _buildActionBtn(context, 'Manage Students', Icons.people, Colors.purple, 3)),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildActionBtn(BuildContext context, String label, IconData icon, Color color) {
+  Widget _buildActionBtn(BuildContext context, String label, IconData icon, Color color, int targetIndex) {
     return ElevatedButton.icon(
-      onPressed: () {},
+      onPressed: () => Provider.of<AppState>(context, listen: false).setNavIndex(targetIndex),
       icon: Icon(icon, size: 18),
       label: Text(label),
       style: ElevatedButton.styleFrom(

@@ -369,7 +369,6 @@ class StudentDashboard extends StatefulWidget {
 
 class _StudentDashboardState extends State<StudentDashboard> {
   final PageController _pageController = PageController();
-  int selectedIndex = 0;
 
   @override
   void dispose() {
@@ -379,6 +378,16 @@ class _StudentDashboardState extends State<StudentDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+    final selectedIndex = appState.navIndex;
+
+    // Sync PageController if needed
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_pageController.hasClients && _pageController.page?.round() != selectedIndex) {
+        _pageController.jumpToPage(selectedIndex);
+      }
+    });
+
     final pages = <Widget>[
       const StudentHomePage(),
       const StudentComplaintsPage(),
@@ -397,13 +406,13 @@ class _StudentDashboardState extends State<StudentDashboard> {
         appBar: AppBar(title: const Text('Student Dashboard')),
         body: PageView(
           controller: _pageController,
-          onPageChanged: (i) => setState(() => selectedIndex = i),
+          onPageChanged: (i) => appState.setNavIndex(i),
           children: pages,
         ),
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: selectedIndex,
           onTap: (i) {
-            setState(() => selectedIndex = i);
+            appState.setNavIndex(i);
             _pageController.animateToPage(
               i,
               duration: const Duration(milliseconds: 250),
@@ -514,10 +523,11 @@ class AdminDashboard extends StatefulWidget {
 }
 
 class _AdminDashboardState extends State<AdminDashboard> {
-  int selectedIndex = 0;
-
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+    final selectedIndex = appState.navIndex;
+
     final railDestinations = const [
       NavigationRailDestination(
         icon: Icon(Icons.dashboard),
@@ -589,12 +599,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
     final navWidget = isWide
         ? NavigationRail(
             selectedIndex: selectedIndex,
-            onDestinationSelected: (i) => setState(() => selectedIndex = i),
+            onDestinationSelected: (i) => appState.setNavIndex(i),
             destinations: railDestinations,
             labelType: NavigationRailLabelType.all,
           )
         : _RoleDrawer(
-            onNavigate: (i) => setState(() => selectedIndex = i),
+            onNavigate: (i) => appState.setNavIndex(i),
             items: const [
               DrawerItem(icon: Icons.dashboard, label: 'Dashboard'),
               DrawerItem(icon: Icons.group, label: 'ManageUsers'),
@@ -623,7 +633,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         drawer: isWide ? null : navWidget as Widget?,
         body: Row(
           children: [
-            if (isWide) SizedBox(width: 220, child: navWidget),
+            if (isWide) SizedBox(width: 120, child: navWidget),
             Expanded(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),
@@ -930,10 +940,11 @@ class WardenDashboard extends StatefulWidget {
 }
 
 class _WardenDashboardState extends State<WardenDashboard> {
-  int selectedIndex = 0;
-
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+    final selectedIndex = appState.navIndex;
+
     final pages = const <Widget>[
       // Dashboard, ViewComplaints, ForwardComplaints, Students, Awareness, Feedback
       _WardenDashboardPages.dashboard,
@@ -947,7 +958,7 @@ class _WardenDashboardState extends State<WardenDashboard> {
     return Scaffold(
       appBar: AppBar(title: const Text('Warden Dashboard')),
       drawer: _RoleDrawer(
-        onNavigate: (index) => setState(() => selectedIndex = index),
+        onNavigate: (index) => appState.setNavIndex(index),
         items: const [
           DrawerItem(icon: Icons.dashboard, label: 'Dashboard'),
           DrawerItem(icon: Icons.list_alt, label: 'ViewComplaints'),
@@ -1137,10 +1148,11 @@ class _WardenFeedbackProxy extends StatelessWidget {
 }
 
 class _PoliceDashboardState extends State<PoliceDashboard> {
-  int selectedIndex = 0;
-
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+    final selectedIndex = appState.navIndex;
+
     final pages = const <Widget>[
       _PolicePages.dashboard,
       _PolicePages.complaints,
@@ -1153,7 +1165,7 @@ class _PoliceDashboardState extends State<PoliceDashboard> {
     return Scaffold(
       appBar: AppBar(title: const Text('Police Dashboard')),
       drawer: _RoleDrawer(
-        onNavigate: (index) => setState(() => selectedIndex = index),
+        onNavigate: (index) => appState.setNavIndex(index),
         items: const [
           DrawerItem(icon: Icons.dashboard, label: 'Dashboard'),
           DrawerItem(icon: Icons.assignment, label: 'Complaints'),
@@ -1285,7 +1297,6 @@ class TeacherDashboard extends StatefulWidget {
 
 class _TeacherDashboardState extends State<TeacherDashboard> {
   final PageController _pageController = PageController();
-  int selectedIndex = 0;
 
   @override
   void dispose() {
@@ -1295,6 +1306,16 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+    final selectedIndex = appState.navIndex;
+
+    // Sync PageController if needed
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_pageController.hasClients && _pageController.page?.round() != selectedIndex) {
+        _pageController.jumpToPage(selectedIndex);
+      }
+    });
+
     final pages = <Widget>[
       _TeacherDashboardPages.dashboard,
       _TeacherDashboardPages.complaints,
@@ -1313,13 +1334,13 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
         appBar: AppBar(title: const Text('Teacher Dashboard')),
         body: PageView(
           controller: _pageController,
-          onPageChanged: (i) => setState(() => selectedIndex = i),
+          onPageChanged: (i) => appState.setNavIndex(i),
           children: pages,
         ),
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: selectedIndex,
           onTap: (i) {
-            setState(() => selectedIndex = i);
+            appState.setNavIndex(i);
             _pageController.animateToPage(
               i,
               duration: const Duration(milliseconds: 250),
