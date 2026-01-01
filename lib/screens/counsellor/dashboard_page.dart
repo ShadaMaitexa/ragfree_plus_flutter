@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
 import '../../utils/responsive.dart';
+import 'schedule_session_page.dart';
+import 'chat_page.dart';
 
 class CounsellorDashboardPage extends StatefulWidget {
   const CounsellorDashboardPage({super.key});
@@ -767,19 +769,19 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage>
   }
 
   void _navigateToSchedule(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Navigating to schedule sessions...'),
-        backgroundColor: Colors.orange,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CounsellorScheduleSessionPage(),
       ),
     );
   }
 
   void _navigateToChat(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Navigating to chat with students...'),
-        backgroundColor: Colors.purple,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CounsellorChatPage(),
       ),
     );
   }

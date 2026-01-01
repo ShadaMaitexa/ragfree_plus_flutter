@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'book_appointment_page.dart';
 import '../../services/app_state.dart';
 import '../../services/complaint_service.dart';
 import '../../services/activity_service.dart';
@@ -179,11 +180,11 @@ class _StudentHomePageState extends State<StudentHomePage>
   Widget _buildQuickActions(BuildContext context, Color color) {
     final actions = [
       {
-        'icon': Icons.emergency,
-        'title': 'SOS',
-        'subtitle': 'Emergency',
-        'color': Colors.red,
-        'onTap': () => _showSOSDialog(context),
+        'icon': Icons.calendar_month,
+        'title': 'Book',
+        'subtitle': 'Counseling',
+        'color': Colors.purple,
+        'onTap': () => _navigateToBooking(context),
       },
       {
         'icon': Icons.report_problem,
@@ -789,6 +790,15 @@ class _StudentHomePageState extends State<StudentHomePage>
             // ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _navigateToBooking(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const StudentBookAppointmentPage(),
       ),
     );
   }

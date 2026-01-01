@@ -251,9 +251,8 @@ class _ParentChatPageState extends State<ParentChatPage>
     if (user == null || user.role != 'parent') {
       return Stream.value([]);
     }
-    // Parents can see conversations related to their linked students
-    // For now, return empty - can be enhanced to show student conversations
-    return Stream.value([]);
+    // Parents using the chat system as a client (similar to students)
+    return _chatService.getStudentConversations(user.uid);
   }
 
   Widget _buildConversationsContent(BuildContext context) {

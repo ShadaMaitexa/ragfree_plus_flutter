@@ -327,26 +327,152 @@ class _TeacherProfilePageState extends State<TeacherProfilePage>
   }
 
   Widget _buildActions(BuildContext context, Color color) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Column(
-        children: [
-          ListTile(
-            leading: Icon(Icons.logout, color: Colors.red),
-            title: const Text('Logout'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () async {
+    return Column(
+      children: [
+        Card(
+          elevation: 2,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.lock_outline, color: Colors.blue),
+                title: const Text('Change Password'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _changePassword(context),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                title: const Text('Delete Account'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _deleteAccount(context),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: () async {
               await _authService.signOut();
               if (mounted) {
                 Provider.of<AppState>(context, listen: false).clearUser();
                 Navigator.pushReplacementNamed(context, '/login');
               }
             },
+            icon: const Icon(Icons.logout),
+            label: const Text('Logout'),
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.red,
+              minimumSize: const Size(double.infinity, 48),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _changePassword(BuildContext context) {
+    final currentController = TextEditingController();
+    final newController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Change Password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: currentController,
+              decoration: const InputDecoration(
+                  labelText: 'Current Password', border: OutlineInputBorder()),
+              obscureText: true,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: newController,
+              decoration: const InputDecoration(
+                  labelText: 'New Password', border: OutlineInputBorder()),
+              obscureText: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () async {
+              if (currentController.text.isEmpty || newController.text.isEmpty)
+                return;
+              Navigator.pop(context);
+              try {
+                await _authService.updatePassword(
+                  currentPassword: currentController.text,
+                  newPassword: newController.text,
+                );
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Password updated successfully'),
+                        backgroundColor: Colors.green),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text('Error: $e'),
+                        backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            child: const Text('Update'),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _deleteAccount(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Account'),
+        content: const Text(
+            'Are you sure you want to delete your account? This action cannot be undone.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await _authService.deleteAccount();
+        if (mounted) {
+          Provider.of<AppState>(context, listen: false).clearUser();
+          Navigator.pushReplacementNamed(context, '/login');
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    }
   }
 }
 

@@ -371,5 +371,46 @@ class AuthService {
   Future<void> signOut() async {
     await _auth.signOut();
   }
+
+  // Update password for current user
+  Future<void> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('No user logged in');
+
+    // Re-authenticate user
+    final email = user.email;
+    if (email == null) throw Exception('User email not found');
+
+    try {
+      final credential = EmailAuthProvider.credential(
+        email: email,
+        password: currentPassword,
+      );
+
+      await user.reauthenticateWithCredential(credential);
+      await user.updatePassword(newPassword);
+    } catch (e) {
+      throw Exception('Failed to update password: ${e.toString()}');
+    }
+  }
+
+  // Delete current user account
+  Future<void> deleteAccount() async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('No user logged in');
+
+    try {
+      // Delete from Firestore first
+      await _firestore.collection('users').doc(user.uid).delete();
+      
+      // Delete from Auth
+      await user.delete();
+    } catch (e) {
+      throw Exception('Failed to delete account: ${e.toString()}');
+    }
+  }
 }
 

@@ -25,17 +25,20 @@ import 'screens/warden/forward_complaints_page.dart' as warden_pages;
 import 'screens/warden/students_page.dart' as warden_pages;
 import 'screens/warden/awareness_page.dart' as warden_pages;
 import 'screens/warden/feedback_page.dart' as warden_pages;
+import 'screens/warden/profile_page.dart' as warden_pages;
 import 'screens/counsellor/dashboard_page.dart' as counsellor_pages;
 import 'screens/counsellor/assigned_complaints_page.dart' as counsellor_pages;
 import 'screens/counsellor/respond_complaint_page.dart' as counsellor_pages;
 import 'screens/counsellor/schedule_session_page.dart' as counsellor_pages;
 import 'screens/counsellor/chat_page.dart' as counsellor_pages;
 import 'screens/counsellor/awareness_page.dart' as counsellor_pages;
+import 'screens/counsellor/profile_page.dart' as counsellor_pages;
 import 'screens/police/dashboard_page.dart' as police_pages;
 import 'screens/police/complaints_page.dart' as police_pages;
 import 'screens/police/verify_page.dart' as police_pages;
 import 'screens/police/generate_report_page.dart' as police_pages;
 import 'screens/police/send_notification_page.dart' as police_pages;
+import 'screens/police/profile_page.dart' as police_pages;
 import 'screens/police/awareness_page.dart' as police_pages;
 import 'screens/teacher/dashboard_page.dart' as teacher_pages;
 import 'screens/teacher/complaints_page.dart' as teacher_pages;
@@ -51,11 +54,17 @@ import 'screens/admin/notifications_page.dart' as admin_pages;
 import 'screens/admin/reports_page.dart' as admin_pages;
 import 'screens/admin/feedback_page.dart' as admin_pages;
 import 'screens/admin/analytics_page.dart' as admin_pages;
+import 'screens/admin/certificates_page.dart' as admin_pages;
+import 'screens/admin/materials_page.dart' as admin_pages;
+import 'screens/admin/profile_page.dart' as admin_pages;
 import 'services/emailjs_service.dart';
+import 'services/cloudinary_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  CloudinaryService().init();
 
   // Initialize EmailJS for email notifications
   try {
@@ -546,6 +555,18 @@ class _AdminDashboardState extends State<AdminDashboard> {
         icon: Icon(Icons.analytics),
         label: Text('Analytics'),
       ),
+      NavigationRailDestination(
+        icon: Icon(Icons.verified),
+        label: Text('Certificates'),
+      ),
+      NavigationRailDestination(
+        icon: Icon(Icons.folder_open),
+        label: Text('Materials'),
+      ),
+      NavigationRailDestination(
+        icon: Icon(Icons.person),
+        label: Text('Profile'),
+      ),
     ];
 
     final pages = const <Widget>[
@@ -558,6 +579,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
       _AdminPages.reports,
       _AdminPages.feedback,
       _AdminPages.analytics,
+      _AdminPages.certificates,
+      _AdminPages.materials,
+      _AdminPages.profile,
     ];
 
     final isWide = MediaQuery.of(context).size.width >= 900;
@@ -581,6 +605,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
               DrawerItem(icon: Icons.receipt_long, label: 'Reports'),
               DrawerItem(icon: Icons.feedback, label: 'Feedback'),
               DrawerItem(icon: Icons.analytics, label: 'Analytics'),
+              DrawerItem(icon: Icons.verified, label: 'Certificates'),
+              DrawerItem(icon: Icons.folder_open, label: 'Materials'),
+              DrawerItem(icon: Icons.person, label: 'Profile'),
             ],
           );
 
@@ -625,6 +652,9 @@ class _AdminPages {
   static const Widget reports = _AdminLazy(page: _AdminPage.reports);
   static const Widget feedback = _AdminLazy(page: _AdminPage.feedback);
   static const Widget analytics = _AdminLazy(page: _AdminPage.analytics);
+  static const Widget certificates = _AdminLazy(page: _AdminPage.certificates);
+  static const Widget materials = _AdminLazy(page: _AdminPage.materials);
+  static const Widget profile = _AdminLazy(page: _AdminPage.profile);
 }
 
 enum _AdminPage {
@@ -637,6 +667,9 @@ enum _AdminPage {
   reports,
   feedback,
   analytics,
+  certificates,
+  materials,
+  profile,
 }
 
 class _AdminLazy extends StatelessWidget {
@@ -664,6 +697,12 @@ class _AdminLazy extends StatelessWidget {
         return const _AdminFeedbackProxy();
       case _AdminPage.analytics:
         return const _AdminAnalyticsProxy();
+      case _AdminPage.certificates:
+        return const _AdminCertificatesProxy();
+      case _AdminPage.materials:
+        return const _AdminMaterialsProxy();
+      case _AdminPage.profile:
+        return const _AdminProfileProxy();
     }
   }
 }
@@ -728,6 +767,24 @@ class _AdminAnalyticsProxy extends StatelessWidget {
   Widget build(BuildContext context) => const admin_pages.AdminAnalyticsPage();
 }
 
+class _AdminCertificatesProxy extends StatelessWidget {
+  const _AdminCertificatesProxy();
+  @override
+  Widget build(BuildContext context) => const admin_pages.AdminCertificatesPage();
+}
+
+class _AdminMaterialsProxy extends StatelessWidget {
+  const _AdminMaterialsProxy();
+  @override
+  Widget build(BuildContext context) => const admin_pages.AdminMaterialsPage();
+}
+
+class _AdminProfileProxy extends StatelessWidget {
+  const _AdminProfileProxy();
+  @override
+  Widget build(BuildContext context) => const admin_pages.AdminProfilePage();
+}
+
 class CounsellorDashboard extends StatefulWidget {
   const CounsellorDashboard({super.key});
 
@@ -747,6 +804,7 @@ class _CounsellorDashboardState extends State<CounsellorDashboard> {
       _CounsellorDashboardPages.schedule,
       _CounsellorDashboardPages.chat,
       _CounsellorDashboardPages.awareness,
+      _CounsellorDashboardPages.profile,
     ];
     return Scaffold(
       appBar: AppBar(title: const Text('Counsellor Dashboard')),
@@ -759,6 +817,7 @@ class _CounsellorDashboardState extends State<CounsellorDashboard> {
           DrawerItem(icon: Icons.event, label: 'ScheduleSession'),
           DrawerItem(icon: Icons.chat_bubble, label: 'Chat'),
           DrawerItem(icon: Icons.school, label: 'Awareness'),
+          DrawerItem(icon: Icons.person, label: 'Profile'),
         ],
       ),
       body: pages[selectedIndex],
@@ -781,9 +840,12 @@ class _CounsellorDashboardPages {
   static const Widget awareness = _CounsellorLazy(
     page: _CounsellorPage.awareness,
   );
+  static const Widget profile = _CounsellorLazy(
+    page: _CounsellorPage.profile,
+  );
 }
 
-enum _CounsellorPage { dashboard, assigned, respond, schedule, chat, awareness }
+enum _CounsellorPage { dashboard, assigned, respond, schedule, chat, awareness, profile }
 
 class _CounsellorLazy extends StatelessWidget {
   final _CounsellorPage page;
@@ -804,8 +866,16 @@ class _CounsellorLazy extends StatelessWidget {
         return const _CounsellorChatProxy();
       case _CounsellorPage.awareness:
         return const _CounsellorAwarenessProxy();
+      case _CounsellorPage.profile:
+        return const _CounsellorProfileProxy();
     }
   }
+}
+
+class _CounsellorProfileProxy extends StatelessWidget {
+  const _CounsellorProfileProxy();
+  @override
+  Widget build(BuildContext context) => const counsellor_pages.CounsellorProfilePage();
 }
 
 // counsellor pages imported at top of file
@@ -872,6 +942,7 @@ class _WardenDashboardState extends State<WardenDashboard> {
       _WardenDashboardPages.students,
       _WardenDashboardPages.awareness,
       _WardenDashboardPages.feedback,
+      _WardenDashboardPages.profile,
     ];
     return Scaffold(
       appBar: AppBar(title: const Text('Warden Dashboard')),
@@ -884,6 +955,7 @@ class _WardenDashboardState extends State<WardenDashboard> {
           DrawerItem(icon: Icons.people, label: 'Students'),
           DrawerItem(icon: Icons.school, label: 'Awareness'),
           DrawerItem(icon: Icons.feedback, label: 'Feedback'),
+          DrawerItem(icon: Icons.person, label: 'Profile'),
         ],
       ),
       body: pages[selectedIndex],
@@ -918,6 +990,9 @@ class _WardenDashboardPages {
   static const Widget feedback = _WardenDashboardLazy(
     page: _WardenPage.feedback,
   );
+  static const Widget profile = _WardenDashboardLazy(
+    page: _WardenPage.profile,
+  );
 }
 
 enum _WardenPage {
@@ -927,6 +1002,7 @@ enum _WardenPage {
   students,
   awareness,
   feedback,
+  profile,
 }
 
 class _WardenDashboardLazy extends StatelessWidget {
@@ -948,8 +1024,24 @@ class _WardenDashboardLazy extends StatelessWidget {
         return const _ImportWardenAwarenessPage();
       case _WardenPage.feedback:
         return const _ImportWardenFeedbackPage();
+      case _WardenPage.profile:
+        return const _ImportWardenProfilePage();
     }
   }
+}
+
+class _ImportWardenProfilePage extends StatelessWidget {
+  const _ImportWardenProfilePage();
+  @override
+  Widget build(BuildContext context) {
+    return const _WardenProfileProxy();
+  }
+}
+
+class _WardenProfileProxy extends StatelessWidget {
+  const _WardenProfileProxy();
+  @override
+  Widget build(BuildContext context) => const warden_pages.WardenProfilePage();
 }
 
 // Split small adapters to keep main.dart tidy
@@ -1056,18 +1148,20 @@ class _PoliceDashboardState extends State<PoliceDashboard> {
       _PolicePages.generateReport,
       _PolicePages.sendNotification,
       _PolicePages.awareness,
+      _PolicePages.profile,
     ];
     return Scaffold(
       appBar: AppBar(title: const Text('Police Dashboard')),
       drawer: _RoleDrawer(
         onNavigate: (index) => setState(() => selectedIndex = index),
         items: const [
-          DrawerItem(icon: Icons.dashboard_outlined, label: 'Dashboard'),
+          DrawerItem(icon: Icons.dashboard, label: 'Dashboard'),
           DrawerItem(icon: Icons.assignment, label: 'Complaints'),
           DrawerItem(icon: Icons.verified_user, label: 'Verify'),
-          DrawerItem(icon: Icons.picture_as_pdf, label: 'GenerateReport'),
-          DrawerItem(icon: Icons.notifications, label: 'SendNotification'),
+          DrawerItem(icon: Icons.assessment, label: 'Reports'),
+          DrawerItem(icon: Icons.notifications_active, label: 'Notify'),
           DrawerItem(icon: Icons.school, label: 'Awareness'),
+          DrawerItem(icon: Icons.person, label: 'Profile'),
         ],
       ),
       body: AnimatedSwitcher(
@@ -1094,6 +1188,7 @@ class _PolicePages {
     page: _PolicePage.sendNotification,
   );
   static const Widget awareness = _PoliceLazy(page: _PolicePage.awareness);
+  static const Widget profile = _PoliceLazy(page: _PolicePage.profile);
 }
 
 enum _PolicePage {
@@ -1103,6 +1198,7 @@ enum _PolicePage {
   generateReport,
   sendNotification,
   awareness,
+  profile,
 }
 
 class _PoliceLazy extends StatelessWidget {
@@ -1124,8 +1220,16 @@ class _PoliceLazy extends StatelessWidget {
         return const _PoliceSendNotificationProxy();
       case _PolicePage.awareness:
         return const _PoliceAwarenessProxy();
+      case _PolicePage.profile:
+        return const _PoliceProfileProxy();
     }
   }
+}
+
+class _PoliceProfileProxy extends StatelessWidget {
+  const _PoliceProfileProxy();
+  @override
+  Widget build(BuildContext context) => const police_pages.PoliceProfilePage();
 }
 
 // police pages imported at top

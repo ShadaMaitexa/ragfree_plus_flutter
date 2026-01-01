@@ -784,21 +784,142 @@ class _StudentProfilePageState extends State<StudentProfilePage>
   }
 
   void _changePassword(BuildContext context) {
+    final passwordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Change Password'),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              decoration: InputDecoration(
+              controller: passwordController,
+              decoration: const InputDecoration(
                 labelText: 'Current Password',
                 border: OutlineInputBorder(),
               ),
               obscureText: true,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
+            TextField(
+              controller: newPasswordController,
+              decoration: const InputDecoration(
+                labelText: 'New Password',
+                border: OutlineInputBorder(),
+              ),
+              obscureText: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              if (passwordController.text.isEmpty || newPasswordController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please fill all fields')),
+                );
+                return;
+              }
+              
+              Navigator.pop(context); // Close dialog
+              
+              try {
+                // Since this requires re-authentication usually, we might fail if session is old.
+                // For simplicity, we'll try to update directly or prompt re-auth if needed.
+                // Assuming AuthService has a method or we access currentUser directly.
+                await _authService.updatePassword(
+                  currentPassword: passwordController.text,
+                  newPassword: newPasswordController.text,
+                );
+                
+                if (mounted) {
+                   ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Password updated successfully'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  void _exportData(BuildContext context) {
+      // Mock implementation
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Data export requested. Check your email shortly.')),
+      );
+  }
+
+  Future<void> _deleteAccount(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Account'),
+        content: const Text(
+            'Are you sure you want to delete your account? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      if (!mounted) return;
+      try {
+        await _authService.deleteAccount();
+        final appState = Provider.of<AppState>(context, listen: false);
+        appState.clearUser();
+
+        if (mounted) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/login',
+            (route) => false,
+          );
+           ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Account deleted successfully')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error deleting account: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }            SizedBox(height: 16),
             TextField(
               decoration: InputDecoration(
                 labelText: 'New Password',

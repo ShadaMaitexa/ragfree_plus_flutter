@@ -199,9 +199,27 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
         ),
         title: Text(user.name),
         subtitle: Text(user.email),
-        trailing: IconButton(
-          icon: const Icon(Icons.visibility),
-          onPressed: () => _viewUserDetails(context, user),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (!user.isApproved) ...[
+              IconButton(
+                icon: const Icon(Icons.check_circle, color: Colors.green),
+                tooltip: 'Approve',
+                onPressed: () => _approveUser(context, user, _authService),
+              ),
+              IconButton(
+                icon: const Icon(Icons.cancel, color: Colors.red),
+                tooltip: 'Reject',
+                onPressed: () => _rejectUser(context, user, _authService),
+              ),
+            ],
+            IconButton(
+              icon: const Icon(Icons.visibility),
+              tooltip: 'View Details',
+              onPressed: () => _viewUserDetails(context, user),
+            ),
+          ],
         ),
       ),
     );
@@ -230,12 +248,74 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
 
   // ================= ACTIONS =================
 
-  void _approveUser(BuildContext context, UserModel user, AuthService service) {
-    service.approveUser(user.uid);
+  Future<void> _approveUser(
+      BuildContext context, UserModel user, AuthService service) async {
+    try {
+      await service.approveUser(user.uid);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${user.name} approved successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
-  void _rejectUser(BuildContext context, UserModel user, AuthService service) {
-    service.rejectUser(user.uid);
+  Future<void> _rejectUser(
+      BuildContext context, UserModel user, AuthService service) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reject User'),
+        content: Text(
+            'Are you sure you want to reject and delete ${user.name}? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Reject'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await service.rejectUser(user.uid);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${user.name} rejected'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 
   void _viewUserDetails(BuildContext context, UserModel user) {
@@ -254,9 +334,17 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
   void _showAddUserDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => const AlertDialog(
-        title: Text('Add User'),
-        content: Text('Add user form here'),
+      builder: (_) => AlertDialog(
+        title: const Text('Add New User'),
+        content: const Text(
+          'To add a new user, please ask them to register via the mobile app registration screen.\n\nOnce they register, their account will appear in the "Pending" tab for your approval.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Got it'),
+          ),
+        ],
       ),
     );
   }

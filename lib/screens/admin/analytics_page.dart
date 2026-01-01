@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/pdf_service.dart';
 import '../../services/complaint_service.dart';
 import '../../services/auth_service.dart';
 import '../../models/complaint_model.dart';
@@ -947,24 +949,14 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
         title: const Text('Export Report'),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Choose report format:'),
+            Text('Generating a comprehensive PDF report based on the current analytics.'),
             SizedBox(height: 16),
-            ListTile(
-              leading: Icon(Icons.picture_as_pdf),
-              title: Text('PDF Report'),
-              subtitle: Text('Comprehensive analytics report'),
-            ),
-            ListTile(
-              leading: Icon(Icons.table_chart),
-              title: Text('Excel Spreadsheet'),
-              subtitle: Text('Data tables and charts'),
-            ),
-            ListTile(
-              leading: Icon(Icons.image),
-              title: Text('Image Export'),
-              subtitle: Text('Charts and visualizations'),
-            ),
+            Text('This report will include:'),
+            Text('• Complaints Trend'),
+            Text('• Resolution Rates'),
+            Text('• User Engagement Metrics'),
           ],
         ),
         actions: [
@@ -973,16 +965,31 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Report exported successfully!'),
-                  backgroundColor: Colors.green,
-                ),
-              );
+              try {
+                final pdfService = PdfService();
+                final query = await FirebaseFirestore.instance.collection('complaints').limit(50).get();
+                final data = query.docs.map((doc) => {
+                  'Title': doc.data()['title'] ?? 'N/A',
+                  'Status': doc.data()['status'] ?? 'N/A',
+                  'Category': doc.data()['category'] ?? 'N/A',
+                }).toList();
+
+                await pdfService.generateReport(
+                  reportTitle: 'Analytics Export',
+                  category: 'System Performance',
+                  data: data.isEmpty ? [{'Info': 'No data available'}] : data,
+                );
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Export failed: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
             },
-            child: const Text('Export'),
+            child: const Text('Generate PDF'),
           ),
         ],
       ),
