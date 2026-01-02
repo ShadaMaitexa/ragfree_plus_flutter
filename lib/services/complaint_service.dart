@@ -173,11 +173,11 @@ class ComplaintService {
   }
 
   // Assign complaint to counselor
-  Future<void> assignComplaint(
-    String complaintId,
-    String counselorId,
-    String counselorName,
-  ) async {
+  Future<void> assignComplaint({
+    required String complaintId,
+    required String counselorId,
+    required String counselorName,
+  }) async {
     try {
       // Get complaint data before updating
       final complaint = await getComplaintById(complaintId);

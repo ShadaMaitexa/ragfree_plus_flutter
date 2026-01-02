@@ -571,9 +571,9 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
                     Navigator.pop(context);
                     try {
                       await _complaintService.assignComplaint(
-                        complaint.id,
-                        counselor['id'],
-                        counselor['name'],
+                        complaintId: complaint.id,
+                        counselorId: counselor['id'],
+                        counselorName: counselor['name'],
                       );
                       if (context.mounted) {
                         Navigator.pop(context); // Close details dialog

@@ -19,10 +19,10 @@ class _WardenForwardComplaintsPageState extends State<WardenForwardComplaintsPag
     return Scaffold(
       appBar: AppBar(title: const Text('Forward Complaints')),
       body: StreamBuilder<List<ComplaintModel>>(
-        stream: _complaintService.getPendingComplaints(), // Assuming this exists or using all
+        stream: _complaintService.getAllComplaints(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-          final complaints = snapshot.data!.where((c) => c.assignedToId == null).toList();
+          final complaints = snapshot.data!.where((c) => c.assignedTo == null).toList();
 
           if (complaints.isEmpty) {
             return const Center(child: Text('No unassigned complaints found.'));

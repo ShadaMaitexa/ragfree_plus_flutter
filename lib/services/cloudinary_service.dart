@@ -40,4 +40,31 @@ class CloudinaryService {
       return null;
     }
   }
+
+  // Convenience method for uploading images
+  Future<String?> uploadImage(File file) async {
+    return uploadFile(
+      file: file,
+      folder: 'images',
+      resourceType: 'image',
+    );
+  }
+
+  // Convenience method for uploading videos
+  Future<String?> uploadVideo(File file) async {
+    return uploadFile(
+      file: file,
+      folder: 'videos',
+      resourceType: 'video',
+    );
+  }
+
+  // Convenience method for uploading audio
+  Future<String?> uploadAudio(File file) async {
+    return uploadFile(
+      file: file,
+      folder: 'audio',
+      resourceType: 'raw',
+    );
+  }
 }
