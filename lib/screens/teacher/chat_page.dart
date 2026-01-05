@@ -6,7 +6,8 @@ import '../../models/chat_message_model.dart';
 import 'package:intl/intl.dart';
 
 class TeacherChatPage extends StatefulWidget {
-  const TeacherChatPage({super.key});
+  final ChatConversationModel? initialConversation;
+  const TeacherChatPage({super.key, this.initialConversation});
 
   @override
   State<TeacherChatPage> createState() => _TeacherChatPageState();
@@ -32,6 +33,20 @@ class _TeacherChatPageState extends State<TeacherChatPage>
     );
 
     _animationController.forward();
+
+    if (widget.initialConversation != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => _ChatDetailPage(
+              conversation: widget.initialConversation!,
+              chatService: _chatService,
+            ),
+          ),
+        );
+      });
+    }
   }
 
   @override
@@ -178,14 +193,48 @@ class _TeacherChatPageState extends State<TeacherChatPage>
             color: Theme.of(context).colorScheme.primary,
           ),
         ),
-        title: Text(
-          conversation.studentName,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                conversation.studentName,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+            if (conversation.complaintId != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'Complaint',
+                  style: TextStyle(fontSize: 10, color: Colors.blue),
+                ),
+              ),
+          ],
         ),
-        subtitle: Text(
-          conversation.lastMessage ?? 'No messages yet',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (conversation.complaintTitle != null)
+              Text(
+                'Re: ${conversation.complaintTitle}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.blueGrey,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            Text(
+              conversation.lastMessage ?? 'No messages yet',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
         trailing: lastMessageTime != null
             ? Text(

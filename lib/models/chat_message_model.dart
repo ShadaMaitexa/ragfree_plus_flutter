@@ -58,6 +58,8 @@ class ChatConversationModel {
   final String studentName;
   final String? counselorId;
   final String? counselorName;
+  final String? complaintId;
+  final String? complaintTitle;
   final DateTime createdAt;
   final DateTime? lastMessageAt;
   final String? lastMessage;
@@ -69,6 +71,8 @@ class ChatConversationModel {
     required this.studentName,
     this.counselorId,
     this.counselorName,
+    this.complaintId,
+    this.complaintTitle,
     required this.createdAt,
     this.lastMessageAt,
     this.lastMessage,
@@ -82,6 +86,8 @@ class ChatConversationModel {
       studentName: data['studentName'] ?? '',
       counselorId: data['counselorId'],
       counselorName: data['counselorName'],
+      complaintId: data['complaintId'],
+      complaintTitle: data['complaintTitle'],
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       lastMessageAt: data['lastMessageAt'] != null
           ? (data['lastMessageAt'] as Timestamp).toDate()
@@ -98,6 +104,8 @@ class ChatConversationModel {
       'studentName': studentName,
       'counselorId': counselorId,
       'counselorName': counselorName,
+      'complaintId': complaintId,
+      'complaintTitle': complaintTitle,
       'createdAt': Timestamp.fromDate(createdAt),
       'lastMessageAt':
           lastMessageAt != null ? Timestamp.fromDate(lastMessageAt!) : null,

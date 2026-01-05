@@ -112,7 +112,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
   }
 
   Widget _buildFilterChips(BuildContext context) {
-    final filters = ['All', 'Pending', 'In Progress', 'Resolved'];
+    final filters = ['All', 'Pending', 'Verified', 'Accepted', 'In Progress', 'Resolved'];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       height: 50,
@@ -139,7 +139,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
 
   Widget _buildComplaintsList(BuildContext context) {
     return StreamBuilder<List<ComplaintModel>>(
-      stream: _complaintService.getAllComplaints(),
+      stream: _complaintService.getCollegeComplaints(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -151,16 +151,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
         final filteredComplaints = _selectedFilter == 'All'
             ? complaints
             : complaints.where((c) {
-                switch (_selectedFilter) {
-                  case 'Pending':
-                    return c.status == 'Pending';
-                  case 'In Progress':
-                    return c.status == 'In Progress';
-                  case 'Resolved':
-                    return c.status == 'Resolved';
-                  default:
-                    return true;
-                }
+                return c.status == _selectedFilter;
               }).toList();
 
         if (filteredComplaints.isEmpty) {
@@ -203,10 +194,19 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
         statusColor = Colors.green;
         break;
       case 'In Progress':
+        statusColor = Colors.blue;
+        break;
+      case 'Accepted':
+        statusColor = Colors.purple;
+        break;
+      case 'Verified':
         statusColor = Colors.orange;
         break;
-      default:
+      case 'Pending':
         statusColor = Colors.red;
+        break;
+      default:
+        statusColor = Colors.grey;
     }
 
     return Card(
@@ -296,30 +296,159 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
                   ),
                 ],
                 const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      OutlinedButton.icon(
                         onPressed: () => _showForwardDialog(context, complaint),
                         icon: const Icon(Icons.forward),
                         label: const Text('Forward'),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: () => _showVerifyDialog(context, complaint),
-                        icon: const Icon(Icons.verified),
-                        label: const Text('Verify'),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Colors.green,
+                      const SizedBox(width: 12),
+                      OutlinedButton.icon(
+                        onPressed: () => _handleComplaintChat(context, complaint),
+                        icon: const Icon(Icons.chat),
+                        label: const Text('Chat'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.blue,
+                          side: const BorderSide(color: Colors.blue),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      if (complaint.status == 'Pending')
+                        FilledButton.icon(
+                          onPressed: () => _showVerifyDialog(context, complaint),
+                          icon: const Icon(Icons.verified),
+                          label: const Text('Verify'),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                          ),
+                        ),
+                      if (complaint.status == 'Verified')
+                        const SizedBox(width: 12),
+                      if (complaint.status == 'Verified' || complaint.status == 'Pending')
+                        FilledButton.icon(
+                          onPressed: () => _showAcceptDialog(context, complaint),
+                          icon: const Icon(Icons.check_circle),
+                          label: const Text('Accept'),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: Colors.purple,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleComplaintChat(BuildContext context, ComplaintModel complaint) async {
+    try {
+      if (complaint.studentId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cannot chat with anonymous reporter')),
+        );
+        return;
+      }
+
+      final appState = Provider.of<AppState>(context, listen: false);
+      final user = appState.currentUser;
+      if (user == null) return;
+
+      final chatService = ChatService();
+      final chatId = await chatService.getOrCreateConversation(
+        studentId: complaint.studentId!,
+        studentName: complaint.studentName ?? 'Student',
+        counselorId: user.uid,
+        counselorName: user.name,
+        complaintId: complaint.id,
+        complaintTitle: complaint.title,
+      );
+
+      final conversation = ChatConversationModel(
+        id: chatId,
+        studentId: complaint.studentId!,
+        studentName: complaint.studentName ?? 'Student',
+        counselorId: user.uid,
+        counselorName: user.name,
+        complaintId: complaint.id,
+        complaintTitle: complaint.title,
+        createdAt: DateTime.now(),
+      );
+
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TeacherChatPage(
+              initialConversation: conversation,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
+  void _showAcceptDialog(BuildContext context, ComplaintModel complaint) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Accept Complaint'),
+        content: const Text(
+          'Do you want to accept this complaint and take responsibility for its resolution?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              try {
+                final appState = Provider.of<AppState>(context, listen: false);
+                final user = appState.currentUser;
+                if (user == null) throw Exception('User not logged in');
+
+                await _complaintService.acceptComplaint(
+                  complaintId: complaint.id,
+                  acceptorId: user.uid,
+                  acceptorName: user.name,
+                  acceptorRole: user.role,
+                );
+
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Complaint accepted successfully'),
+                      backgroundColor: Colors.purple,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            style: FilledButton.styleFrom(backgroundColor: Colors.purple),
+            child: const Text('Accept'),
           ),
         ],
       ),

@@ -4,40 +4,48 @@ import '../models/chat_message_model.dart';
 class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Create or get conversation between student and counselor
+  // Create or get conversation
   Future<String> getOrCreateConversation({
     required String studentId,
     required String studentName,
     String? counselorId,
     String? counselorName,
+    String? complaintId,
+    String? complaintTitle,
   }) async {
     try {
       // Check if conversation already exists
-      if (counselorId != null && counselorId.isNotEmpty) {
-        final existing = await _firestore
-            .collection('chat_conversations')
-            .where('studentId', isEqualTo: studentId)
-            .where('counselorId', isEqualTo: counselorId)
-            .limit(1)
-            .get();
+      Query query = _firestore
+          .collection('chat_conversations')
+          .where('studentId', isEqualTo: studentId);
 
-        if (existing.docs.isNotEmpty) {
-          return existing.docs.first.id;
-        }
+      if (counselorId != null && counselorId.isNotEmpty) {
+        query = query.where('counselorId', isEqualTo: counselorId);
       } else {
-        // If no counselor, get all conversations for student and filter client-side
-        final allConversations = await _firestore
-            .collection('chat_conversations')
-            .where('studentId', isEqualTo: studentId)
-            .get();
-        // Filter to find ones without counselor
-        final filteredDocs = allConversations.docs.where((doc) {
-          final data = doc.data();
-          return data['counselorId'] == null || data['counselorId'] == '';
-        }).toList();
-        // Return the first matching conversation ID if found
-        if (filteredDocs.isNotEmpty) {
-          return filteredDocs.first.id;
+        // Handle cases where counselorId is not provided
+      }
+      
+      if (complaintId != null && complaintId.isNotEmpty) {
+        query = query.where('complaintId', isEqualTo: complaintId);
+      }
+
+      final existing = await query.get();
+
+      if (existing.docs.isNotEmpty) {
+        // If searching specifically for a complaint, we want that exact one
+        // Otherwise, if just student/counselor, we might need to filter out ones with complaints
+        if (complaintId != null && complaintId.isNotEmpty) {
+          return existing.docs.first.id;
+        } else {
+          // If no complaintId provided, look for a general conversation (no complaintId)
+          final generalConvo = existing.docs.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return data['complaintId'] == null || data['complaintId'] == '';
+          }).toList();
+          
+          if (generalConvo.isNotEmpty) {
+            return generalConvo.first.id;
+          }
         }
       }
 
@@ -48,6 +56,8 @@ class ChatService {
         studentName: studentName,
         counselorId: counselorId,
         counselorName: counselorName,
+        complaintId: complaintId,
+        complaintTitle: complaintTitle,
         createdAt: DateTime.now(),
       );
 

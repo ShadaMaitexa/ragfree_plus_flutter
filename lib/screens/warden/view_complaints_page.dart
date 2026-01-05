@@ -18,7 +18,7 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('All Student Complaints')),
       body: StreamBuilder<List<ComplaintModel>>(
-        stream: _complaintService.getAllComplaints(),
+        stream: _complaintService.getHostelComplaints(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -65,10 +65,10 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
                           const SizedBox(height: 16),
                           Row(
                             children: [
-                              const Text('Priority: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                              const Text('Type: ', style: TextStyle(fontWeight: FontWeight.bold)),
                               Chip(
-                                label: Text(c.priority),
-                                backgroundColor: _getPriorityColor(c.priority).withOpacity(0.1),
+                                label: Text(c.incidentType),
+                                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                               ),
                               const Spacer(),
                               ElevatedButton(

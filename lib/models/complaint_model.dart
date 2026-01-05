@@ -8,6 +8,7 @@ class ComplaintModel {
   final String description;
   final String category;
   final String priority;
+  final String incidentType; // Hostel, College, Other
   final String status; // Pending, In Progress, Resolved, Rejected
   final DateTime createdAt;
   final DateTime? updatedAt;
@@ -26,6 +27,7 @@ class ComplaintModel {
     required this.description,
     required this.category,
     required this.priority,
+    required this.incidentType,
     this.status = 'Pending',
     required this.createdAt,
     this.updatedAt,
@@ -46,6 +48,7 @@ class ComplaintModel {
       description: data['description'] ?? '',
       category: data['category'] ?? '',
       priority: data['priority'] ?? 'Medium',
+      incidentType: data['incidentType'] ?? 'College',
       status: data['status'] ?? 'Pending',
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       updatedAt: data['updatedAt'] != null
@@ -69,6 +72,7 @@ class ComplaintModel {
       'description': description,
       'category': category,
       'priority': priority,
+      'incidentType': incidentType,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
@@ -89,6 +93,7 @@ class ComplaintModel {
     String? description,
     String? category,
     String? priority,
+    String? incidentType,
     String? status,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -107,6 +112,7 @@ class ComplaintModel {
       description: description ?? this.description,
       category: category ?? this.category,
       priority: priority ?? this.priority,
+      incidentType: incidentType ?? this.incidentType,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

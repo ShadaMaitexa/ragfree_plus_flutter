@@ -7,6 +7,7 @@ import '../../services/app_state.dart';
 import '../../models/complaint_model.dart';
 import '../../utils/responsive.dart';
 import 'package:intl/intl.dart';
+import '../../widgets/add_complaint_dialog.dart';
 
 class StudentComplaintsPage extends StatefulWidget {
   const StudentComplaintsPage({super.key});
@@ -125,38 +126,40 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                     return const SizedBox.shrink();
                   }
                   final complaints = snapshot.data!;
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: _buildStatCard(
-                          context,
-                          'Total Reports',
-                          '${complaints.length}',
-                          Icons.assignment,
-                          Colors.blue,
+                  return Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _buildStatCard(
+                            context,
+                            'Total Reports',
+                            '${complaints.length}',
+                            Icons.assignment,
+                            Colors.blue,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildStatCard(
-                          context,
-                          'Resolved',
-                          '${complaints.where((c) => c.status == 'Resolved').length}',
-                          Icons.check_circle,
-                          Colors.green,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildStatCard(
+                            context,
+                            'Resolved',
+                            '${complaints.where((c) => c.status == 'Resolved').length}',
+                            Icons.check_circle,
+                            Colors.green,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildStatCard(
-                          context,
-                          'Pending',
-                          '${complaints.where((c) => c.status == 'Pending').length}',
-                          Icons.pending,
-                          Colors.orange,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildStatCard(
+                            context,
+                            'Pending',
+                            '${complaints.where((c) => c.status == 'Pending').length}',
+                            Icons.pending,
+                            Colors.orange,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   );
                 },
               ),
@@ -306,7 +309,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
     int index,
   ) {
     final status = complaint.status;
-    final priority = complaint.priority;
+    // Removed priority variable as it's no longer used for display in the card.
 
     Color statusColor;
     switch (status) {
@@ -379,16 +382,16 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: priorityColor.withOpacity(0.1),
+                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: priorityColor.withOpacity(0.3),
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
                         ),
                       ),
                       child: Text(
-                        priority,
+                        complaint.incidentType,
                         style: TextStyle(
-                          color: priorityColor,
+                          color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w600,
                           fontSize: 12,
                         ),
@@ -631,7 +634,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
   void _showEditComplaintDialog(BuildContext context, ComplaintModel complaint) {
     showDialog(
       context: context,
-      builder: (context) => _AddComplaintDialog(
+      builder: (context) => AddComplaintDialog(
         editComplaint: complaint,
         onComplaintAdded: () {},
       ),
@@ -682,478 +685,11 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
   void _showAddComplaintDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => _AddComplaintDialog(
+      builder: (context) => AddComplaintDialog(
         onComplaintAdded: () {
           // Stream will automatically update
         },
       ),
     );
-  }
-}
-
-class _AddComplaintDialog extends StatefulWidget {
-  final VoidCallback onComplaintAdded;
-  final ComplaintModel? editComplaint;
-
-  const _AddComplaintDialog({
-    required this.onComplaintAdded,
-    this.editComplaint,
-  });
-
-  @override
-  State<_AddComplaintDialog> createState() => _AddComplaintDialogState();
-}
-
-class _AddComplaintDialogState extends State<_AddComplaintDialog> {
-  final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _locationController = TextEditingController();
-  String _selectedCategory = 'Harassment';
-  String _selectedPriority = 'Medium';
-  bool _isAnonymous = false;
-  List<File> _selectedImages = [];
-  File? _selectedVideo;
-  File? _selectedAudio;
-  bool _isSubmitting = false;
-  final ComplaintService _complaintService = ComplaintService();
-  final ImagePicker _picker = ImagePicker();
-
-  final List<String> _categories = [
-    'Harassment',
-    'Bullying',
-    'Discrimination',
-    'Physical Violence',
-    'Cyber Bullying',
-    'Other',
-  ];
-
-  final List<String> _priorities = ['Low', 'Medium', 'High'];
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.editComplaint != null) {
-      _titleController.text = widget.editComplaint!.title;
-      _descriptionController.text = widget.editComplaint!.description;
-      _locationController.text = widget.editComplaint!.location ?? '';
-      _selectedCategory = widget.editComplaint!.category;
-      _selectedPriority = widget.editComplaint!.priority;
-      _isAnonymous = widget.editComplaint!.isAnonymous;
-    }
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
-    _locationController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 500),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.report_problem,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        widget.editComplaint != null
-                            ? 'Edit Incident'
-                            : 'Report Incident',
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  CheckboxListTile(
-                    title: const Text('Submit anonymously'),
-                    subtitle: const Text('Your identity will be kept confidential'),
-                    value: _isAnonymous,
-                    onChanged: (value) {
-                      setState(() {
-                        _isAnonymous = value ?? false;
-                      });
-                    },
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _titleController,
-                    decoration: const InputDecoration(
-                      labelText: 'Title',
-                      hintText: 'Brief description of the incident',
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a title';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: _selectedCategory,
-                    decoration: const InputDecoration(
-                      labelText: 'Category',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: _categories.map((category) {
-                      return DropdownMenuItem(
-                        value: category,
-                        child: Text(category),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedCategory = value!;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: _selectedPriority,
-                    decoration: const InputDecoration(
-                      labelText: 'Priority',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: _priorities.map((priority) {
-                      return DropdownMenuItem(
-                        value: priority,
-                        child: Text(priority),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedPriority = value!;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _descriptionController,
-                    decoration: const InputDecoration(
-                      labelText: 'Description',
-                      hintText: 'Detailed description of the incident',
-                      border: OutlineInputBorder(),
-                    ),
-                    maxLines: 4,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a description';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _locationController,
-                    decoration: const InputDecoration(
-                      labelText: 'Location (Optional)',
-                      hintText: 'Where did this incident occur?',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.location_on),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (_selectedImages.isNotEmpty || _selectedVideo != null || _selectedAudio != null)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (_selectedImages.isNotEmpty)
-                          SizedBox(
-                            height: 100,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: _selectedImages.length,
-                              itemBuilder: (context, index) {
-                                return Container(
-                                  margin: const EdgeInsets.only(right: 8),
-                                  width: 100,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.grey.shade300),
-                                  ),
-                                  child: Stack(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image.file(
-                                          _selectedImages[index],
-                                          fit: BoxFit.cover,
-                                          width: 100,
-                                          height: 100,
-                                        ),
-                                      ),
-                                      Positioned(
-                                        top: 4,
-                                        right: 4,
-                                        child: IconButton(
-                                          icon: const Icon(Icons.close, size: 20),
-                                          color: Colors.red,
-                                          onPressed: () {
-                                            setState(() {
-                                              _selectedImages.removeAt(index);
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        if (_selectedVideo != null) ...[
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey.shade300),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.videocam, color: Colors.red),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Video selected: ${_selectedVideo!.path.split('/').last}',
-                                    style: Theme.of(context).textTheme.bodySmall,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.close, size: 20),
-                                  color: Colors.red,
-                                  onPressed: () {
-                                    setState(() {
-                                      _selectedVideo = null;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                        if (_selectedAudio != null) ...[
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey.shade300),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.audiotrack, color: Colors.blue),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Audio selected: ${_selectedAudio!.path.split('/').last}',
-                                    style: Theme.of(context).textTheme.bodySmall,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.close, size: 20),
-                                  color: Colors.red,
-                                  onPressed: () {
-                                    setState(() {
-                                      _selectedAudio = null;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _pickImage,
-                          icon: const Icon(Icons.image),
-                          label: const Text('Image'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _pickVideo,
-                          icon: const Icon(Icons.videocam),
-                          label: const Text('Video'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _pickAudio,
-                          icon: const Icon(Icons.audiotrack),
-                          label: const Text('Audio'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: _isSubmitting ? null : _submitComplaint,
-                      child: _isSubmitting
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(widget.editComplaint != null
-                              ? 'Update Report'
-                              : 'Submit Report'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _pickImage() async {
-    final List<XFile> images = await _picker.pickMultiImage();
-    if (images.isNotEmpty) {
-      setState(() {
-        _selectedImages.addAll(images.map((x) => File(x.path)).toList());
-      });
-    }
-  }
-
-  Future<void> _pickVideo() async {
-    final XFile? video = await _picker.pickVideo(source: ImageSource.gallery);
-    if (video != null) {
-      setState(() {
-        _selectedVideo = File(video.path);
-      });
-    }
-  }
-
-  Future<void> _pickAudio() async {
-    // For audio, we'll use file_picker or similar
-    // For now, using a simple approach - you may need to add file_picker package
-    final XFile? audio = await _picker.pickMedia();
-    if (audio != null) {
-      final extension = audio.path.toLowerCase().split('.').last;
-      if (['mp3', 'wav', 'm4a', 'aac', 'ogg'].contains(extension)) {
-        setState(() {
-          _selectedAudio = File(audio.path);
-        });
-      }
-    }
-  }
-
-  Future<void> _submitComplaint() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isSubmitting = true);
-
-    try {
-      final appState = Provider.of<AppState>(context, listen: false);
-      final user = appState.currentUser;
-
-      if (user == null) {
-        throw Exception('User not logged in');
-      }
-
-      if (widget.editComplaint != null) {
-        // Update existing
-        final updatedComplaint = widget.editComplaint!.copyWith(
-          title: _titleController.text.trim(),
-          description: _descriptionController.text.trim(),
-          category: _selectedCategory,
-          priority: _selectedPriority,
-          location: _locationController.text.trim().isEmpty
-              ? null
-              : _locationController.text.trim(),
-          isAnonymous: _isAnonymous,
-          studentId: _isAnonymous ? null : user.uid,
-          studentName: _isAnonymous ? null : user.name,
-        );
-
-        await _complaintService.updateComplaint(updatedComplaint);
-      } else {
-        // Create new
-        final complaint = ComplaintModel(
-          id: '',
-          studentId: _isAnonymous ? null : user.uid,
-          studentName: _isAnonymous ? null : user.name,
-          title: _titleController.text.trim(),
-          description: _descriptionController.text.trim(),
-          category: _selectedCategory,
-          priority: _selectedPriority,
-          status: 'Pending',
-          createdAt: DateTime.now(),
-          location: _locationController.text.trim().isEmpty
-              ? null
-              : _locationController.text.trim(),
-          isAnonymous: _isAnonymous,
-        );
-
-        List<File> allMediaFiles = [];
-        allMediaFiles.addAll(_selectedImages);
-        if (_selectedVideo != null) allMediaFiles.add(_selectedVideo!);
-        if (_selectedAudio != null) allMediaFiles.add(_selectedAudio!);
-
-        await _complaintService.submitComplaint(
-          complaint: complaint,
-          mediaFiles: allMediaFiles.isNotEmpty ? allMediaFiles : null,
-        );
-      }
-
-      if (mounted) {
-        Navigator.pop(context);
-        widget.onComplaintAdded();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Complaint submitted successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
-    }
   }
 }

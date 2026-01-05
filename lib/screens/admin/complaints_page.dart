@@ -313,16 +313,16 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: priorityColor.withOpacity(0.1),
+                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: priorityColor.withOpacity(0.3),
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
                         ),
                       ),
                       child: Text(
-                        priority,
+                        complaint.incidentType,
                         style: TextStyle(
-                          color: priorityColor,
+                          color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w600,
                           fontSize: 12,
                         ),
@@ -446,7 +446,7 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
               Text(complaint.description),
               const SizedBox(height: 16),
               _buildDetailRow('Status', complaint.status),
-              _buildDetailRow('Priority', complaint.priority),
+              _buildDetailRow('Type', complaint.incidentType),
               _buildDetailRow('Category', complaint.category),
               _buildDetailRow(
                 'Student',

@@ -118,6 +118,28 @@ class ComplaintService {
             .toList());
   }
 
+  // Get complaints for Warden (Hostel incidents)
+  Stream<List<ComplaintModel>> getHostelComplaints() {
+    return _firestore
+        .collection('complaints')
+        .where('incidentType', isEqualTo: 'Hostel')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
+            .toList());
+  }
+
+  // Get complaints for Teacher (College incidents)
+  Stream<List<ComplaintModel>> getCollegeComplaints() {
+    return _firestore
+        .collection('complaints')
+        .where('incidentType', isEqualTo: 'College')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
+            .toList());
+  }
+
   // Get complaints for a parent's linked students
   Stream<List<ComplaintModel>> getParentChildComplaints(
       List<String> studentIds) {
@@ -266,6 +288,27 @@ class ComplaintService {
       });
     } catch (e) {
       throw Exception('Failed to verify complaint: ${e.toString()}');
+    }
+  }
+
+  // Accept complaint (for Teacher/Counsellor)
+  Future<void> acceptComplaint({
+    required String complaintId,
+    required String acceptorId,
+    required String acceptorName,
+    required String acceptorRole,
+  }) async {
+    try {
+      await _firestore.collection('complaints').doc(complaintId).update({
+        'status': 'Accepted',
+        'metadata.acceptedBy': acceptorId,
+        'metadata.acceptedByName': acceptorName,
+        'metadata.acceptedByRole': acceptorRole,
+        'metadata.acceptedAt': Timestamp.now(),
+        'updatedAt': Timestamp.now(),
+      });
+    } catch (e) {
+      throw Exception('Failed to accept complaint: ${e.toString()}');
     }
   }
 

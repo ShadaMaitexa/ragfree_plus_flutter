@@ -6,6 +6,7 @@ import '../../services/app_state.dart';
 import '../../models/complaint_model.dart';
 import '../../models/parent_student_link_model.dart';
 import 'package:intl/intl.dart';
+import '../../widgets/add_complaint_dialog.dart';
 
 class ParentChildComplaintsPage extends StatefulWidget {
   const ParentChildComplaintsPage({super.key});
@@ -48,32 +49,42 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
     final color = Theme.of(context).colorScheme.primary;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        return FadeTransition(
-          opacity: _fadeAnimation,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: isDark
-                    ? [color.withOpacity(0.05), Colors.transparent]
-                    : [Colors.grey.shade50, Colors.white],
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: AnimatedBuilder(
+        animation: _animationController,
+        builder: (context, child) {
+          return FadeTransition(
+            opacity: _fadeAnimation,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [color.withOpacity(0.05), Colors.transparent]
+                      : [Colors.grey.shade50, Colors.white],
+                ),
+              ),
+              child: Column(
+                children: [
+                  _buildHeader(context, color),
+                  Expanded(
+                    child: _buildComplaintsContent(context),
+                  ),
+                ],
               ),
             ),
-            child: Column(
-              children: [
-                _buildHeader(context, color),
-                Expanded(
-                  child: _buildComplaintsContent(context),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddComplaintDialog(context),
+        icon: const Icon(Icons.add),
+        label: const Text('New Report'),
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+      ),
     );
   }
 
@@ -114,6 +125,18 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                   ],
                 ),
               ),
+              const SizedBox(width: 16),
+              FilledButton.icon(
+                onPressed: () => _showAddComplaintDialog(context),
+                icon: const Icon(Icons.add),
+                label: const Text('Add Report'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: color,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -137,38 +160,40 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                         return const SizedBox.shrink();
                       }
                       final complaints = snapshot.data!;
-                      return Row(
-                        children: [
-                          Expanded(
-                            child: _buildStatCard(
-                              context,
-                              'Total Reports',
-                              '${complaints.length}',
-                              Icons.assignment,
-                              Colors.blue,
+                      return Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _buildStatCard(
+                                context,
+                                'Total Reports',
+                                '${complaints.length}',
+                                Icons.assignment,
+                                Colors.blue,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildStatCard(
-                              context,
-                              'Resolved',
-                              '${complaints.where((c) => c.status == 'Resolved').length}',
-                              Icons.check_circle,
-                              Colors.green,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildStatCard(
+                                context,
+                                'Resolved',
+                                '${complaints.where((c) => c.status == 'Resolved').length}',
+                                Icons.check_circle,
+                                Colors.green,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildStatCard(
-                              context,
-                              'In Progress',
-                              '${complaints.where((c) => c.status == 'In Progress').length}',
-                              Icons.pending,
-                              Colors.orange,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildStatCard(
+                                context,
+                                'Pending',
+                                '${complaints.where((c) => c.status == 'Pending').length}',
+                                Icons.pending,
+                                Colors.orange,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       );
                     },
                   );
@@ -180,6 +205,19 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
       ),
     );
   }
+
+  void _showAddComplaintDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AddComplaintDialog(
+        isParent: true,
+        onComplaintAdded: () {
+          // Stream will automatically update
+        },
+      ),
+    );
+  }
+
 
   Widget _buildStatCard(
     BuildContext context,
