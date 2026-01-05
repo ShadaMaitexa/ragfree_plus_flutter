@@ -213,8 +213,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       onDismissed: (direction) async {
-        // Here we might mark as read or delete. For now just mark read.
-        await _notificationService.markAsRead(notification.id);
+        await _notificationService.deleteNotification(notification.id);
       },
       child: Card(
         margin: const EdgeInsets.only(bottom: 12),

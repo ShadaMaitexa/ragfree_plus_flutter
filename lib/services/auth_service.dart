@@ -344,6 +344,18 @@ class AuthService {
     });
   }
 
+  // Get all users
+  Stream<List<UserModel>> getAllUsers() {
+    return _firestore
+        .collection('users')
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => UserModel.fromMap({...doc.data(), 'uid': doc.id}))
+          .toList();
+    });
+  }
+
   // Get all users by role
   Stream<List<UserModel>> getUsersByRole(String role) {
     return _firestore

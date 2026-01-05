@@ -44,6 +44,15 @@ class NotificationService {
     }
   }
 
+  // Delete notification
+  Future<void> deleteNotification(String notificationId) async {
+    try {
+      await _firestore.collection('notifications').doc(notificationId).delete();
+    } catch (e) {
+      throw Exception('Failed to delete notification: ${e.toString()}');
+    }
+  }
+
   // Create a notification
   Future<void> createNotification({
     required String userId,

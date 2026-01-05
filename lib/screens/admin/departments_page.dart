@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/department_service.dart';
 
 class AdminDepartmentsPage extends StatefulWidget {
   const AdminDepartmentsPage({super.key});
@@ -12,40 +13,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
-  final List<Map<String, dynamic>> _departments = [
-    {
-      'id': 'D001',
-      'name': 'Computer Science',
-      'head': 'Dr. John Smith',
-      'students': 450,
-      'staff': 25,
-      'color': Colors.blue,
-    },
-    {
-      'id': 'D002',
-      'name': 'Engineering',
-      'head': 'Dr. Sarah Wilson',
-      'students': 380,
-      'staff': 20,
-      'color': Colors.green,
-    },
-    {
-      'id': 'D003',
-      'name': 'Business',
-      'head': 'Dr. Michael Chen',
-      'students': 320,
-      'staff': 18,
-      'color': Colors.orange,
-    },
-    {
-      'id': 'D004',
-      'name': 'Medicine',
-      'head': 'Dr. Lisa Brown',
-      'students': 280,
-      'staff': 22,
-      'color': Colors.red,
-    },
-  ];
+  final DepartmentService _departmentService = DepartmentService();
 
   @override
   void initState() {
@@ -90,11 +58,21 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
             ),
             child: Column(
               children: [
-                _buildHeader(context, color),
-                Expanded(
-                  child: _departments.isEmpty
-                      ? _buildEmptyState(context, color)
-                      : _buildDepartmentsList(context),
+                StreamBuilder<List<Map<String, dynamic>>>(
+                  stream: _departmentService.getDepartments(),
+                  builder: (context, snapshot) {
+                    final departments = snapshot.data ?? [];
+                    return Column(
+                      children: [
+                        _buildHeader(context, color, departments),
+                        Expanded(
+                          child: departments.isEmpty
+                              ? _buildEmptyState(context, color)
+                              : _buildDepartmentsList(context, departments),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ],
             ),
@@ -104,7 +82,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
     );
   }
 
-  Widget _buildHeader(BuildContext context, Color color) {
+  Widget _buildHeader(BuildContext context, Color color, List<Map<String, dynamic>> departments) {
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -156,7 +134,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                 child: _buildStatCard(
                   context,
                   'Total Departments',
-                  '${_departments.length}',
+                  '${departments.length}',
                   Icons.apartment,
                   Colors.blue,
                 ),
@@ -166,7 +144,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                 child: _buildStatCard(
                   context,
                   'Total Students',
-                  '${_departments.fold(0, (sum, d) => sum + (d['students'] as int))}',
+                  '${departments.fold(0, (sum, d) => sum + (int.tryParse(d['students']?.toString() ?? '0') ?? 0))}',
                   Icons.people,
                   Colors.green,
                 ),
@@ -176,7 +154,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                 child: _buildStatCard(
                   context,
                   'Total Staff',
-                  '${_departments.fold(0, (sum, d) => sum + (d['staff'] as int))}',
+                  '${departments.fold(0, (sum, d) => sum + (int.tryParse(d['staff']?.toString() ?? '0') ?? 0))}',
                   Icons.work,
                   Colors.orange,
                 ),
@@ -268,12 +246,12 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
     );
   }
 
-  Widget _buildDepartmentsList(BuildContext context) {
+  Widget _buildDepartmentsList(BuildContext context, List<Map<String, dynamic>> departments) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: _departments.length,
+      itemCount: departments.length,
       itemBuilder: (context, index) {
-        final department = _departments[index];
+        final department = departments[index];
         return _buildDepartmentCard(context, department, index);
       },
     );
@@ -284,6 +262,8 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
     Map<String, dynamic> department,
     int index,
   ) {
+    final deptColor = Color(department['colorValue'] ?? Colors.blue.value);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Card(
@@ -296,8 +276,8 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                department['color'].withOpacity(0.1),
-                department['color'].withOpacity(0.05),
+                deptColor.withOpacity(0.1),
+                deptColor.withOpacity(0.05),
               ],
             ),
           ),
@@ -312,11 +292,11 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: department['color'].withOpacity(0.1),
+                        color: deptColor.withOpacity(0.1),
                       ),
                       child: Icon(
                         Icons.apartment,
-                        color: department['color'],
+                        color: deptColor,
                         size: 24,
                       ),
                     ),
@@ -330,7 +310,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                             style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(
                                   fontWeight: FontWeight.w600,
-                                  color: department['color'],
+                                  color: deptColor,
                                 ),
                           ),
                           Text(
@@ -518,28 +498,25 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
+            onPressed: () async {
               if (nameController.text.isNotEmpty &&
                   headController.text.isNotEmpty) {
-                setState(() {
-                  _departments.add({
-                    'id': 'D${_departments.length + 1}'.padLeft(4, '0'),
-                    'name': nameController.text,
-                    'head': headController.text,
-                    'students': 0,
-                    'staff': 0,
-                    'color':
-                        Colors.primaries[_departments.length %
-                            Colors.primaries.length],
-                  });
+                await _departmentService.addDepartment({
+                  'name': nameController.text,
+                  'head': headController.text,
+                  'students': 0,
+                  'staff': 0,
+                  'colorValue': Colors.blue.value, // Default color or from picker
                 });
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Department added successfully!'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Department added successfully!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
               }
             },
             child: const Text('Add Department'),
@@ -583,17 +560,19 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              setState(() {
-                department['name'] = nameController.text;
-                department['head'] = headController.text;
+            onPressed: () async {
+              await _departmentService.updateDepartment(department['id'], {
+                'name': nameController.text,
+                'head': headController.text,
               });
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Department updated successfully!'),
-                ),
-              );
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Department updated successfully!'),
+                  ),
+                );
+              }
             },
             child: const Text('Save Changes'),
           ),
@@ -647,17 +626,17 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              setState(() {
-                _departments.remove(department);
-              });
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Department deleted successfully!'),
-                  backgroundColor: Colors.red,
-                ),
-              );
+            onPressed: () async {
+              await _departmentService.deleteDepartment(department['id']);
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Department deleted successfully!'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
             },
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Delete'),

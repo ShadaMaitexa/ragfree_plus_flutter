@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/appointment_slot_model.dart';
 
@@ -36,7 +37,7 @@ class AppointmentService {
         .collection('appointment_slots')
         .where('counselorId', isEqualTo: counselorId)
         .where('status', isEqualTo: 'available')
-        .where('date', isGreaterThanOrEqualTo: Timestamp.now())
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(DateUtils.dateOnly(DateTime.now())))
         .orderBy('date', descending: false)
         .snapshots()
         .map((snapshot) => snapshot.docs

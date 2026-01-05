@@ -44,6 +44,14 @@ class WardenFeedbackPage extends StatelessWidget {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Add feedback feature coming soon!')),
+          );
+        },
+        child: const Icon(Icons.add_comment),
+      ),
     );
   }
 }

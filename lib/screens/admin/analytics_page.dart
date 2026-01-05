@@ -49,44 +49,71 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     final color = Theme.of(context).colorScheme.primary;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        return FadeTransition(
-          opacity: _fadeAnimation,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: isDark
-                    ? [color.withOpacity(0.05), Colors.transparent]
-                    : [Colors.grey.shade50, Colors.white],
-              ),
-            ),
-            child: Column(
-              children: [
-                _buildHeader(context, color),
-                _buildTabBar(context),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildOverviewTab(context),
-                      _buildComplaintsTab(context),
-                      _buildUsersTab(context),
-                    ],
+    return StreamBuilder<List<ComplaintModel>>(
+      stream: _complaintService.getAllComplaints(),
+      builder: (context, complaintsSnapshot) {
+        return StreamBuilder<List<UserModel>>(
+          stream: _authService.getAllUsers(),
+          builder: (context, usersSnapshot) {
+            final complaints = complaintsSnapshot.data ?? [];
+            final users = usersSnapshot.data ?? [];
+
+            return AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                return FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: isDark
+                            ? [color.withOpacity(0.05), Colors.transparent]
+                            : [Colors.grey.shade50, Colors.white],
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildHeader(context, color, complaints),
+                        _buildTabBar(context),
+                        Expanded(
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _buildOverviewTab(context, complaints, users),
+                              _buildComplaintsTab(context, complaints),
+                              _buildUsersTab(context, users),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
+                );
+              },
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildHeader(BuildContext context, Color color) {
+  Widget _buildHeader(BuildContext context, Color color, List<ComplaintModel> complaints) {
+    final total = complaints.length;
+    final resolved = complaints.where((c) => c.status == 'Resolved').length;
+    
+    // Calculate Response Time
+    double avgResponseTime = 0;
+    final resolvedComplaints = complaints.where((c) => c.status == 'Resolved' && c.updatedAt != null).toList();
+    if (resolvedComplaints.isNotEmpty) {
+      final totalDiff = resolvedComplaints.fold<int>(0, (sum, c) => sum + c.updatedAt!.difference(c.createdAt).inHours);
+      avgResponseTime = totalDiff / resolvedComplaints.length;
+    }
+
+    // Rough Change percentages (compare this month vs all time Avg or something)
+    // For now, keep them or calculate if we have enough data.
+    
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -138,10 +165,10 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
                 child: _buildStatCard(
                   context,
                   'Total Reports',
-                  '1,247',
+                  total.toString(),
                   Icons.assignment,
                   Colors.blue,
-                  '+12%',
+                  'Updated',
                 ),
               ),
               const SizedBox(width: 12),
@@ -149,10 +176,10 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
                 child: _buildStatCard(
                   context,
                   'Resolved',
-                  '1,089',
+                  resolved.toString(),
                   Icons.check_circle,
                   Colors.green,
-                  '+8%',
+                  '${total > 0 ? (resolved/total*100).toStringAsFixed(1) : 0}%',
                 ),
               ),
               const SizedBox(width: 12),
@@ -160,10 +187,10 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
                 child: _buildStatCard(
                   context,
                   'Response Time',
-                  '2.3h',
+                  '${avgResponseTime.toStringAsFixed(1)}h',
                   Icons.timer,
                   Colors.orange,
-                  '-0.5h',
+                  'Average',
                 ),
               ),
             ],
@@ -244,7 +271,7 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     );
   }
 
-  Widget _buildOverviewTab(BuildContext context) {
+  Widget _buildOverviewTab(BuildContext context, List<ComplaintModel> complaints, List<UserModel> users) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -253,56 +280,94 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
           _buildChartCard(
             context,
             'Complaints Trend',
-            'Monthly complaint reports over the last 6 months',
+            'Total complaints created each month',
             Icons.trending_up,
             Colors.blue,
+            _calculateComplaintsTrend(complaints),
           ),
           const SizedBox(height: 20),
           _buildChartCard(
             context,
             'Resolution Rate',
-            'Percentage of complaints resolved by category',
+            'Resolved complaints by category',
             Icons.pie_chart,
             Colors.green,
+            _calculateResolutionRate(complaints),
           ),
           const SizedBox(height: 20),
           _buildChartCard(
             context,
-            'Response Time',
-            'Average response time by department',
-            Icons.timer,
+            'User Distribution',
+            'Distribution of users by role',
+            Icons.people,
             Colors.orange,
+            _calculateUserDistribution(users),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildComplaintsTab(BuildContext context) {
+  Map<String, double> _calculateComplaintsTrend(List<ComplaintModel> complaints) {
+    final months = <String, double>{};
+    final now = DateTime.now();
+    for (int i = 5; i >= 0; i--) {
+      final monthDate = DateTime(now.year, now.month - i, 1);
+      final monthName = _getMonthName(monthDate.month);
+      final count = complaints.where((c) => c.createdAt.month == monthDate.month && c.createdAt.year == monthDate.year).length;
+      months[monthName] = count.toDouble();
+    }
+    return months;
+  }
+
+  Map<String, double> _calculateResolutionRate(List<ComplaintModel> complaints) {
+    final categories = <String, double>{};
+    for (var c in complaints) {
+      if (c.status == 'Resolved') {
+        categories[c.category] = (categories[c.category] ?? 0) + 1;
+      }
+    }
+    return categories;
+  }
+
+  Map<String, double> _calculateUserDistribution(List<UserModel> users) {
+    final roles = <String, double>{};
+    for (var u in users) {
+      roles[u.role] = (roles[u.role] ?? 0) + 1;
+    }
+    return roles;
+  }
+
+  String _getMonthName(int month) {
+    const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return names[month - 1];
+  }
+
+  Widget _buildComplaintsTab(BuildContext context, List<ComplaintModel> complaints) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildComplaintsStats(context),
+          _buildComplaintsStatsStatic(context, complaints),
           const SizedBox(height: 20),
-          _buildComplaintsByCategory(context),
+          _buildComplaintsByCategoryStatic(context, complaints),
           const SizedBox(height: 20),
-          _buildComplaintsByStatus(context),
+          _buildComplaintsByStatusStatic(context, complaints),
         ],
       ),
     );
   }
 
-  Widget _buildUsersTab(BuildContext context) {
+  Widget _buildUsersTab(BuildContext context, List<UserModel> users) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildUserStats(context),
+          _buildUserStatsStatic(context, users),
           const SizedBox(height: 20),
-          _buildUserActivity(context),
+          _buildUserActivityStatic(context, users),
           const SizedBox(height: 20),
           _buildUserEngagement(context),
         ],
@@ -316,7 +381,13 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     String subtitle,
     IconData icon,
     Color color,
+    Map<String, double> data,
   ) {
+    double maxValue = data.isNotEmpty 
+        ? data.values.reduce((a, b) => a > b ? a : b) 
+        : 1.0;
+    if (maxValue == 0) maxValue = 1.0;
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -364,31 +435,44 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               Container(
                 height: 200,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.bar_chart,
-                        size: 48,
-                        color: color.withOpacity(0.5),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Chart Visualization',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(color: color.withOpacity(0.7)),
-                      ),
-                    ],
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: data.isEmpty 
+                  ? Center(child: Text('No data distribution available', style: TextStyle(color: color.withOpacity(0.5))))
+                  : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: data.entries.map((entry) {
+                      final percentage = entry.value / maxValue;
+                      return Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              height: 140 * percentage,
+                              decoration: BoxDecoration(
+                                color: color.withOpacity(0.7 + (0.3 * percentage)),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              entry.key,
+                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              entry.value.toInt().toString(),
+                              style: TextStyle(fontSize: 10, color: color),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                   ),
-                ),
               ),
             ],
           ),
@@ -397,7 +481,11 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     );
   }
 
-  Widget _buildComplaintsStats(BuildContext context) {
+  Widget _buildComplaintsStatsStatic(BuildContext context, List<ComplaintModel> complaints) {
+    final total = complaints.length;
+    final resolved = complaints.where((c) => c.status == 'Resolved').length;
+    final pending = complaints.where((c) => c.status == 'Pending').length;
+    
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -408,46 +496,15 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
           children: [
             Text(
               'Complaints Statistics',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
-            StreamBuilder<List<ComplaintModel>>(
-              stream: _complaintService.getAllComplaints(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final complaints = snapshot.data ?? [];
-                final total = complaints.length;
-                final resolved = complaints.where((c) => c.status == 'Resolved').length;
-                final pending = complaints.where((c) => c.status == 'Pending').length;
-                
-                return Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatItem(context, 'Total', total.toString(), Colors.blue),
-                    ),
-                    Expanded(
-                      child: _buildStatItem(
-                        context,
-                        'Resolved',
-                        resolved.toString(),
-                        Colors.green,
-                      ),
-                    ),
-                    Expanded(
-                      child: _buildStatItem(
-                        context,
-                        'Pending',
-                        pending.toString(),
-                        Colors.orange,
-                      ),
-                    ),
-                  ],
-                );
-              },
+            Row(
+              children: [
+                Expanded(child: _buildStatItem(context, 'Total', total.toString(), Colors.blue)),
+                Expanded(child: _buildStatItem(context, 'Resolved', resolved.toString(), Colors.green)),
+                Expanded(child: _buildStatItem(context, 'Pending', pending.toString(), Colors.orange)),
+              ],
             ),
           ],
         ),
@@ -455,160 +512,100 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     );
   }
 
-  Widget _buildComplaintsByCategory(BuildContext context) {
-    return StreamBuilder<List<ComplaintModel>>(
-      stream: _complaintService.getAllComplaints(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: const Padding(
-              padding: EdgeInsets.all(20),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-          );
-        }
-        
-        final complaints = snapshot.data ?? [];
-        final categoryCounts = <String, int>{};
-        final categoryColors = {
-          'Harassment': Colors.red,
-          'Bullying': Colors.orange,
-          'Discrimination': Colors.purple,
-          'Cyber Bullying': Colors.blue,
-          'Other': Colors.grey,
-        };
-        
-        for (var complaint in complaints) {
-          final category = complaint.category.isEmpty ? 'Other' : complaint.category;
-          categoryCounts[category] = (categoryCounts[category] ?? 0) + 1;
-        }
-        
-        final categories = categoryCounts.entries.map((entry) {
-          return {
-            'name': entry.key,
-            'count': entry.value,
-            'color': categoryColors[entry.key] ?? Colors.grey,
-          };
-        }).toList()
-          ..sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
-        
-        if (categories.isEmpty) {
-          return Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Complaints by Category',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 16),
-                  const Center(child: Text('No complaints yet')),
-                ],
-              ),
-            ),
-          );
-        }
+  Widget _buildComplaintsByCategoryStatic(BuildContext context, List<ComplaintModel> complaints) {
+    final categoryCounts = <String, int>{};
+    final categoryColors = {
+      'Harassment': Colors.red,
+      'Bullying': Colors.orange,
+      'Discrimination': Colors.purple,
+      'Cyber Bullying': Colors.blue,
+      'Other': Colors.grey,
+    };
+    
+    for (var complaint in complaints) {
+      final category = complaint.category.isEmpty ? 'Other' : complaint.category;
+      categoryCounts[category] = (categoryCounts[category] ?? 0) + 1;
+    }
+    
+    final categories = categoryCounts.entries.map((entry) {
+      return {
+        'name': entry.key,
+        'count': entry.value,
+        'color': categoryColors[entry.key] ?? Colors.grey,
+      };
+    }).toList()..sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
 
-        return Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Complaints by Category',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 16),
-                ...categories.map(
-                  (category) => _buildCategoryItem(context, category),
-                ),
-              ],
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Complaints by Category',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
-          ),
-        );
-      },
+            const SizedBox(height: 16),
+            if (categories.isEmpty) 
+               const Center(child: Padding(padding: EdgeInsets.all(16), child: Text('No complaints yet')))
+            else
+               ...categories.map((category) => _buildCategoryItem(context, category)),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildComplaintsByStatus(BuildContext context) {
-    return StreamBuilder<List<ComplaintModel>>(
-      stream: _complaintService.getAllComplaints(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: const Padding(
-              padding: EdgeInsets.all(20),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-          );
-        }
-        
-        final complaints = snapshot.data ?? [];
-        final statusCounts = <String, int>{};
-        final statusColors = {
-          'Resolved': Colors.green,
-          'In Progress': Colors.blue,
-          'Pending': Colors.orange,
-        };
-        
-        for (var complaint in complaints) {
-          final status = complaint.status;
-          statusCounts[status] = (statusCounts[status] ?? 0) + 1;
-        }
-        
-        final statuses = statusCounts.entries.map((entry) {
-          return {
-            'name': entry.key,
-            'count': entry.value,
-            'color': statusColors[entry.key] ?? Colors.grey,
-          };
-        }).toList()
-          ..sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
+  Widget _buildComplaintsByStatusStatic(BuildContext context, List<ComplaintModel> complaints) {
+    final statusCounts = <String, int>{};
+    final statusColors = {
+      'Resolved': Colors.green,
+      'In Progress': Colors.blue,
+      'Pending': Colors.orange,
+    };
+    
+    for (var complaint in complaints) {
+      statusCounts[complaint.status] = (statusCounts[complaint.status] ?? 0) + 1;
+    }
+    
+    final statuses = statusCounts.entries.map((entry) {
+      return {
+        'name': entry.key,
+        'count': entry.value,
+        'color': statusColors[entry.key] ?? Colors.grey,
+      };
+    }).toList()..sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
 
-        return Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Complaints by Status',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 16),
-                statuses.isEmpty
-                    ? const Center(child: Text('No complaints yet'))
-                    : Column(
-                        children: statuses.map((status) => _buildStatusItem(context, status)).toList(),
-                      ),
-              ],
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Complaints by Status',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
-          ),
-        );
-      },
+            const SizedBox(height: 16),
+            if (statuses.isEmpty)
+              const Center(child: Padding(padding: EdgeInsets.all(16), child: Text('No complaints yet')))
+            else
+              ...statuses.map((status) => _buildStatusItem(context, status)),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildUserStats(BuildContext context) {
+  Widget _buildUserStatsStatic(BuildContext context, List<UserModel> users) {
+    final students = users.where((u) => u.role == 'student').length;
+    final parents = users.where((u) => u.role == 'parent').length;
+    final staff = users.where((u) => ['teacher', 'counsellor', 'warden', 'police'].contains(u.role)).length;
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -619,59 +616,15 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
           children: [
             Text(
               'User Statistics',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
-            StreamBuilder<List<UserModel>>(
-              stream: _authService.getUsersByRole('student'),
-              builder: (context, studentsSnapshot) {
-                return StreamBuilder<List<UserModel>>(
-                  stream: _authService.getUsersByRole('parent'),
-                  builder: (context, parentsSnapshot) {
-                    return StreamBuilder<List<UserModel>>(
-                      stream: _authService.getUsersByRole('teacher'),
-                      builder: (context, teachersSnapshot) {
-                        return StreamBuilder<List<UserModel>>(
-                          stream: _authService.getUsersByRole('counsellor'),
-                          builder: (context, counsellorsSnapshot) {
-                            final students = studentsSnapshot.data ?? [];
-                            final parents = parentsSnapshot.data ?? [];
-                            final teachers = teachersSnapshot.data ?? [];
-                            final counsellors = counsellorsSnapshot.data ?? [];
-                            final staff = teachers.length + counsellors.length;
-                            
-                            return Row(
-                              children: [
-                                Expanded(
-                                  child: _buildStatItem(
-                                    context,
-                                    'Students',
-                                    students.length.toString(),
-                                    Colors.blue,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: _buildStatItem(
-                                    context,
-                                    'Parents',
-                                    parents.length.toString(),
-                                    Colors.green,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: _buildStatItem(context, 'Staff', staff.toString(), Colors.orange),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
-                );
-              },
+            Row(
+              children: [
+                Expanded(child: _buildStatItem(context, 'Students', students.toString(), Colors.blue)),
+                Expanded(child: _buildStatItem(context, 'Parents', parents.toString(), Colors.green)),
+                Expanded(child: _buildStatItem(context, 'Staff', staff.toString(), Colors.orange)),
+              ],
             ),
           ],
         ),
@@ -679,98 +632,31 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     );
   }
 
-  Widget _buildUserActivity(BuildContext context) {
-    return StreamBuilder<List<UserModel>>(
-      stream: _authService.getUsersByRole('student'),
-      builder: (context, studentsSnapshot) {
-        return StreamBuilder<List<UserModel>>(
-          stream: _authService.getUsersByRole('parent'),
-          builder: (context, parentsSnapshot) {
-            return StreamBuilder<List<UserModel>>(
-              stream: _authService.getUsersByRole('teacher'),
-              builder: (context, teachersSnapshot) {
-                return StreamBuilder<List<UserModel>>(
-                  stream: _authService.getUsersByRole('counsellor'),
-                  builder: (context, counsellorsSnapshot) {
-                    return StreamBuilder<List<UserModel>>(
-                      stream: _authService.getUsersByRole('warden'),
-                      builder: (context, wardensSnapshot) {
-                        return StreamBuilder<List<UserModel>>(
-                          stream: _authService.getUsersByRole('police'),
-                          builder: (context, policeSnapshot) {
-                            final students = studentsSnapshot.data ?? [];
-                            final parents = parentsSnapshot.data ?? [];
-                            final teachers = teachersSnapshot.data ?? [];
-                            final counsellors = counsellorsSnapshot.data ?? [];
-                            final wardens = wardensSnapshot.data ?? [];
-                            final police = policeSnapshot.data ?? [];
-                            
-                            final totalUsers = students.length + parents.length + 
-                                            teachers.length + counsellors.length + 
-                                            wardens.length + police.length;
-                            
-                            // Count new registrations (created in last 7 days)
-                            final now = DateTime.now();
-                            final weekAgo = now.subtract(const Duration(days: 7));
-                            final newRegistrations = [
-                              ...students,
-                              ...parents,
-                              ...teachers,
-                              ...counsellors,
-                              ...wardens,
-                              ...police,
-                            ].where((user) {
-                              return user.createdAt.isAfter(weekAgo);
-                            }).length;
-                            
-                            return Card(
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'User Activity',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    _buildActivityItem(
-                                      context,
-                                      'Active Users',
-                                      totalUsers.toString(),
-                                      Colors.green,
-                                    ),
-                                    _buildActivityItem(
-                                      context, 
-                                      'New Registrations (7 days)', 
-                                      newRegistrations.toString(), 
-                                      Colors.blue
-                                    ),
-                                    _buildActivityItem(
-                                      context, 
-                                      'Total Users', 
-                                      totalUsers.toString(), 
-                                      Colors.orange
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
-                );
-              },
-            );
-          },
-        );
-      },
+  Widget _buildUserActivityStatic(BuildContext context, List<UserModel> users) {
+    final totalUsers = users.length;
+    final now = DateTime.now();
+    final weekAgo = now.subtract(const Duration(days: 7));
+    final newRegistrations = users.where((u) => u.createdAt.isAfter(weekAgo)).length;
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'User Activity',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 16),
+            _buildActivityItem(context, 'Active Users', totalUsers.toString(), Colors.green),
+            _buildActivityItem(context, 'New Registrations (7 days)', newRegistrations.toString(), Colors.blue),
+            _buildActivityItem(context, 'Total Users', totalUsers.toString(), Colors.orange),
+          ],
+        ),
+      ),
     );
   }
 
