@@ -424,14 +424,20 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
           FilledButton(
             onPressed: () async {
               try {
+                final appState = Provider.of<AppState>(context, listen: false);
+                final user = appState.currentUser;
+                
+                if (user == null) throw Exception('User not logged in');
+
                 if (verified) {
-                  // Mark as verified - you can update status or add verification metadata
-                  await _complaintService.updateComplaintStatus(
-                    complaint.id,
-                    'In Progress',
+                  await _complaintService.verifyComplaint(
+                    complaintId: complaint.id,
+                    verifierId: user.uid,
+                    verifierName: user.name,
+                    verifierRole: user.role,
                   );
                 } else {
-                  // Reject - keep as pending or update status
+                  // If rejected, maybe move back to Pending or mark as Rejected
                   await _complaintService.updateComplaintStatus(
                     complaint.id,
                     'Pending',

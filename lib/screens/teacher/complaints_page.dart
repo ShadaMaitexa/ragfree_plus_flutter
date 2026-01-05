@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../services/complaint_service.dart';
+import '../../services/app_state.dart';
 import '../../models/complaint_model.dart';
 import 'package:intl/intl.dart';
 
@@ -293,6 +295,29 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
                     }).toList(),
                   ),
                 ],
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _showForwardDialog(context, complaint),
+                        icon: const Icon(Icons.forward),
+                        label: const Text('Forward'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () => _showVerifyDialog(context, complaint),
+                        icon: const Icon(Icons.verified),
+                        label: const Text('Verify'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.green,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -300,5 +325,135 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
       ),
     );
   }
-}
 
+  void _showVerifyDialog(BuildContext context, ComplaintModel complaint) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Verify Complaint'),
+        content: const Text(
+          'Are you sure you want to verify this complaint as authentic?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              try {
+                final appState = Provider.of<AppState>(context, listen: false);
+                final user = appState.currentUser;
+                if (user == null) throw Exception('User not logged in');
+
+                await _complaintService.verifyComplaint(
+                  complaintId: complaint.id,
+                  verifierId: user.uid,
+                  verifierName: user.name,
+                  verifierRole: user.role,
+                );
+
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Complaint verified successfully'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            style: FilledButton.styleFrom(backgroundColor: Colors.green),
+            child: const Text('Verify'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showForwardDialog(BuildContext context, ComplaintModel complaint) {
+    String selectedRole = 'police';
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Forward Complaint'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Select where to forward this complaint:'),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: selectedRole,
+                decoration: const InputDecoration(
+                  labelText: 'Forward To',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'police', child: Text('Police')),
+                  DropdownMenuItem(value: 'warden', child: Text('Warden')),
+                  DropdownMenuItem(
+                      value: 'counsellor', child: Text('Counsellor')),
+                ],
+                onChanged: (val) => setDialogState(() => selectedRole = val!),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                try {
+                  final appState =
+                      Provider.of<AppState>(context, listen: false);
+                  final user = appState.currentUser;
+                  if (user == null) throw Exception('User not logged in');
+
+                  await _complaintService.forwardToRole(
+                    complaintId: complaint.id,
+                    forwardToRole: selectedRole,
+                    forwarderId: user.uid,
+                    forwarderName: user.name,
+                  );
+
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Forwarded to $selectedRole'),
+                        backgroundColor: Colors.blue,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Forward'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

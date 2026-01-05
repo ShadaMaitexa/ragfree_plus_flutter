@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'book_appointment_page.dart';
+import 'feedback_page.dart';
 import '../../services/app_state.dart';
 import '../../services/complaint_service.dart';
 import '../../services/activity_service.dart';
@@ -207,6 +208,13 @@ class _StudentHomePageState extends State<StudentHomePage>
         'subtitle': 'Learn',
         'color': Colors.green,
         'onTap': () => _navigateToAwareness(context),
+      },
+      {
+        'icon': Icons.feedback,
+        'title': 'Feedback',
+        'subtitle': 'Improve',
+        'color': Colors.teal,
+        'onTap': () => _navigateToFeedback(context),
       },
     ];
 
@@ -814,5 +822,12 @@ class _StudentHomePageState extends State<StudentHomePage>
 
   void _navigateToAwareness(BuildContext context) {
     Provider.of<AppState>(context, listen: false).setNavIndex(3);
+  }
+
+  void _navigateToFeedback(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const StudentFeedbackPage()),
+    );
   }
 }

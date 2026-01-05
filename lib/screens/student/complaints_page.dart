@@ -604,9 +604,75 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
           ),
         ),
         actions: [
+          if (complaint.status == 'Pending') ...[
+            TextButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                _showEditComplaintDialog(context, complaint);
+              },
+              icon: const Icon(Icons.edit, color: Colors.blue),
+              label: const Text('Edit', style: TextStyle(color: Colors.blue)),
+            ),
+            TextButton.icon(
+              onPressed: () => _confirmDelete(context, complaint),
+              icon: const Icon(Icons.delete, color: Colors.red),
+              label: const Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditComplaintDialog(BuildContext context, ComplaintModel complaint) {
+    showDialog(
+      context: context,
+      builder: (context) => _AddComplaintDialog(
+        editComplaint: complaint,
+        onComplaintAdded: () {},
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context, ComplaintModel complaint) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Complaint'),
+        content: const Text('Are you sure you want to delete this complaint?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              try {
+                await _complaintService.deleteComplaint(complaint.id);
+                if (context.mounted) {
+                  Navigator.pop(context); // Close confirm
+                  Navigator.pop(context); // Close details
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Complaint deleted'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e')),
+                  );
+                }
+              }
+            },
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -627,8 +693,12 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
 
 class _AddComplaintDialog extends StatefulWidget {
   final VoidCallback onComplaintAdded;
+  final ComplaintModel? editComplaint;
 
-  const _AddComplaintDialog({required this.onComplaintAdded});
+  const _AddComplaintDialog({
+    required this.onComplaintAdded,
+    this.editComplaint,
+  });
 
   @override
   State<_AddComplaintDialog> createState() => _AddComplaintDialogState();
@@ -661,6 +731,19 @@ class _AddComplaintDialogState extends State<_AddComplaintDialog> {
   final List<String> _priorities = ['Low', 'Medium', 'High'];
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.editComplaint != null) {
+      _titleController.text = widget.editComplaint!.title;
+      _descriptionController.text = widget.editComplaint!.description;
+      _locationController.text = widget.editComplaint!.location ?? '';
+      _selectedCategory = widget.editComplaint!.category;
+      _selectedPriority = widget.editComplaint!.priority;
+      _isAnonymous = widget.editComplaint!.isAnonymous;
+    }
+  }
+
+  @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
@@ -691,7 +774,9 @@ class _AddComplaintDialogState extends State<_AddComplaintDialog> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Report Incident',
+                        widget.editComplaint != null
+                            ? 'Edit Incident'
+                            : 'Report Incident',
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(fontWeight: FontWeight.w600),
                       ),
@@ -942,7 +1027,9 @@ class _AddComplaintDialogState extends State<_AddComplaintDialog> {
                               width: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Submit Report'),
+                          : Text(widget.editComplaint != null
+                              ? 'Update Report'
+                              : 'Submit Report'),
                     ),
                   ),
                 ],
@@ -999,33 +1086,50 @@ class _AddComplaintDialogState extends State<_AddComplaintDialog> {
         throw Exception('User not logged in');
       }
 
-      // Use empty string for ID - Firestore will auto-generate it
-      final complaint = ComplaintModel(
-        id: '', // Firestore will generate the ID
-        studentId: _isAnonymous ? null : user.uid,
-        studentName: _isAnonymous ? null : user.name,
-        title: _titleController.text.trim(),
-        description: _descriptionController.text.trim(),
-        category: _selectedCategory,
-        priority: _selectedPriority,
-        status: 'Pending',
-        createdAt: DateTime.now(),
-        location: _locationController.text.trim().isEmpty
-            ? null
-            : _locationController.text.trim(),
-        isAnonymous: _isAnonymous,
-      );
+      if (widget.editComplaint != null) {
+        // Update existing
+        final updatedComplaint = widget.editComplaint!.copyWith(
+          title: _titleController.text.trim(),
+          description: _descriptionController.text.trim(),
+          category: _selectedCategory,
+          priority: _selectedPriority,
+          location: _locationController.text.trim().isEmpty
+              ? null
+              : _locationController.text.trim(),
+          isAnonymous: _isAnonymous,
+          studentId: _isAnonymous ? null : user.uid,
+          studentName: _isAnonymous ? null : user.name,
+        );
 
-      // Collect all media files
-      List<File> allMediaFiles = [];
-      allMediaFiles.addAll(_selectedImages);
-      if (_selectedVideo != null) allMediaFiles.add(_selectedVideo!);
-      if (_selectedAudio != null) allMediaFiles.add(_selectedAudio!);
+        await _complaintService.updateComplaint(updatedComplaint);
+      } else {
+        // Create new
+        final complaint = ComplaintModel(
+          id: '',
+          studentId: _isAnonymous ? null : user.uid,
+          studentName: _isAnonymous ? null : user.name,
+          title: _titleController.text.trim(),
+          description: _descriptionController.text.trim(),
+          category: _selectedCategory,
+          priority: _selectedPriority,
+          status: 'Pending',
+          createdAt: DateTime.now(),
+          location: _locationController.text.trim().isEmpty
+              ? null
+              : _locationController.text.trim(),
+          isAnonymous: _isAnonymous,
+        );
 
-      await _complaintService.submitComplaint(
-        complaint: complaint,
-        mediaFiles: allMediaFiles.isNotEmpty ? allMediaFiles : null,
-      );
+        List<File> allMediaFiles = [];
+        allMediaFiles.addAll(_selectedImages);
+        if (_selectedVideo != null) allMediaFiles.add(_selectedVideo!);
+        if (_selectedAudio != null) allMediaFiles.add(_selectedAudio!);
+
+        await _complaintService.submitComplaint(
+          complaint: complaint,
+          mediaFiles: allMediaFiles.isNotEmpty ? allMediaFiles : null,
+        );
+      }
 
       if (mounted) {
         Navigator.pop(context);

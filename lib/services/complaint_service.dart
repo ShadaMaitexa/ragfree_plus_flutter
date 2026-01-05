@@ -226,4 +226,66 @@ class ComplaintService {
       throw Exception('Failed to get complaint: ${e.toString()}');
     }
   }
+
+  // Update complaint (for student editing)
+  Future<void> updateComplaint(ComplaintModel complaint) async {
+    try {
+      await _firestore.collection('complaints').doc(complaint.id).update({
+        ...complaint.toMap(),
+        'updatedAt': Timestamp.now(),
+      });
+    } catch (e) {
+      throw Exception('Failed to update complaint: ${e.toString()}');
+    }
+  }
+
+  // Delete complaint
+  Future<void> deleteComplaint(String complaintId) async {
+    try {
+      await _firestore.collection('complaints').doc(complaintId).delete();
+    } catch (e) {
+      throw Exception('Failed to delete complaint: ${e.toString()}');
+    }
+  }
+
+  // Verify complaint (for Police/Teacher/Warden)
+  Future<void> verifyComplaint({
+    required String complaintId,
+    required String verifierId,
+    required String verifierName,
+    required String verifierRole,
+  }) async {
+    try {
+      await _firestore.collection('complaints').doc(complaintId).update({
+        'status': 'Verified',
+        'metadata.verifiedBy': verifierId,
+        'metadata.verifiedByName': verifierName,
+        'metadata.verifiedByRole': verifierRole,
+        'metadata.verifiedAt': Timestamp.now(),
+        'updatedAt': Timestamp.now(),
+      });
+    } catch (e) {
+      throw Exception('Failed to verify complaint: ${e.toString()}');
+    }
+  }
+
+  // Forward complaint to another role (e.g., Teacher to Police)
+  Future<void> forwardToRole({
+    required String complaintId,
+    required String forwardToRole,
+    required String forwarderId,
+    required String forwarderName,
+  }) async {
+    try {
+      await _firestore.collection('complaints').doc(complaintId).update({
+        'metadata.forwardedTo': forwardToRole,
+        'metadata.forwardedBy': forwarderId,
+        'metadata.forwardedByName': forwarderName,
+        'metadata.forwardedAt': Timestamp.now(),
+        'updatedAt': Timestamp.now(),
+      });
+    } catch (e) {
+      throw Exception('Failed to forward complaint: ${e.toString()}');
+    }
+  }
 }
