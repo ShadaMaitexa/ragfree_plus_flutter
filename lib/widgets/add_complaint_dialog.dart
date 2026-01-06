@@ -477,7 +477,15 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
           studentName: studentName,
         );
 
-        await _complaintService.updateComplaint(updatedComplaint);
+        List<File> allMediaFiles = [];
+        allMediaFiles.addAll(_selectedImages);
+        if (_selectedVideo != null) allMediaFiles.add(_selectedVideo!);
+        if (_selectedAudio != null) allMediaFiles.add(_selectedAudio!);
+
+        await _complaintService.updateComplaintWithMedia(
+          complaint: updatedComplaint,
+          newMediaFiles: allMediaFiles.isNotEmpty ? allMediaFiles : null,
+        );
       } else {
         // Create new
         final complaint = ComplaintModel(

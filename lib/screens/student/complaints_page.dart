@@ -327,7 +327,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
     }
 
     Color priorityColor;
-    switch (priority) {
+    switch (complaint.priority) {
       case 'High':
         priorityColor = Colors.red;
         break;

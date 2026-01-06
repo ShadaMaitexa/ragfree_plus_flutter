@@ -261,6 +261,43 @@ class ComplaintService {
     }
   }
 
+  // Update complaint with new media files
+  Future<void> updateComplaintWithMedia({
+    required ComplaintModel complaint,
+    List<File>? newMediaFiles,
+  }) async {
+    try {
+      List<String> newMediaUrls = [];
+      
+      // Upload new files if provided
+      if (newMediaFiles != null && newMediaFiles.isNotEmpty) {
+        for (var file in newMediaFiles) {
+          final extension = file.path.split('.').last.toLowerCase();
+          String? url;
+          
+          if (['mp4', 'mov', 'avi', 'mkv', 'webm'].contains(extension)) {
+            url = await _cloudinaryService.uploadVideo(file);
+          } else if (['mp3', 'wav', 'm4a', 'aac', 'ogg'].contains(extension)) {
+            url = await _cloudinaryService.uploadAudio(file);
+          } else {
+            url = await _cloudinaryService.uploadImage(file);
+          }
+          
+          if (url != null) newMediaUrls.add(url);
+        }
+      }
+
+      // Combine existing and new URLs
+      final updatedMediaUrls = [...complaint.mediaUrls, ...newMediaUrls];
+      final finalComplaint = complaint.copyWith(mediaUrls: updatedMediaUrls);
+
+      // calls existing update method
+      await updateComplaint(finalComplaint);
+    } catch (e) {
+      throw Exception('Failed to update complaint with media: ${e.toString()}');
+    }
+  }
+
   // Delete complaint
   Future<void> deleteComplaint(String complaintId) async {
     try {
