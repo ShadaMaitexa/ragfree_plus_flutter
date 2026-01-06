@@ -439,20 +439,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
         statusColor = Colors.grey;
     }
 
-    Color priorityColor;
-    switch (priority) {
-      case 'High':
-        priorityColor = Colors.red;
-        break;
-      case 'Medium':
-        priorityColor = Colors.orange;
-        break;
-      case 'Low':
-        priorityColor = Colors.green;
-        break;
-      default:
-        priorityColor = Colors.grey;
-    }
+    // Priority color logic removed as we are showing incident type which uses primary color
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -495,16 +482,16 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: priorityColor.withOpacity(0.1),
+                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: priorityColor.withOpacity(0.3),
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
                         ),
                       ),
                       child: Text(
-                        priority,
+                        complaint.incidentType,
                         style: TextStyle(
-                          color: priorityColor,
+                          color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w600,
                           fontSize: 12,
                         ),
@@ -769,11 +756,11 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
               Row(
                 children: [
                   Text(
-                    'Priority: ',
+                    'Type: ',
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   Text(
-                    complaint.priority,
+                    complaint.incidentType,
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ],
