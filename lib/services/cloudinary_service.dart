@@ -6,9 +6,8 @@ class CloudinaryService {
   factory CloudinaryService() => _instance;
   CloudinaryService._internal();
 
-  // REPLACE THESE WITH YOUR CLOUDINARY CREDENTIALS
-  final String _cloudName = 'dsoz2xlwg'; // Dummy cloud name
-  final String _uploadPreset = 'ragfree_images'; // Dummy upload preset
+  final String _cloudName = 'dsoz2xlwg'; 
+  final String _uploadPreset = 'ragfree_images'; 
 
   late final CloudinaryPublic _cloudinary;
 
@@ -41,7 +40,6 @@ class CloudinaryService {
     }
   }
 
-  // Convenience method for uploading images
   Future<String?> uploadImage(File file) async {
     return uploadFile(
       file: file,
@@ -50,7 +48,6 @@ class CloudinaryService {
     );
   }
 
-  // Convenience method for uploading videos
   Future<String?> uploadVideo(File file) async {
     return uploadFile(
       file: file,
@@ -59,7 +56,6 @@ class CloudinaryService {
     );
   }
 
-  // Convenience method for uploading audio
   Future<String?> uploadAudio(File file) async {
     return uploadFile(
       file: file,

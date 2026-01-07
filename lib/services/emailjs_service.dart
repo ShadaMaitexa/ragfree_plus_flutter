@@ -5,14 +5,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class EmailJSService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   
-  // EmailJS configuration - these should be set via environment variables or config
-  // Get these from your EmailJS account: https://www.emailjs.com/
-  static const String _publicKey = 'YOUR_PUBLIC_KEY'; // Replace with your EmailJS public key
-  static const String _serviceId = 'YOUR_SERVICE_ID'; // Replace with your EmailJS service ID
-  static const String _templateId = 'YOUR_TEMPLATE_ID'; // Replace with your EmailJS template ID
+  static const String _publicKey = 'YOUR_PUBLIC_KEY'; 
+  static const String _serviceId = 'YOUR_SERVICE_ID'; 
+  static const String _templateId = 'YOUR_TEMPLATE_ID'; 
   static const String _emailJSApiUrl = 'https://api.emailjs.com/api/v1.0/email/send';
   
-  // Initialize EmailJS (call this once in your app initialization)
   Future<void> initialize() async {
     // EmailJS doesn't require initialization for HTTP API
     // Just verify configuration is set
@@ -23,7 +20,6 @@ class EmailJSService {
     }
   }
 
-  // Send email notification via EmailJS API
   Future<bool> sendEmail({
     required String toEmail,
     required String toName,
@@ -75,7 +71,6 @@ class EmailJSService {
     }
   }
 
-  // Send registration approval email
   Future<void> sendApprovalEmail({
     required String userEmail,
     required String userName,
@@ -107,7 +102,6 @@ RAG FREE+ Team
     );
   }
 
-  // Send registration pending email
   Future<void> sendPendingApprovalEmail({
     required String userEmail,
     required String userName,
@@ -140,7 +134,6 @@ RAG FREE+ Team
     );
   }
 
-  // Send complaint submission confirmation email
   Future<void> sendComplaintSubmittedEmail({
     required String userEmail,
     required String userName,
@@ -176,7 +169,6 @@ RAG FREE+ Team
     );
   }
 
-  // Send complaint status update email
   Future<void> sendComplaintStatusUpdateEmail({
     required String userEmail,
     required String userName,
@@ -216,7 +208,6 @@ RAG FREE+ Team
     );
   }
 
-  // Send emergency alert email
   Future<void> sendEmergencyAlertEmail({
     required String userEmail,
     required String userName,
@@ -254,7 +245,6 @@ RAG FREE+ Team
     );
   }
 
-  // Send password reset email (alternative to Firebase Auth)
   Future<void> sendPasswordResetEmail({
     required String userEmail,
     required String userName,
@@ -288,7 +278,6 @@ RAG FREE+ Team
     );
   }
 
-  // Send notification email to user
   Future<void> sendNotificationEmail({
     required String userEmail,
     required String userName,
@@ -321,7 +310,6 @@ RAG FREE+ Team
     );
   }
 
-  // Send bulk emails to multiple users
   Future<void> sendBulkEmails({
     required List<String> userIds,
     required String subject,
@@ -358,7 +346,6 @@ RAG FREE+ Team
     }
   }
 
-  // Get user email from Firestore
   Future<String?> getUserEmail(String userId) async {
     try {
       final doc = await _firestore.collection('users').doc(userId).get();

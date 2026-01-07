@@ -11,10 +11,8 @@ class AuthService {
   // Get current user
   User? get currentUser => _auth.currentUser;
 
-  // Auth state stream
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // Register user with role
   Future<UserModel?> registerWithEmailAndPassword({
     required String email,
     required String password,
@@ -75,7 +73,6 @@ class AuthService {
     }
   }
 
-  // Login with email and password
   Future<UserModel?> loginWithEmailAndPassword({
     required String email,
     required String password,
@@ -105,7 +102,6 @@ class AuthService {
     }
   }
 
-  // Admin hardcoded login
   Future<UserModel?> adminLogin({
     required String email,
     required String password,
@@ -234,7 +230,6 @@ class AuthService {
     }
   }
 
-  // Get available counselors for assignment
   Future<List<Map<String, dynamic>>> getAvailableCounselors() async {
     try {
       final counselors = await _firestore
@@ -257,7 +252,6 @@ class AuthService {
     }
   }
 
-  // Get user data from Firestore
   Future<UserModel?> getUserData(String uid) async {
     try {
       DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
@@ -268,7 +262,6 @@ class AuthService {
     }
   }
 
-  // Check if user is approved (for police and teachers)
   Future<bool> isUserApproved(String uid) async {
     try {
       DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
@@ -280,7 +273,6 @@ class AuthService {
     }
   }
 
-  // Admin approve user (police or teacher)
   Future<void> approveUser(String userId) async {
     try {
       // Get user data before updating
@@ -316,7 +308,6 @@ class AuthService {
     }
   }
 
-  // Admin reject user
   Future<void> rejectUser(String userId) async {
     try {
       await _firestore.collection('users').doc(userId).delete();
@@ -330,7 +321,6 @@ class AuthService {
     }
   }
 
-  // Get pending approvals (all users except admin)
   Stream<List<UserModel>> getPendingApprovals() {
     return _firestore
         .collection('users')
@@ -344,7 +334,6 @@ class AuthService {
     });
   }
 
-  // Get all users
   Stream<List<UserModel>> getAllUsers() {
     return _firestore
         .collection('users')
@@ -356,7 +345,6 @@ class AuthService {
     });
   }
 
-  // Get all users by role
   Stream<List<UserModel>> getUsersByRole(String role) {
     return _firestore
         .collection('users')
@@ -370,7 +358,6 @@ class AuthService {
     });
   }
 
-  // Send password reset email
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
@@ -379,12 +366,10 @@ class AuthService {
     }
   }
 
-  // Sign out
   Future<void> signOut() async {
     await _auth.signOut();
   }
 
-  // Update password for current user
   Future<void> updatePassword({
     required String currentPassword,
     required String newPassword,
@@ -409,7 +394,6 @@ class AuthService {
     }
   }
 
-  // Delete current user account
   Future<void> deleteAccount() async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('No user logged in');

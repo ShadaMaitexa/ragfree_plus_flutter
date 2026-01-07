@@ -17,7 +17,11 @@ class CounsellorDashboardPage extends StatefulWidget {
       _CounsellorDashboardPageState();
 }
 
-class _CounsellorDashboardPageState extends State<CounsellorDashboardPage>
+class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
   final ComplaintService _complaintService = ComplaintService();
   final AppointmentService _appointmentService = AppointmentService();
 

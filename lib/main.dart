@@ -66,12 +66,11 @@ void main() async {
 
   CloudinaryService().init();
 
-  // Initialize EmailJS for email notifications
   try {
     final emailJSService = EmailJSService();
     await emailJSService.initialize();
   } catch (e) {
-    // EmailJS initialization failed - app will continue without email notifications
+    // EmailJS initialization failed
     print('EmailJS initialization failed: $e');
   }
 
@@ -203,13 +202,11 @@ class _SplashScreenState extends State<SplashScreen>
     final user = authService.currentUser;
 
     if (user != null) {
-      // User is logged in, check their status
       final userData = await authService.getUserData(user.uid);
       if (userData != null) {
         final appState = Provider.of<AppState>(context, listen: false);
         appState.setUser(userData);
 
-        // Check if approval is needed
         if ((userData.role == 'police' ||
                 userData.role == 'counsellor' ||
                 userData.role == 'warden' ||
@@ -217,7 +214,6 @@ class _SplashScreenState extends State<SplashScreen>
             !userData.isApproved) {
           Navigator.of(context).pushReplacementNamed(Routes.approvalPending);
         } else {
-          // Navigate to appropriate dashboard
           switch (userData.role) {
             case 'student':
               Navigator.of(context).pushReplacementNamed(Routes.student);
@@ -716,8 +712,6 @@ class _AdminLazy extends StatelessWidget {
     }
   }
 }
-
-// admin pages imported at top
 
 class _AdminDashboardProxy extends StatelessWidget {
   const _AdminDashboardProxy();
