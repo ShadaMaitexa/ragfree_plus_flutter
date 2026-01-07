@@ -209,13 +209,25 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
                     Consumer<AppState>(
                       builder: (context, appState, _) {
                         final userName = appState.currentUser?.name ?? 'Admin';
-                        return Text(
-                          userName,
-                          style: Theme.of(context).textTheme.headlineSmall
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              userName,
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'ID: ${appState.currentUser?.uid ?? ""}',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.white.withOpacity(0.8),
                               ),
+                            ),
+                          ],
                         );
                       },
                     ),

@@ -154,6 +154,13 @@ class _ParentHomePageState extends State<ParentHomePage>
                         fontWeight: FontWeight.bold,
                       ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  'ID: ${appState.currentUser?.uid ?? ""}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withOpacity(0.8),
+                  ),
+                ),
               ],
             );
           },

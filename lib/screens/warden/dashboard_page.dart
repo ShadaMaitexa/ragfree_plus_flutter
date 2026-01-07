@@ -66,6 +66,12 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
               user?.name ?? 'Warden',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: color),
             ),
+            Text(
+              'ID: ${user?.uid ?? ""}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              ),
+            ),
           ],
         ),
         const Spacer(),
