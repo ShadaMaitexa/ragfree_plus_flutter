@@ -19,14 +19,18 @@ class AppointmentService {
     return _firestore
         .collection('appointment_slots')
         .where('counselorId', isEqualTo: counselorId)
-        .orderBy('date', descending: false)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => AppointmentSlotModel.fromMap({
-                  ...doc.data(),
-                  'id': doc.id,
-                }))
-            .toList());
+        .map((snapshot) {
+          final slots = snapshot.docs
+              .map((doc) => AppointmentSlotModel.fromMap({
+                    ...doc.data(),
+                    'id': doc.id,
+                  }))
+              .toList();
+          // Sort in memory to avoid index requirement
+          slots.sort((a, b) => a.date.compareTo(b.date));
+          return slots;
+        });
   }
 
   // Get all available slots for a counselor (for students)
@@ -37,15 +41,20 @@ class AppointmentService {
         .collection('appointment_slots')
         .where('counselorId', isEqualTo: counselorId)
         .where('status', isEqualTo: 'available')
-        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(DateUtils.dateOnly(DateTime.now())))
-        .orderBy('date', descending: false)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => AppointmentSlotModel.fromMap({
-                  ...doc.data(),
-                  'id': doc.id,
-                }))
-            .toList());
+        .map((snapshot) {
+          final now = DateUtils.dateOnly(DateTime.now());
+          final slots = snapshot.docs
+              .map((doc) => AppointmentSlotModel.fromMap({
+                    ...doc.data(),
+                    'id': doc.id,
+                  }))
+              .where((slot) => !slot.date.isBefore(now))
+              .toList();
+          // Sort in memory
+          slots.sort((a, b) => a.date.compareTo(b.date));
+          return slots;
+        });
   }
 
   // Book a slot

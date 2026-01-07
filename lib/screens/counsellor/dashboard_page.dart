@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
+import '../../services/appointment_service.dart';
+import '../../services/complaint_service.dart';
+import '../../models/complaint_model.dart';
+import '../../models/appointment_slot_model.dart';
 import '../../utils/responsive.dart';
 import 'schedule_session_page.dart';
 import 'chat_page.dart';
@@ -14,10 +18,8 @@ class CounsellorDashboardPage extends StatefulWidget {
 }
 
 class _CounsellorDashboardPageState extends State<CounsellorDashboardPage>
-    with TickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
+  final ComplaintService _complaintService = ComplaintService();
+  final AppointmentService _appointmentService = AppointmentService();
 
   @override
   void initState() {
@@ -144,10 +146,11 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Welcome back, Counsellor!',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      style: TextStyle(
                         color: Colors.white,
+                        fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -182,40 +185,10 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage>
   }
 
   Widget _buildStatsGrid(BuildContext context, Color color) {
-    final stats = [
-      {
-        'label': 'Active Cases',
-        'value': '24',
-        'icon': Icons.assignment,
-        'color': Colors.blue,
-        'change': '+3',
-        'changeColor': Colors.green,
-      },
-      {
-        'label': 'Resolved',
-        'value': '156',
-        'icon': Icons.check_circle,
-        'color': Colors.green,
-        'change': '+12',
-        'changeColor': Colors.green,
-      },
-      {
-        'label': 'Sessions Today',
-        'value': '8',
-        'icon': Icons.event,
-        'color': Colors.orange,
-        'change': '+2',
-        'changeColor': Colors.blue,
-      },
-      {
-        'label': 'Response Rate',
-        'value': '98%',
-        'icon': Icons.timer,
-        'color': Colors.purple,
-        'change': '+2%',
-        'changeColor': Colors.green,
-      },
-    ];
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+
+    if (user == null) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,41 +200,83 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage>
           ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 16),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final crossAxisCount = Responsive.getGridCrossAxisCount(
-              context,
-              mobile: 2,
-              tablet: 3,
-              desktop: 3,
-            );
-            final childAspectRatio = Responsive.getGridAspectRatio(
-              context,
-              mobile: 1.4,
-              tablet: 1.3,
-              desktop: 1.1,
-            );
+        StreamBuilder<List<ComplaintModel>>(
+          stream: _complaintService.getAssignedComplaints(user.uid),
+          builder: (context, complaintSnapshot) {
+            return StreamBuilder<List<AppointmentSlotModel>>(
+              stream: _appointmentService.getCounselorSlots(user.uid),
+              builder: (context, slotSnapshot) {
+                final complaints = complaintSnapshot.data ?? [];
+                final slots = slotSnapshot.data ?? [];
 
-            return GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: childAspectRatio,
-              ),
-              itemCount: stats.length,
-              itemBuilder: (context, index) {
-                final stat = stats[index];
-                return _buildStatCard(
-                  context,
-                  stat['icon'] as IconData,
-                  stat['label'] as String,
-                  stat['value'] as String,
-                  stat['color'] as Color,
-                  stat['change'] as String,
-                  stat['changeColor'] as Color,
+                final totalCases = complaints.length;
+                final activeCases = complaints.where((c) => c.status != 'Resolved').length;
+                final resolvedCases = complaints.where((c) => c.status == 'Resolved').length;
+                final todaySessions = slots.where((s) => s.date.day == DateTime.now().day && s.status == 'booked').length;
+                
+                final stats = [
+                  {
+                    'label': 'Total Cases',
+                    'value': totalCases.toString(),
+                    'icon': Icons.assignment_outlined,
+                    'color': Colors.indigo,
+                    'change': '',
+                    'changeColor': Colors.transparent,
+                  },
+                  {
+                    'label': 'Active Cases',
+                    'value': activeCases.toString(),
+                    'icon': Icons.pending_actions,
+                    'color': Colors.blue,
+                    'change': '',
+                    'changeColor': Colors.transparent,
+                  },
+                  {
+                    'label': 'Resolved',
+                    'value': resolvedCases.toString(),
+                    'icon': Icons.check_circle,
+                    'color': Colors.green,
+                    'change': totalCases > 0 ? '${((resolvedCases / totalCases) * 100).toStringAsFixed(0)}%' : '0%',
+                    'changeColor': Colors.green,
+                  },
+                  {
+                    'label': 'Sessions Today',
+                    'value': todaySessions.toString(),
+                    'icon': Icons.event,
+                    'color': Colors.orange,
+                    'change': '',
+                    'changeColor': Colors.transparent,
+                  },
+                ];
+
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final crossAxisCount = Responsive.isMobile(context) ? 2 : 4;
+                    
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 1.1,
+                      ),
+                      itemCount: stats.length,
+                      itemBuilder: (context, index) {
+                        final stat = stats[index];
+                        return _buildStatCard(
+                          context,
+                          stat['icon'] as IconData,
+                          stat['label'] as String,
+                          stat['value'] as String,
+                          stat['color'] as Color,
+                          stat['change'] as String,
+                          stat['changeColor'] as Color,
+                        );
+                      },
+                    );
+                  },
                 );
               },
             );

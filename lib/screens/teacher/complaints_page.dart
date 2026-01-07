@@ -533,6 +533,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
                 ),
                 items: const [
                   DropdownMenuItem(value: 'police', child: Text('Police')),
+                  DropdownMenuItem(value: 'admin', child: Text('College Admin')),
                   DropdownMenuItem(value: 'warden', child: Text('Warden')),
                   DropdownMenuItem(
                       value: 'counsellor', child: Text('Counsellor')),

@@ -79,20 +79,31 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
 
   Widget _buildStatsGrid(BuildContext context, Color color) {
     return StreamBuilder<List<ComplaintModel>>(
-      stream: _complaintService.getAllComplaints(),
+      stream: _complaintService.getHostelComplaints(),
       builder: (context, snapshot) {
         final complaints = snapshot.data ?? [];
+        final total = complaints.length;
         final pending = complaints.where((c) => c.status == 'Pending').length;
         final inProgress = complaints.where((c) => c.status == 'In Progress').length;
         final resolved = complaints.where((c) => c.status == 'Resolved').length;
 
-        return Row(
+        return Column(
           children: [
-            Expanded(child: _buildStatCard('Pending', pending.toString(), Icons.pending, Colors.orange)),
-            const SizedBox(width: 12),
-            Expanded(child: _buildStatCard('Active', inProgress.toString(), Icons.run_circle, Colors.blue)),
-            const SizedBox(width: 12),
-            Expanded(child: _buildStatCard('Resolved', resolved.toString(), Icons.check_circle, Colors.green)),
+            Row(
+              children: [
+                Expanded(child: _buildStatCard('Total', total.toString(), Icons.assessment, Colors.purple)),
+                const SizedBox(width: 12),
+                Expanded(child: _buildStatCard('Pending', pending.toString(), Icons.pending, Colors.orange)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(child: _buildStatCard('Active', inProgress.toString(), Icons.run_circle, Colors.blue)),
+                const SizedBox(width: 12),
+                Expanded(child: _buildStatCard('Resolved', resolved.toString(), Icons.check_circle, Colors.green)),
+              ],
+            ),
           ],
         );
       },
@@ -153,7 +164,7 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
         const Text('Recent Complaints', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         StreamBuilder<List<ComplaintModel>>(
-          stream: _complaintService.getAllComplaints(),
+          stream: _complaintService.getHostelComplaints(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
             final complaints = snapshot.data!.take(5).toList();

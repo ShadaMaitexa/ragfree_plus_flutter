@@ -199,7 +199,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     // Check if ID proof is required and uploaded (for all roles except parent and teacher)
-    if (_selectedRole != 'parent' && _selectedRole != 'teacher') {
+    if (_selectedRole != 'parent') {
       if (_idProofFile == null && _idProofUrl == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -242,7 +242,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         department: _departmentController.text.trim().isEmpty
             ? null
             : _departmentController.text.trim(),
-        idProofUrl: (_selectedRole != 'parent' && _selectedRole != 'teacher')
+        idProofUrl: (_selectedRole != 'parent')
             ? _idProofUrl
             : null,
       );
@@ -484,8 +484,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         _selectedRole == 'counsellor' ||
                         _selectedRole == 'warden')
                       const SizedBox(height: 16),
-                    if (_selectedRole != 'parent' &&
-                        _selectedRole != 'teacher') ...[
+                    if (_selectedRole != 'parent') ...[
                       Text(
                         'ID Proof Document *',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(

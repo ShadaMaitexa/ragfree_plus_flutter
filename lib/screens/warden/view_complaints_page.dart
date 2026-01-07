@@ -71,6 +71,12 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
                                 backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                               ),
                               const Spacer(),
+                              TextButton.icon(
+                                onPressed: () => _showForwardDialog(c),
+                                icon: const Icon(Icons.forward),
+                                label: const Text('Forward'),
+                              ),
+                              const SizedBox(width: 8),
                               ElevatedButton(
                                 onPressed: () => _updateStatus(c),
                                 child: const Text('Update Status'),
@@ -86,6 +92,70 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
             },
           );
         },
+      ),
+    );
+  }
+
+  void _showForwardDialog(ComplaintModel complaint) {
+    String selectedRole = 'admin';
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Forward to Authorities'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Forward this complaint to college authorities:'),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: selectedRole,
+                decoration: const InputDecoration(
+                  labelText: 'Forward To',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'admin', child: Text('College Admin')),
+                  DropdownMenuItem(value: 'police', child: Text('Police')),
+                  DropdownMenuItem(value: 'counsellor', child: Text('Counsellor')),
+                ],
+                onChanged: (val) => setDialogState(() => selectedRole = val!),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                try {
+                  await _complaintService.forwardToRole(
+                    complaintId: complaint.id,
+                    forwardToRole: selectedRole,
+                    forwarderId: 'warden', // Simplified or use actual ID
+                    forwarderName: 'Hostel Warden',
+                  );
+
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Forwarded to $selectedRole')),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e')),
+                    );
+                  }
+                }
+              },
+              child: const Text('Forward'),
+            ),
+          ],
+        ),
       ),
     );
   }
