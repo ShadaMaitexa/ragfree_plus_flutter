@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../widgets/animated_widgets.dart';
 
 class ApprovalPendingScreen extends StatefulWidget {
   const ApprovalPendingScreen({super.key});
@@ -20,6 +21,7 @@ class _ApprovalPendingScreenState extends State<ApprovalPendingScreen> {
   }
 
   Future<void> _checkApprovalStatus() async {
+    setState(() => _isChecking = true);
     final user = _authService.currentUser;
     if (user != null) {
       final userData = await _authService.getUserData(user.uid);
@@ -28,11 +30,8 @@ class _ApprovalPendingScreenState extends State<ApprovalPendingScreen> {
           _isApproved = true;
           _isChecking = false;
         });
-        // Navigate to dashboard after a short delay
-        Future.delayed(const Duration(seconds: 1), () {
-          if (mounted) {
-            _navigateToDashboard(userData.role);
-          }
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) _navigateToDashboard(userData.role);
         });
       } else {
         setState(() {
@@ -41,40 +40,27 @@ class _ApprovalPendingScreenState extends State<ApprovalPendingScreen> {
         });
       }
     } else {
-      setState(() {
-        _isChecking = false;
-      });
+      setState(() => _isChecking = false);
     }
   }
 
   void _navigateToDashboard(String role) {
-    switch (role) {
-      case 'student':
-        Navigator.pushReplacementNamed(context, '/student');
-        break;
-      case 'parent':
-        Navigator.pushReplacementNamed(context, '/parent');
-        break;
-      case 'counsellor':
-        Navigator.pushReplacementNamed(context, '/counsellor');
-        break;
-      case 'warden':
-        Navigator.pushReplacementNamed(context, '/warden');
-        break;
-      case 'police':
-        Navigator.pushReplacementNamed(context, '/police');
-        break;
-      case 'teacher':
-        Navigator.pushReplacementNamed(context, '/teacher');
-        break;
+    final routes = {
+      'student': '/student',
+      'parent': '/parent',
+      'counsellor': '/counsellor',
+      'warden': '/warden',
+      'police': '/police',
+      'teacher': '/teacher',
+    };
+    if (routes.containsKey(role)) {
+      Navigator.pushReplacementNamed(context, routes[role]!);
     }
   }
 
   Future<void> _signOut() async {
     await _authService.signOut();
-    if (mounted) {
-      Navigator.pushReplacementNamed(context, '/login');
-    }
+    if (mounted) Navigator.pushReplacementNamed(context, '/login');
   }
 
   @override
@@ -89,98 +75,106 @@ class _ApprovalPendingScreenState extends State<ApprovalPendingScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [color.withOpacity(0.1), Colors.transparent]
-                : [Colors.blue.shade50, Colors.white],
+                ? [color.withOpacity(0.12), Colors.black, color.withOpacity(0.08)]
+                : [color.withOpacity(0.05), Colors.white, color.withOpacity(0.1)],
           ),
         ),
         child: SafeArea(
           child: Center(
             child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (_isChecking)
-                    Column(
-                      children: [
-                        CircularProgressIndicator(color: color),
-                        const SizedBox(height: 24),
-                        Text(
-                          'Checking approval status...',
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                      ],
-                    )
-                  else if (_isApproved)
-                    Column(
-                      children: [
-                        Icon(
-                          Icons.check_circle,
-                          size: 80,
-                          color: Colors.green,
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'Approved!',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Redirecting to dashboard...',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
-                    )
-                  else
-                    Column(
-                      children: [
-                        Icon(
-                          Icons.pending_actions,
-                          size: 80,
-                          color: color,
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'Approval Pending',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: color,
-                              ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Your registration is pending admin approval.',
-                          style: Theme.of(context).textTheme.bodyLarge,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'You will be able to access your dashboard once an administrator approves your account.',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 32),
-                        FilledButton.icon(
-                          onPressed: _checkApprovalStatus,
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Check Status'),
-                        ),
-                        const SizedBox(height: 16),
-                        TextButton(
-                          onPressed: _signOut,
-                          child: const Text('Sign Out'),
-                        ),
-                      ],
-                    ),
-                ],
+              padding: const EdgeInsets.all(40),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                child: _isChecking ? _buildChecking(color) : (_isApproved ? _buildApproved(color) : _buildPending(color)),
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildChecking(Color color) {
+    return Column(
+      key: const ValueKey('checking'),
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(width: 60, height: 60, child: CircularProgressIndicator(strokeWidth: 6, color: color)),
+        const SizedBox(height: 32),
+        AnimatedWidgets.fadeIn(
+          child: Text('Verifying Authorization...', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: color)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildApproved(Color color) {
+    return Column(
+      key: const ValueKey('approved'),
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        AnimatedWidgets.bounceIn(
+          child: const Icon(Icons.verified_rounded, size: 100, color: Colors.green),
+        ),
+        const SizedBox(height: 32),
+        AnimatedWidgets.slideIn(
+          beginOffset: const Offset(0, 0.2),
+          child: const Text('Access Granted!', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.green)),
+        ),
+        const SizedBox(height: 12),
+        AnimatedWidgets.fadeIn(
+          delay: const Duration(milliseconds: 200),
+          child: const Text('Your profile is approved. Redirecting now...', textAlign: TextAlign.center, style: TextStyle(fontSize: 16)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPending(Color color) {
+    return Column(
+      key: const ValueKey('pending'),
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        AnimatedWidgets.bounceIn(
+          child: Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+            child: Icon(Icons.shield_moon_rounded, size: 80, color: color),
+          ),
+        ),
+        const SizedBox(height: 40),
+        AnimatedWidgets.slideIn(
+          beginOffset: const Offset(0, 0.2),
+          child: Text('Approval Pending', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: color, letterSpacing: -0.5)),
+        ),
+        const SizedBox(height: 16),
+        AnimatedWidgets.fadeIn(
+          delay: const Duration(milliseconds: 200),
+          child: const Text(
+            'We are currently verifying your credentials. This process ensures the safety and integrity of our community.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, height: 1.5),
+          ),
+        ),
+        const SizedBox(height: 48),
+        SizedBox(
+          width: double.infinity,
+          child: AnimatedWidgets.scaleButton(
+            onPressed: _checkApprovalStatus,
+            child: FilledButton.icon(
+              onPressed: _checkApprovalStatus,
+              style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Refresh Status', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextButton(
+          onPressed: _signOut,
+          child: Text('Sign Out', style: TextStyle(color: Theme.of(context).hintColor)),
+        ),
+      ],
     );
   }
 }

@@ -1,5 +1,3 @@
-// ignore_for_file: unused_import
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -25,145 +23,114 @@ class ParentHomePage extends StatefulWidget {
   State<ParentHomePage> createState() => _ParentHomePageState();
 }
 
-class _ParentHomePageState extends State<ParentHomePage>
-    with TickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
-
+class _ParentHomePageState extends State<ParentHomePage> {
   final ParentStudentService _parentStudentService = ParentStudentService();
   final NotificationService _notificationService = NotificationService();
   final ActivityService _activityService = ActivityService();
   final ComplaintService _complaintService = ComplaintService();
-  final EmergencyAlertService _emergencyAlertService =
-      EmergencyAlertService();
-
-  @override
-  void initState() {
-    super.initState();
-
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
-    );
-
-    _animationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
+  final EmergencyAlertService _emergencyAlertService = EmergencyAlertService();
 
   @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme.primary;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, _) {
-        return FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: isDark
-                      ? [color.withOpacity(0.05), Colors.transparent]
-                      : [Colors.grey.shade50, Colors.white],
-                ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [color.withOpacity(0.08), Colors.transparent, color.withOpacity(0.04)]
+              : [Colors.white, color.withOpacity(0.02), color.withOpacity(0.05)],
+        ),
+      ),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: Responsive.getPadding(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                child: _buildWelcomeCard(context, color),
               ),
-              child: SingleChildScrollView(
-                padding: Responsive.getPadding(context),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth:
-                        Responsive.isDesktop(context) ? 1200 : double.infinity,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildWelcomeCard(context, color),
-                      const SizedBox(height: 24),
-                      _buildChildSafetySummary(context, color),
-                      const SizedBox(height: 24),
-                      _buildQuickActions(context, color),
-                      const SizedBox(height: 24),
-                      _buildNotifications(context),
-                      const SizedBox(height: 24),
-                      _buildRecentActivity(context),
-                    ],
-                  ),
-                ),
+              const SizedBox(height: 32),
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                delay: const Duration(milliseconds: 100),
+                child: _buildChildSafetySummary(context, color),
               ),
-            ),
+              const SizedBox(height: 32),
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                delay: const Duration(milliseconds: 200),
+                child: _buildQuickActions(context, color),
+              ),
+              const SizedBox(height: 32),
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                delay: const Duration(milliseconds: 300),
+                child: _buildRecentActivity(context),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
-  // -------------------- UI SECTIONS --------------------
-
   Widget _buildWelcomeCard(BuildContext context, Color color) {
     return AnimatedWidgets.hoverCard(
-      elevation: 12,
-      hoverElevation: 20,
+      elevation: 8,
+      borderRadius: BorderRadius.circular(24),
       child: Container(
-        padding: const EdgeInsets.all(24),
+        width: double.infinity,
+        padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [color, color.withOpacity(0.8)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [color, color.withOpacity(0.85)],
           ),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
         ),
-        child: Consumer<AppState>(
-          builder: (context, appState, _) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Text(
-                  'Welcome back!',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(color: Colors.white),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(16)),
+                  child: const Icon(Icons.family_restroom_rounded, color: Colors.white, size: 32),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  appState.currentUser?.name ?? 'User',
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineSmall
-                      ?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                const SizedBox(width: 24),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Guardian Dashboard', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w500)),
+                      Consumer<AppState>(
+                        builder: (context, appState, _) {
+                          final userName = appState.currentUser?.name ?? 'Guardian';
+                          return Text(
+                            userName,
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+                          );
+                        },
                       ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'ID: ${appState.currentUser?.uid ?? ""}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withOpacity(0.8),
+                    ],
                   ),
                 ),
               ],
-            );
-          },
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Your child\'s safety is our priority. Monitor real-time activities and receive instant alerts.',
+              style: TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
+            ),
+          ],
         ),
       ),
     );
@@ -173,147 +140,142 @@ class _ParentHomePageState extends State<ParentHomePage>
     final user = Provider.of<AppState>(context).currentUser;
     if (user == null) return const SizedBox.shrink();
 
-    return AnimatedWidgets.hoverCard(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            StreamBuilder<List<ParentStudentLinkModel>>(
-              stream: _parentStudentService.getLinkedStudents(user.uid),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
-                }
-                
-                final linkedStudents = snapshot.data ?? [];
-                
-                if (linkedStudents.isEmpty) {
-                  return Column(
-                    children: [
-                      Icon(Icons.link_off, size: 48, color: Colors.grey),
-                      const SizedBox(height: 12),
-                      Text('No Linked Students',
-                          style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Link your child\'s account to monitor their safety.',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                            ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  );
-                }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Monitored Students', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 20),
+        StreamBuilder<List<ParentStudentLinkModel>>(
+          stream: _parentStudentService.getLinkedStudents(user.uid),
+          builder: (context, snapshot) {
+            final linkedStudents = snapshot.data ?? [];
+            
+            if (linkedStudents.isEmpty) {
+              return _buildEmptyState(context, Icons.link_off_rounded, 'No linked accounts found. Connect with your child to start monitoring.');
+            }
 
-                return Column(
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.security, color: color),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Monitored Students',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    ...linkedStudents.map((link) => ListTile(
-                      leading: CircleAvatar(
-                        child: Text(link.studentName.isNotEmpty ? link.studentName[0] : 'S'),
-                      ),
-                      title: Text(link.studentName),
-                      subtitle: Text(link.studentEmail),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.link_off, color: Colors.red),
-                        tooltip: 'Unlink',
-                        onPressed: () => _unlinkStudent(context, link.id),
-                      ),
-                    )),
-                    const SizedBox(height: 16),
-                  ],
-                );
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 1, tablet: 2, desktop: 2),
+                crossAxisSpacing: 20,
+                mainAxisSpacing: 20,
+                mainAxisExtent: 100,
+              ),
+              itemCount: linkedStudents.length,
+              itemBuilder: (context, index) {
+                final link = linkedStudents[index];
+                return _buildStudentLinkCard(context, link, color);
               },
-            ),
-            FilledButton.icon(
-              onPressed: () => _showLinkStudentDialog(context),
-              icon: const Icon(Icons.link),
-              label: const Text('Link Student Account'),
-            ),
-          ],
+            );
+          },
         ),
-      ),
+        const SizedBox(height: 20),
+        SizedBox(
+          width: double.infinity,
+          child: AnimatedWidgets.scaleButton(
+            onPressed: () => _showLinkStudentDialog(context),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                border: Border.all(color: color.withOpacity(0.3), width: 2),
+                borderRadius: BorderRadius.circular(16),
+                color: color.withOpacity(0.05),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_link_rounded, color: color),
+                  const SizedBox(width: 12),
+                  Text('Link Student Account', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16)),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  Future<void> _unlinkStudent(BuildContext context, String linkId) async {
-     try {
-       await _parentStudentService.unlinkStudent(linkId);
-       if (context.mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text('Student unlinked')),
-         );
-       }
-     } catch (e) {
-       if (context.mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-         );
-       }
-     }
+  Widget _buildStudentLinkCard(BuildContext context, ParentStudentLinkModel link, Color color) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withOpacity(0.1))),
+      child: Center(
+        child: ListTile(
+          leading: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+            child: Icon(Icons.person_rounded, color: color),
+          ),
+          title: Text(link.studentName, style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text(link.studentEmail),
+          trailing: IconButton(
+            icon: const Icon(Icons.link_off_rounded, color: Colors.grey),
+            onPressed: () => _unlinkStudent(context, link.id),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildQuickActions(BuildContext context, Color color) {
     final actions = [
-      _action(Icons.assignment, 'View Reports', _navigateToReports),
-      _action(Icons.chat, 'Chat', _navigateToChat),
-      _action(Icons.school, 'Awareness', _navigateToAwareness),
-      _action(Icons.notifications, 'Alerts', _showEmergencyAlerts),
+      {'icon': Icons.assignment_rounded, 'title': 'Reports', 'color': Colors.blue, 'target': 1},
+      {'icon': Icons.forum_rounded, 'title': 'Support Chat', 'color': Colors.green, 'target': 2},
+      {'icon': Icons.school_rounded, 'title': 'Awareness', 'color': Colors.orange, 'target': 3},
+      {'icon': Icons.admin_panel_settings_rounded, 'title': 'Child Profile', 'color': Colors.purple, 'target': 4},
     ];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: actions.length,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: Responsive.isDesktop(context) ? 4 : 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 1.5,
-      ),
-      itemBuilder: (_, i) => actions[i],
-    );
-  }
-
-  Widget _action(IconData icon, String title, VoidCallback onTap) {
-    return Card(
-      elevation: 2,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 28, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 8),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Proactive Safety', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 20),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
+            crossAxisSpacing: 20,
+            mainAxisSpacing: 20,
+            childAspectRatio: 1.1,
+          ),
+          itemCount: actions.length,
+          itemBuilder: (context, index) {
+            final action = actions[index];
+            return AnimatedWidgets.scaleButton(
+              onPressed: () => Provider.of<AppState>(context, listen: false).setNavIndex(action['target'] as int),
+              child: AnimatedWidgets.hoverCard(
+                borderRadius: BorderRadius.circular(24),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [(action['color'] as Color).withOpacity(0.15), (action['color'] as Color).withOpacity(0.05)],
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(shape: BoxShape.circle, color: (action['color'] as Color).withOpacity(0.1)),
+                        child: Icon(action['icon'] as IconData, color: action['color'] as Color, size: 32),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(action['title'] as String, style: TextStyle(fontWeight: FontWeight.w800, color: action['color'] as Color, fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
-      ),
-    );
-  }
-
-  Widget _buildNotifications(BuildContext context) {
-    // Basic placeholder for now, would be similar to AdminNotificationsPage
-     return _emptyState(
-      context,
-      Icons.notifications_none,
-      'No Notifications',
+      ],
     );
   }
 
@@ -324,48 +286,57 @@ class _ParentHomePageState extends State<ParentHomePage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Recent Activity',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 16),
+        const Text('Safety Log', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 20),
         StreamBuilder<List<ActivityModel>>(
           stream: _activityService.getUserActivities(user.uid, limit: 5),
           builder: (context, snapshot) {
-             if (snapshot.connectionState == ConnectionState.waiting) {
-               return const Center(child: CircularProgressIndicator());
-             }
-             final activities = snapshot.data ?? [];
-             if (activities.isEmpty) {
-               return _emptyState(context, Icons.history, 'No Recent Activity');
-             }
-             return Card(
-               child: Column(
-                 children: activities.map((activity) => ListTile(
-                   leading: Icon(Icons.history, color: Colors.grey),
-                   title: Text(activity.title),
-                   subtitle: Text(activity.description),
-                 )).toList(),
-               ),
-             );
+            final activities = snapshot.data ?? [];
+            if (activities.isEmpty) return _buildEmptyState(context, Icons.history_rounded, 'No recent activity recorded.');
+
+            return Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1))),
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: activities.length,
+                separatorBuilder: (context, index) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final activity = activities[index];
+                  return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary.withOpacity(0.1), shape: BoxShape.circle),
+                      child: const Icon(Icons.notifications_active_rounded, size: 18),
+                    ),
+                    title: Text(activity.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(activity.description),
+                    trailing: const Icon(Icons.chevron_right_rounded, size: 20, color: Colors.grey),
+                  );
+                },
+              ),
+            );
           },
         ),
       ],
     );
   }
 
-  Widget _emptyState(
-      BuildContext context, IconData icon, String text) {
-    return AnimatedWidgets.hoverCard(
+  Widget _buildEmptyState(BuildContext context, IconData icon, String text) {
+    return Card(
+      elevation: 0,
+      color: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.2), width: 1.5, style: BorderStyle.solid)),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(40),
         child: Center(
           child: Column(
             children: [
-              Icon(icon, size: 48, color: Colors.grey),
-              const SizedBox(height: 12),
-              Text(text,
-                  style: Theme.of(context).textTheme.titleMedium),
+              Icon(icon, size: 48, color: Theme.of(context).hintColor.withOpacity(0.3)),
+              const SizedBox(height: 16),
+              Text(text, textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).hintColor, fontSize: 14, height: 1.5)),
             ],
           ),
         ),
@@ -375,22 +346,17 @@ class _ParentHomePageState extends State<ParentHomePage>
 
   // -------------------- ACTIONS --------------------
 
-  void _navigateToReports() {
-    DefaultTabController.of(context).animateTo(1);
-    // Assuming Tab structure, but ParentDashboard uses PageView.
-    // Since this is inside HomePage which is inside PageView, we'd need to access ParentDashboardState.
-    // For now we just show a snackbar or TODO.
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Complaints tab below')));
-  }
-  void _navigateToChat() {
-     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Chat tab below')));
-  }
-  void _navigateToAwareness() {
-     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Awareness tab below')));
-  }
-  
-  void _showEmergencyAlerts() {
-    // Show dialog with active alerts
+  Future<void> _unlinkStudent(BuildContext context, String linkId) async {
+    try {
+      await _parentStudentService.unlinkStudent(linkId);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Account unlinked successfully')));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+      }
+    }
   }
 
   void _showLinkStudentDialog(BuildContext context) {
@@ -402,47 +368,50 @@ class _ParentHomePageState extends State<ParentHomePage>
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Link Student Account'),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          title: const Text('Link Child\'s Account', style: TextStyle(fontWeight: FontWeight.w800)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Enter the email address registered by your child to link their account.',
-              ),
-              const SizedBox(height: 16),
+              const Text('Enter your child\'s registered email to securely link their safety monitoring.', style: TextStyle(fontSize: 14, height: 1.4)),
+              const SizedBox(height: 24),
               TextField(
                 controller: emailController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Student Email',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email),
+                  prefixIcon: const Icon(Icons.email_rounded),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: relationshipController,
-                decoration: const InputDecoration(
-                  labelText: 'Relationship (e.g., Father, Mother)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.family_restroom),
+                decoration: InputDecoration(
+                  labelText: 'Relationship (Parent/Guardian)',
+                  prefixIcon: const Icon(Icons.family_restroom_rounded),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                 ),
               ),
             ],
           ),
+          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
           actions: [
             TextButton(
               onPressed: isLoading ? null : () => Navigator.pop(context),
               child: const Text('Cancel'),
             ),
+            const SizedBox(width: 8),
             FilledButton(
+              style: FilledButton.styleFrom(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
               onPressed: isLoading
                   ? null
                   : () async {
                       if (emailController.text.trim().isEmpty || relationshipController.text.trim().isEmpty) {
-                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please fill all fields')),
-                        );
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
                         return;
                       }
 
@@ -458,20 +427,13 @@ class _ParentHomePageState extends State<ParentHomePage>
                           );
                           if (context.mounted) {
                             Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Student linked successfully!'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Accounts linked! Monitoring started.'), backgroundColor: Colors.green));
                           }
                         }
                       } catch (e) {
-                         if (context.mounted) {
-                           ScaffoldMessenger.of(context).showSnackBar(
-                             SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Colors.red),
-                           );
-                         }
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Colors.red));
+                        }
                       } finally {
                         if (context.mounted) {
                           setState(() => isLoading = false);
@@ -479,16 +441,13 @@ class _ParentHomePageState extends State<ParentHomePage>
                       }
                     },
               child: isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
-                  : const Text('Link Student'),
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('Link Account'),
             ),
           ],
         ),
       ),
     );
   }
+}
 }

@@ -8,6 +8,7 @@ import '../../services/activity_service.dart';
 import '../../services/emergency_alert_service.dart';
 import '../../models/activity_model.dart';
 import '../../utils/responsive.dart';
+import '../../widgets/animated_widgets.dart';
 
 class StudentHomePage extends StatefulWidget {
   const StudentHomePage({super.key});
@@ -16,266 +17,213 @@ class StudentHomePage extends StatefulWidget {
   State<StudentHomePage> createState() => _StudentHomePageState();
 }
 
-class _StudentHomePageState extends State<StudentHomePage>
-    with TickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
+class _StudentHomePageState extends State<StudentHomePage> {
   final ComplaintService _complaintService = ComplaintService();
   final ActivityService _activityService = ActivityService();
   final EmergencyAlertService _emergencyService = EmergencyAlertService();
   bool _isSendingSOS = false;
 
   @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _animationController,
-            curve: Curves.easeOutCubic,
-          ),
-        );
-
-    _animationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme.primary;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        return FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: isDark
-                      ? [color.withOpacity(0.05), Colors.transparent]
-                      : [Colors.grey.shade50, Colors.white],
-                ),
-              ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    padding: EdgeInsets.all(
-                      constraints.maxWidth > 600 ? 24 : 20,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildWelcomeCard(context, color),
-                        SizedBox(height: constraints.maxWidth > 600 ? 32 : 24),
-                        _buildQuickActions(context, color),
-                        SizedBox(height: constraints.maxWidth > 600 ? 32 : 24),
-                        _buildStatsGrid(context, color),
-                        SizedBox(height: constraints.maxWidth > 600 ? 32 : 24),
-                        _buildRecentActivity(context),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildWelcomeCard(BuildContext context, Color color) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [color, color.withOpacity(0.8)],
+          colors: isDark
+              ? [color.withOpacity(0.08), Colors.transparent, color.withOpacity(0.04)]
+              : [Colors.white, color.withOpacity(0.02), color.withOpacity(0.05)],
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: Responsive.getPadding(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.school, color: Colors.white, size: 24),
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                child: _buildWelcomeCard(context, color),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome back!',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
+              const SizedBox(height: 32),
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                delay: const Duration(milliseconds: 100),
+                child: _buildQuickActions(context, color),
+              ),
+              const SizedBox(height: 32),
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                delay: const Duration(milliseconds: 200),
+                child: _buildStatsGrid(context, color),
+              ),
+              const SizedBox(height: 32),
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                delay: const Duration(milliseconds: 300),
+                child: _buildRecentActivity(context),
+              ),
+              const SizedBox(height: 32),
+              AnimatedWidgets.scaleButton(
+                onPressed: () => _showSOSDialog(context),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: [Colors.red, Colors.deepOrange]),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.red.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
                       ),
-                    ),
-                    Consumer<AppState>(
-                      builder: (context, appState, _) {
-                        final userName = appState.currentUser?.name ?? 'User';
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              userName,
-                              style: Theme.of(context).textTheme.headlineSmall
-                                  ?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'ID: ${appState.currentUser?.uid ?? ""}',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.white.withOpacity(0.8),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.emergency_share, color: Colors.white),
+                      SizedBox(width: 12),
+                      Text(
+                        'EMERGENCY SOS',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 1.2),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          Text(
-            'Stay safe and report any incidents immediately. Your safety is our priority.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.white.withOpacity(0.9),
-            ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWelcomeCard(BuildContext context, Color color) {
+    return AnimatedWidgets.hoverCard(
+      borderRadius: BorderRadius.circular(24),
+      elevation: 8,
+      hoverElevation: 12,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [color, color.withOpacity(0.85)],
           ),
-        ],
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(Icons.stars_rounded, color: Colors.white, size: 28),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Member of RagFree+',
+                        style: TextStyle(color: Colors.white.withOpacity(0.8), fontWeight: FontWeight.w500),
+                      ),
+                      Consumer<AppState>(
+                        builder: (context, appState, _) {
+                          final userName = appState.currentUser?.name ?? 'User';
+                          return Text(
+                            'Hello, $userName',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.notifications_active, color: Colors.white),
+                  style: IconButton.styleFrom(backgroundColor: Colors.white24),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.security_update_good, color: Colors.white70, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Your safety is our priority. Report any concern instantly.',
+                      style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildQuickActions(BuildContext context, Color color) {
     final actions = [
-      {
-        'icon': Icons.calendar_month,
-        'title': 'Book',
-        'subtitle': 'Counseling',
-        'color': Colors.purple,
-        'onTap': () => _navigateToBooking(context),
-      },
-      {
-        'icon': Icons.report_problem,
-        'title': 'Report',
-        'subtitle': 'Incident',
-        'color': Colors.orange,
-        'onTap': () => _navigateToComplaints(context),
-      },
-      {
-        'icon': Icons.chat,
-        'title': 'Chat',
-        'subtitle': 'Support',
-        'color': Colors.blue,
-        'onTap': () => _navigateToChat(context),
-      },
-      {
-        'icon': Icons.school,
-        'title': 'Awareness',
-        'subtitle': 'Learn',
-        'color': Colors.green,
-        'onTap': () => _navigateToAwareness(context),
-      },
-      {
-        'icon': Icons.feedback,
-        'title': 'Feedback',
-        'subtitle': 'Improve',
-        'color': Colors.teal,
-        'onTap': () => _navigateToFeedback(context),
-      },
+      {'icon': Icons.calendar_month_rounded, 'title': 'Counseling', 'color': Colors.indigo, 'onTap': () => _navigateToBooking(context)},
+      {'icon': Icons.gavel_rounded, 'title': 'Report', 'color': Colors.deepOrange, 'onTap': () => _navigateToComplaints(context)},
+      {'icon': Icons.forum_rounded, 'title': 'Live Support', 'color': Colors.blue, 'onTap': () => _navigateToChat(context)},
+      {'icon': Icons.school_rounded, 'title': 'Awareness', 'color': Colors.green, 'onTap': () => _navigateToAwareness(context)},
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Quick Actions',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
         ),
-        const SizedBox(height: 16),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final crossAxisCount = Responsive.getGridCrossAxisCount(
+        const SizedBox(height: 20),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.1,
+          ),
+          itemCount: actions.length,
+          itemBuilder: (context, index) {
+            final action = actions[index];
+            return _buildActionCard(
               context,
-              mobile: 2,
-              tablet: 3,
-              desktop: 4,
-            );
-            final childAspectRatio = Responsive.getGridAspectRatio(
-              context,
-              mobile: 1.4,
-              tablet: 1.3,
-              desktop: 1.2,
-            );
-
-            return GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: childAspectRatio,
-              ),
-              itemCount: actions.length,
-              itemBuilder: (context, index) {
-                final action = actions[index];
-                return _buildActionCard(
-                  context,
-                  action['icon'] as IconData,
-                  action['title'] as String,
-                  action['subtitle'] as String,
-                  action['color'] as Color,
-                  action['onTap'] as VoidCallback,
-                );
-              },
+              action['icon'] as IconData,
+              action['title'] as String,
+              action['color'] as Color,
+              action['onTap'] as VoidCallback,
+              index,
             );
           },
         ),
@@ -283,73 +231,35 @@ class _StudentHomePageState extends State<StudentHomePage>
     );
   }
 
-  Widget _buildActionCard(
-    BuildContext context,
-    IconData icon,
-    String title,
-    String subtitle,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+  Widget _buildActionCard(BuildContext context, IconData icon, String title, Color color, VoidCallback onTap, int index) {
+    return AnimatedWidgets.scaleButton(
+      onPressed: onTap,
+      child: AnimatedWidgets.hoverCard(
+        borderRadius: BorderRadius.circular(20),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
+              colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
             ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: color.withOpacity(0.1),
-                    ),
-                    child: Icon(icon, color: color, size: 20),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Flexible(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: color,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Flexible(
-                  child: Text(
-                    subtitle,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.1)),
+                child: Icon(icon, color: color, size: 28),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: TextStyle(fontWeight: FontWeight.w700, color: color, fontSize: 13),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         ),
       ),
@@ -359,254 +269,104 @@ class _StudentHomePageState extends State<StudentHomePage>
   Widget _buildStatsGrid(BuildContext context, Color color) {
     final appState = Provider.of<AppState>(context, listen: false);
     final user = appState.currentUser;
-    
-    if (user == null) {
-      return const SizedBox.shrink();
-    }
+    if (user == null) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Your Statistics',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 16),
-        StreamBuilder<List<dynamic>>(
-          stream: _complaintService.getStudentComplaints(user.uid).map((complaints) => [
-                complaints.length,
-                complaints.where((c) => c.status == 'Resolved').length,
-                complaints.where((c) => c.status != 'Resolved').length,
-              ]),
-          builder: (context, snapshot) {
-            final total = snapshot.data?[0] ?? 0;
-            final resolved = snapshot.data?[1] ?? 0;
-            final pending = snapshot.data?[2] ?? 0;
+    return StreamBuilder<List<dynamic>>(
+      stream: _complaintService.getStudentComplaints(user.uid).map((c) => [
+            c.length,
+            c.where((x) => x.status == 'Resolved').length,
+            c.where((x) => x.status != 'Resolved').length,
+          ]),
+      builder: (context, snapshot) {
+        final stats = [
+          {'label': 'Total Reports', 'value': '${snapshot.data?[0] ?? 0}', 'icon': Icons.folder_rounded, 'color': Colors.blue},
+          {'label': 'Resolved', 'value': '${snapshot.data?[1] ?? 0}', 'icon': Icons.verified_rounded, 'color': Colors.green},
+          {'label': 'Active', 'value': '${snapshot.data?[2] ?? 0}', 'icon': Icons.hourglass_empty_rounded, 'color': Colors.orange},
+          {'label': 'System Status', 'value': 'Online', 'icon': Icons.sensors_rounded, 'color': Colors.purple},
+        ];
 
-            final stats = [
-              {
-                'label': 'Reports',
-                'value': '$total',
-                'icon': Icons.assignment,
-                'color': Colors.blue,
-              },
-              {
-                'label': 'Resolved',
-                'value': '$resolved',
-                'icon': Icons.check_circle,
-                'color': Colors.green,
-              },
-              {
-                'label': 'Pending',
-                'value': '$pending',
-                'icon': Icons.pending,
-                'color': Colors.orange,
-              },
-              {
-                'label': 'Support',
-                'value': '24/7',
-                'icon': Icons.support_agent,
-                'color': Colors.purple,
-              },
-            ];
-
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                final crossAxisCount = Responsive.getGridCrossAxisCount(
-                  context,
-                  mobile: 2,
-                  tablet: 3,
-                  desktop: 4,
-                );
-                final childAspectRatio = Responsive.getGridAspectRatio(
-                  context,
-                  mobile: 1.2,
-                  tablet: 1.1,
-                  desktop: 1.0,
-                );
-
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: childAspectRatio,
-                  ),
-                  itemCount: stats.length,
-                  itemBuilder: (context, index) {
-                    final stat = stats[index];
-                    return _buildStatCard(
-                      context,
-                      stat['icon'] as IconData,
-                      stat['label'] as String,
-                      stat['value'] as String,
-                      stat['color'] as Color,
-                    );
-                  },
-                );
-              },
-            );
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.3,
+          ),
+          itemCount: stats.length,
+          itemBuilder: (context, index) {
+            final stat = stats[index];
+            return _buildStatCard(context, stat['icon'] as IconData, stat['label'] as String, stat['value'] as String, stat['color'] as Color);
           },
-        ),
-      ],
+        );
+      },
     );
   }
 
-  Widget _buildStatCard(
-    BuildContext context,
-    IconData icon,
-    String label,
-    String value,
-    Color color,
-  ) {
+  Widget _buildStatCard(BuildContext context, IconData icon, String label, String value, Color color) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(child: Icon(icon, color: color, size: 24)),
-              const SizedBox(height: 6),
-              Flexible(
-                child: Text(
-                  value,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: color,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Flexible(
-                child: Text(
-                  label,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withOpacity(0.7),
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
+      elevation: 0,
+      color: color.withOpacity(0.05),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withOpacity(0.1))),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: color, size: 24),
+            const Spacer(),
+            Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: color)),
+            Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).hintColor, fontWeight: FontWeight.w600)),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildRecentActivity(BuildContext context) {
-    final appState = Provider.of<AppState>(context, listen: false);
-    final user = appState.currentUser;
-    
-    if (user == null) {
-      return const SizedBox.shrink();
-    }
+    final user = context.read<AppState>().currentUser;
+    if (user == null) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Recent Activity',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
+        const Text('Recent Activity', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
         const SizedBox(height: 16),
         StreamBuilder<List<ActivityModel>>(
-          stream: _activityService.getUserActivities(user.uid, limit: 5),
+          stream: _activityService.getUserActivities(user.uid, limit: 3),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              );
-            }
-            if (snapshot.hasError) {
-              return Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(
-                    child: Text('Error: ${snapshot.error}'),
-                  ),
-                ),
-              );
+              return ShimmerEffect(child: Container(height: 200, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20))));
             }
             final activities = snapshot.data ?? [];
-            if (activities.isEmpty) {
-              return Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(Icons.history, size: 48, color: Colors.grey),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No Recent Activity',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Your recent activities will appear here',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }
-            return Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: activities.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final activity = entry.value;
-                  return Column(
-                    children: [
-                      _buildActivityItemFromModel(context, activity),
-                      if (index < activities.length - 1) const Divider(height: 1),
-                    ],
-                  );
-                }).toList(),
-              ),
+            if (activities.isEmpty) return _buildEmptyActivity();
+
+            return Column(
+              children: activities.map((a) => _buildActivityItemFromModel(context, a)).toList(),
             );
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildEmptyActivity() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.05)),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.history_rounded, size: 40, color: Theme.of(context).disabledColor),
+          const SizedBox(height: 12),
+          Text('No recent activity', style: TextStyle(color: Theme.of(context).disabledColor, fontWeight: FontWeight.w600)),
+        ],
+      ),
     );
   }
 

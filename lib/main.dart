@@ -59,6 +59,8 @@ import 'screens/admin/materials_page.dart' as admin_pages;
 import 'screens/admin/profile_page.dart' as admin_pages;
 import 'services/emailjs_service.dart';
 import 'services/cloudinary_service.dart';
+import 'widgets/responsive_scaffold.dart';
+import 'utils/responsive.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -349,40 +351,46 @@ class _SplashScreenState extends State<SplashScreen>
 PageRoute _buildFadeRoute(Widget page, RouteSettings settings) {
   return PageRouteBuilder(
     settings: settings,
-    pageBuilder: (_, __, ___) => page,
-    transitionsBuilder: (_, animation, __, child) {
-      return FadeTransition(opacity: animation, child: child);
+    pageBuilder: (context, animation, secondaryAnimation) => page,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      const begin = Offset(0.0, 0.05);
+      const end = Offset.zero;
+      const curve = Curves.easeOutCubic;
+
+      var slideTween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+      var scaleTween = Tween<double>(begin: 0.98, end: 1.0).chain(CurveTween(curve: curve));
+      var fadeTween = Tween<double>(begin: 0.0, end: 1.0).chain(CurveTween(curve: curve));
+
+      return FadeTransition(
+        opacity: animation.drive(fadeTween),
+        child: ScaleTransition(
+          scale: animation.drive(scaleTween),
+          child: SlideTransition(
+            position: animation.drive(slideTween),
+            child: child,
+          ),
+        ),
+      );
     },
+    transitionDuration: const Duration(milliseconds: 400),
   );
 }
 
-class StudentDashboard extends StatefulWidget {
+class StudentDashboard extends StatelessWidget {
   const StudentDashboard({super.key});
-
-  @override
-  State<StudentDashboard> createState() => _StudentDashboardState();
-}
-
-class _StudentDashboardState extends State<StudentDashboard> {
-  final PageController _pageController = PageController();
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final selectedIndex = appState.navIndex;
 
-    // Sync PageController if needed
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_pageController.hasClients && _pageController.page?.round() != selectedIndex) {
-        _pageController.jumpToPage(selectedIndex);
-      }
-    });
+    const destinations = [
+      NavigationDestinationData(icon: Icons.home, label: 'Home'),
+      NavigationDestinationData(icon: Icons.assignment, label: 'Complaints'),
+      NavigationDestinationData(icon: Icons.chat_bubble, label: 'Chat'),
+      NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
+      NavigationDestinationData(icon: Icons.person, label: 'Profile'),
+    ];
 
     final pages = <Widget>[
       const StudentHomePage(),
@@ -391,6 +399,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
       const StudentAwarenessPage(),
       const StudentProfilePage(),
     ];
+
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
@@ -398,65 +407,33 @@ class _StudentDashboardState extends State<StudentDashboard> {
           Navigator.of(context).pushReplacementNamed(Routes.login);
         }
       },
-      child: Scaffold(
-        appBar: AppBar(title: const Text('Student Dashboard')),
-        body: PageView(
-          controller: _pageController,
-          onPageChanged: (i) => appState.setNavIndex(i),
-          children: pages,
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: selectedIndex,
-          onTap: (i) {
-            appState.setNavIndex(i);
-            _pageController.animateToPage(
-              i,
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeInOut,
-            );
-          },
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.assignment),
-              label: 'Complaints',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble),
-              label: 'Chat',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.school),
-              label: 'Awareness',
-            ),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-          ],
-        ),
+      child: ResponsiveScaffold(
+        title: 'Student Dashboard',
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (i) => appState.setNavIndex(i),
+        destinations: destinations,
+        pages: pages,
       ),
     );
   }
 }
 
-class ParentDashboard extends StatefulWidget {
+class ParentDashboard extends StatelessWidget {
   const ParentDashboard({super.key});
 
   @override
-  State<ParentDashboard> createState() => _ParentDashboardState();
-}
-
-class _ParentDashboardState extends State<ParentDashboard> {
-  final PageController _pageController = PageController();
-  int selectedIndex = 0;
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+    final selectedIndex = appState.navIndex;
+
+    const destinations = [
+      NavigationDestinationData(icon: Icons.home, label: 'Home'),
+      NavigationDestinationData(icon: Icons.assignment, label: 'Child Complaints'),
+      NavigationDestinationData(icon: Icons.chat_bubble, label: 'Chat'),
+      NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
+      NavigationDestinationData(icon: Icons.person, label: 'Profile'),
+    ];
+
     final pages = <Widget>[
       const parent.ParentHomePage(),
       const parent.ParentChildComplaintsPage(),
@@ -464,6 +441,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
       const parent.ParentAwarenessPage(),
       const parent.ParentProfilePage(),
     ];
+
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
@@ -471,108 +449,38 @@ class _ParentDashboardState extends State<ParentDashboard> {
           Navigator.of(context).pushReplacementNamed(Routes.login);
         }
       },
-      child: Scaffold(
-        appBar: AppBar(title: const Text('Parent Dashboard')),
-        body: PageView(
-          controller: _pageController,
-          onPageChanged: (i) => setState(() => selectedIndex = i),
-          children: pages,
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: selectedIndex,
-          onTap: (i) {
-            setState(() => selectedIndex = i);
-            _pageController.animateToPage(
-              i,
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeInOut,
-            );
-          },
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.assignment),
-              label: 'ChildComplaints',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble),
-              label: 'Chat',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.school),
-              label: 'Awareness',
-            ),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-          ],
-        ),
+      child: ResponsiveScaffold(
+        title: 'Parent Dashboard',
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (i) => appState.setNavIndex(i),
+        destinations: destinations,
+        pages: pages,
       ),
     );
   }
 }
 
-class AdminDashboard extends StatefulWidget {
+class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
 
-  @override
-  State<AdminDashboard> createState() => _AdminDashboardState();
-}
-
-class _AdminDashboardState extends State<AdminDashboard> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final selectedIndex = appState.navIndex;
 
-    final railDestinations = const [
-      NavigationRailDestination(
-        icon: Icon(Icons.dashboard),
-        label: Text('Dashboard'),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.group),
-        label: Text('ManageUsers'),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.assignment),
-        label: Text('Complaints'),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.apartment),
-        label: Text('Departments'),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.school),
-        label: Text('Awareness'),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.notifications),
-        label: Text('Notifications'),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.receipt_long),
-        label: Text('Reports'),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.feedback),
-        label: Text('Feedback'),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.analytics),
-        label: Text('Analytics'),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.verified),
-        label: Text('Certificates'),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.folder_open),
-        label: Text('Materials'),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.person),
-        label: Text('Profile'),
-      ),
+    const destinations = [
+      NavigationDestinationData(icon: Icons.dashboard, label: 'Dashboard'),
+      NavigationDestinationData(icon: Icons.group, label: 'Users'),
+      NavigationDestinationData(icon: Icons.assignment, label: 'Complaints'),
+      NavigationDestinationData(icon: Icons.apartment, label: 'Depts'),
+      NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
+      NavigationDestinationData(icon: Icons.notifications, label: 'Alerts'),
+      NavigationDestinationData(icon: Icons.receipt_long, label: 'Reports'),
+      NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
+      NavigationDestinationData(icon: Icons.analytics, label: 'Analytics'),
+      NavigationDestinationData(icon: Icons.verified, label: 'Certifs'),
+      NavigationDestinationData(icon: Icons.folder_open, label: 'Materials'),
+      NavigationDestinationData(icon: Icons.person, label: 'Profile'),
     ];
 
     final pages = const <Widget>[
@@ -590,33 +498,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
       _AdminPages.profile,
     ];
 
-    final isWide = MediaQuery.of(context).size.width >= 900;
-
-    final navWidget = isWide
-        ? NavigationRail(
-            selectedIndex: selectedIndex,
-            onDestinationSelected: (i) => appState.setNavIndex(i),
-            destinations: railDestinations,
-            labelType: NavigationRailLabelType.all,
-          )
-        : _RoleDrawer(
-            onNavigate: (i) => appState.setNavIndex(i),
-            items: const [
-              DrawerItem(icon: Icons.dashboard, label: 'Dashboard'),
-              DrawerItem(icon: Icons.group, label: 'ManageUsers'),
-              DrawerItem(icon: Icons.assignment, label: 'Complaints'),
-              DrawerItem(icon: Icons.apartment, label: 'Departments'),
-              DrawerItem(icon: Icons.school, label: 'Awareness'),
-              DrawerItem(icon: Icons.notifications, label: 'Notifications'),
-              DrawerItem(icon: Icons.receipt_long, label: 'Reports'),
-              DrawerItem(icon: Icons.feedback, label: 'Feedback'),
-              DrawerItem(icon: Icons.analytics, label: 'Analytics'),
-              DrawerItem(icon: Icons.verified, label: 'Certificates'),
-              DrawerItem(icon: Icons.folder_open, label: 'Materials'),
-              DrawerItem(icon: Icons.person, label: 'Profile'),
-            ],
-          );
-
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
@@ -624,23 +505,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
           Navigator.of(context).pushReplacementNamed(Routes.login);
         }
       },
-      child: Scaffold(
-        appBar: AppBar(title: const Text('Admin Dashboard')),
-        drawer: isWide ? null : navWidget as Widget?,
-        body: Row(
-          children: [
-            if (isWide) SizedBox(width: 120, child: navWidget),
-            Expanded(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                child: KeyedSubtree(
-                  key: ValueKey<int>(selectedIndex),
-                  child: pages[selectedIndex],
-                ),
-              ),
-            ),
-          ],
-        ),
+      child: ResponsiveScaffold(
+        title: 'Admin Dashboard',
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (i) => appState.setNavIndex(i),
+        destinations: destinations,
+        pages: pages,
       ),
     );
   }
@@ -789,47 +659,51 @@ class _AdminProfileProxy extends StatelessWidget {
   Widget build(BuildContext context) => const admin_pages.AdminProfilePage();
 }
 
-class CounsellorDashboard extends StatefulWidget {
+class CounsellorDashboard extends StatelessWidget {
   const CounsellorDashboard({super.key});
 
   @override
-  State<CounsellorDashboard> createState() => _CounsellorDashboardState();
-}
-
-class _CounsellorDashboardState extends State<CounsellorDashboard> {
-  int selectedIndex = 0;
-
-  @override
   Widget build(BuildContext context) {
-    final pages = const <Widget>[
-      _CounsellorDashboardPages.dashboard,
-      _CounsellorDashboardPages.assigned,
-      _CounsellorDashboardPages.respond,
-      _CounsellorDashboardPages.schedule,
-      _CounsellorDashboardPages.chat,
-      _CounsellorDashboardPages.awareness,
-      _CounsellorDashboardPages.profile,
+    final appState = Provider.of<AppState>(context);
+    final selectedIndex = appState.navIndex;
+
+    const destinations = [
+      NavigationDestinationData(icon: Icons.dashboard, label: 'Dashboard'),
+      NavigationDestinationData(icon: Icons.assignment, label: 'Assigned'),
+      NavigationDestinationData(icon: Icons.schedule, label: 'Schedule'),
+      NavigationDestinationData(icon: Icons.chat_bubble, label: 'Chat'),
+      NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
+      NavigationDestinationData(icon: Icons.person, label: 'Profile'),
     ];
-    return Scaffold(
-      appBar: AppBar(title: const Text('Counsellor Dashboard')),
-      drawer: _RoleDrawer(
-        onNavigate: (index) => setState(() => selectedIndex = index),
-        items: const [
-          DrawerItem(icon: Icons.dashboard_customize, label: 'Dashboard'),
-          DrawerItem(icon: Icons.assignment_ind, label: 'AssignedComplaints'),
-          DrawerItem(icon: Icons.reply, label: 'RespondComplaint'),
-          DrawerItem(icon: Icons.event, label: 'ScheduleSession'),
-          DrawerItem(icon: Icons.chat_bubble, label: 'Chat'),
-          DrawerItem(icon: Icons.school, label: 'Awareness'),
-          DrawerItem(icon: Icons.person, label: 'Profile'),
-        ],
+
+    final pages = const <Widget>[
+      _CounsellorPages.dashboard,
+      _CounsellorPages.assignedComplaints,
+      _CounsellorPages.scheduleSession,
+      _CounsellorPages.chat,
+      _CounsellorPages.awareness,
+      _CounsellorPages.profile,
+    ];
+
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          Navigator.of(context).pushReplacementNamed(Routes.login);
+        }
+      },
+      child: ResponsiveScaffold(
+        title: 'Counsellor Dashboard',
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (i) => appState.setNavIndex(i),
+        destinations: destinations,
+        pages: pages,
       ),
-      body: pages[selectedIndex],
     );
   }
 }
 
-class _CounsellorDashboardPages {
+class _CounsellorPages {
   static const Widget dashboard = _CounsellorLazy(
     page: _CounsellorPage.dashboard,
   );
@@ -926,21 +800,25 @@ class _CounsellorAwarenessProxy extends StatelessWidget {
       const counsellor_pages.CounsellorAwarenessPage();
 }
 
-class WardenDashboard extends StatefulWidget {
+class WardenDashboard extends StatelessWidget {
   const WardenDashboard({super.key});
 
-  @override
-  State<WardenDashboard> createState() => _WardenDashboardState();
-}
-
-class _WardenDashboardState extends State<WardenDashboard> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final selectedIndex = appState.navIndex;
 
+    const destinations = [
+      NavigationDestinationData(icon: Icons.dashboard, label: 'Dashboard'),
+      NavigationDestinationData(icon: Icons.list_alt, label: 'Complaints'),
+      NavigationDestinationData(icon: Icons.forward_to_inbox, label: 'Forward'),
+      NavigationDestinationData(icon: Icons.people, label: 'Students'),
+      NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
+      NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
+      NavigationDestinationData(icon: Icons.person, label: 'Profile'),
+    ];
+
     final pages = const <Widget>[
-      // Dashboard, ViewComplaints, ForwardComplaints, Students, Awareness, Feedback
       _WardenDashboardPages.dashboard,
       _WardenDashboardPages.viewComplaints,
       _WardenDashboardPages.forwardComplaints,
@@ -949,21 +827,21 @@ class _WardenDashboardState extends State<WardenDashboard> {
       _WardenDashboardPages.feedback,
       _WardenDashboardPages.profile,
     ];
-    return Scaffold(
-      appBar: AppBar(title: const Text('Warden Dashboard')),
-      drawer: _RoleDrawer(
-        onNavigate: (index) => appState.setNavIndex(index),
-        items: const [
-          DrawerItem(icon: Icons.dashboard, label: 'Dashboard'),
-          DrawerItem(icon: Icons.list_alt, label: 'ViewComplaints'),
-          DrawerItem(icon: Icons.forward_to_inbox, label: 'ForwardComplaints'),
-          DrawerItem(icon: Icons.people, label: 'Students'),
-          DrawerItem(icon: Icons.school, label: 'Awareness'),
-          DrawerItem(icon: Icons.feedback, label: 'Feedback'),
-          DrawerItem(icon: Icons.person, label: 'Profile'),
-        ],
+
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          Navigator.of(context).pushReplacementNamed(Routes.login);
+        }
+      },
+      child: ResponsiveScaffold(
+        title: 'Warden Dashboard',
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (i) => appState.setNavIndex(i),
+        destinations: destinations,
+        pages: pages,
       ),
-      body: pages[selectedIndex],
     );
   }
 }
@@ -1141,11 +1019,23 @@ class _WardenFeedbackProxy extends StatelessWidget {
   Widget build(BuildContext context) => const warden_pages.WardenFeedbackPage();
 }
 
-class _PoliceDashboardState extends State<PoliceDashboard> {
+class PoliceDashboard extends StatelessWidget {
+  const PoliceDashboard({super.key});
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final selectedIndex = appState.navIndex;
+
+    const destinations = [
+      NavigationDestinationData(icon: Icons.dashboard, label: 'Dashboard'),
+      NavigationDestinationData(icon: Icons.assignment, label: 'Complaints'),
+      NavigationDestinationData(icon: Icons.verified_user, label: 'Verify'),
+      NavigationDestinationData(icon: Icons.assessment, label: 'Reports'),
+      NavigationDestinationData(icon: Icons.notifications_active, label: 'Notify'),
+      NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
+      NavigationDestinationData(icon: Icons.person, label: 'Profile'),
+    ];
 
     final pages = const <Widget>[
       _PolicePages.dashboard,
@@ -1156,28 +1046,20 @@ class _PoliceDashboardState extends State<PoliceDashboard> {
       _PolicePages.awareness,
       _PolicePages.profile,
     ];
-    return Scaffold(
-      appBar: AppBar(title: const Text('Police Dashboard')),
-      drawer: _RoleDrawer(
-        onNavigate: (index) => appState.setNavIndex(index),
-        items: const [
-          DrawerItem(icon: Icons.dashboard, label: 'Dashboard'),
-          DrawerItem(icon: Icons.assignment, label: 'Complaints'),
-          DrawerItem(icon: Icons.verified_user, label: 'Verify'),
-          DrawerItem(icon: Icons.assessment, label: 'Reports'),
-          DrawerItem(icon: Icons.notifications_active, label: 'Notify'),
-          DrawerItem(icon: Icons.school, label: 'Awareness'),
-          DrawerItem(icon: Icons.person, label: 'Profile'),
-        ],
-      ),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 250),
-        switchInCurve: Curves.easeIn,
-        switchOutCurve: Curves.easeOut,
-        child: KeyedSubtree(
-          key: ValueKey<int>(selectedIndex),
-          child: pages[selectedIndex],
-        ),
+
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          Navigator.of(context).pushReplacementNamed(Routes.login);
+        }
+      },
+      child: ResponsiveScaffold(
+        title: 'Police Dashboard',
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (i) => appState.setNavIndex(i),
+        destinations: destinations,
+        pages: pages,
       ),
     );
   }
@@ -1282,33 +1164,21 @@ class _PoliceAwarenessProxy extends StatelessWidget {
       const police_pages.PoliceAwarenessPage();
 }
 
-class TeacherDashboard extends StatefulWidget {
+class TeacherDashboard extends StatelessWidget {
   const TeacherDashboard({super.key});
-
-  @override
-  State<TeacherDashboard> createState() => _TeacherDashboardState();
-}
-
-class _TeacherDashboardState extends State<TeacherDashboard> {
-  final PageController _pageController = PageController();
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final selectedIndex = appState.navIndex;
 
-    // Sync PageController if needed
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_pageController.hasClients && _pageController.page?.round() != selectedIndex) {
-        _pageController.jumpToPage(selectedIndex);
-      }
-    });
+    const destinations = [
+      NavigationDestinationData(icon: Icons.home, label: 'Home'),
+      NavigationDestinationData(icon: Icons.assignment, label: 'Complaints'),
+      NavigationDestinationData(icon: Icons.chat_bubble, label: 'Chat'),
+      NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
+      NavigationDestinationData(icon: Icons.person, label: 'Profile'),
+    ];
 
     final pages = <Widget>[
       _TeacherDashboardPages.dashboard,
@@ -1317,6 +1187,7 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
       _TeacherDashboardPages.awareness,
       _TeacherDashboardPages.profile,
     ];
+
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
@@ -1324,41 +1195,12 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
           Navigator.of(context).pushReplacementNamed(Routes.login);
         }
       },
-      child: Scaffold(
-        appBar: AppBar(title: const Text('Teacher Dashboard')),
-        body: PageView(
-          controller: _pageController,
-          onPageChanged: (i) => appState.setNavIndex(i),
-          children: pages,
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: selectedIndex,
-          onTap: (i) {
-            appState.setNavIndex(i);
-            _pageController.animateToPage(
-              i,
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeInOut,
-            );
-          },
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.assignment),
-              label: 'Complaints',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble),
-              label: 'Chat',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.school),
-              label: 'Awareness',
-            ),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-          ],
-        ),
+      child: ResponsiveScaffold(
+        title: 'Teacher Dashboard',
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (i) => appState.setNavIndex(i),
+        destinations: destinations,
+        pages: pages,
       ),
     );
   }
@@ -1430,58 +1272,6 @@ class _TeacherProfileProxy extends StatelessWidget {
       const teacher_pages.TeacherProfilePage();
 }
 
-class DrawerItem {
-  final IconData icon;
-  final String label;
-  const DrawerItem({required this.icon, required this.label});
-}
-
-class _RoleDrawer extends StatelessWidget {
-  final void Function(int index) onNavigate;
-  final List<DrawerItem> items;
-  const _RoleDrawer({required this.onNavigate, required this.items});
-
-  @override
-  Widget build(BuildContext context) {
-    return Drawer(
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            DrawerHeader(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Text(
-                    'RagFree+',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-                  ),
-                  SizedBox(height: 8),
-                  Text('Navigation'),
-                ],
-              ),
-            ),
-            for (int i = 0; i < items.length; i++)
-              ListTile(
-                leading: Icon(items[i].icon),
-                title: Text(items[i].label),
-                onTap: () {
-                  Navigator.pop(context);
-                  onNavigate(i);
-                },
-              ),
-            const Spacer(),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Logout'),
-              onTap: () {
-                Navigator.popUntil(context, (route) => route.isFirst);
-                Navigator.pushReplacementNamed(context, Routes.login);
-              },
-            ),
-          ],
-        ),
       ),
     );
   }

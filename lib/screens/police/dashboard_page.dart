@@ -4,6 +4,7 @@ import '../../services/app_state.dart';
 import '../../services/complaint_service.dart';
 import '../../models/complaint_model.dart';
 import '../../utils/responsive.dart';
+import '../../widgets/animated_widgets.dart';
 
 class PoliceDashboardPage extends StatefulWidget {
   const PoliceDashboardPage({super.key});
@@ -12,177 +13,111 @@ class PoliceDashboardPage extends StatefulWidget {
   State<PoliceDashboardPage> createState() => _PoliceDashboardPageState();
 }
 
-class _PoliceDashboardPageState extends State<PoliceDashboardPage>
-    with TickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
+class _PoliceDashboardPageState extends State<PoliceDashboardPage> {
   final ComplaintService _complaintService = ComplaintService();
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _animationController,
-            curve: Curves.easeOutCubic,
-          ),
-        );
-
-    _animationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme.primary;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        return FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: isDark
-                      ? [color.withOpacity(0.05), Colors.transparent]
-                      : [Colors.grey.shade50, Colors.white],
-                ),
-              ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    padding: Responsive.getPadding(context),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: Responsive.isDesktop(context) ? 1200 : double.infinity,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildWelcomeCard(context, color),
-                          const SizedBox(height: 24),
-                          _buildStatsGrid(context, color),
-                          const SizedBox(height: 24),
-                          _buildQuickActions(context, color),
-                          const SizedBox(height: 24),
-                          _buildRecentComplaints(context, color),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildWelcomeCard(BuildContext context, Color color) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [color, color.withOpacity(0.8)],
+          colors: isDark
+              ? [color.withOpacity(0.08), Colors.transparent, color.withOpacity(0.04)]
+              : [Colors.white, color.withOpacity(0.02), color.withOpacity(0.05)],
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: Responsive.getPadding(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.local_police, color: Colors.white, size: 24),
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                child: _buildWelcomeCard(context, color),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome, Officer!',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Consumer<AppState>(
-                      builder: (context, appState, _) {
-                        final userName = appState.currentUser?.name ?? 'Officer';
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              userName,
-                              style: Theme.of(context).textTheme.headlineSmall
-                                  ?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'ID: ${appState.currentUser?.uid ?? ""}',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.white.withOpacity(0.8),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
-                ),
+              const SizedBox(height: 32),
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                delay: const Duration(milliseconds: 100),
+                child: _buildStatsGrid(context, color),
+              ),
+              const SizedBox(height: 32),
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                delay: const Duration(milliseconds: 200),
+                child: _buildQuickActions(context, color),
+              ),
+              const SizedBox(height: 32),
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                delay: const Duration(milliseconds: 300),
+                child: _buildRecentComplaints(context),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          Text(
-            'Monitor and manage ragging complaints. Your vigilance keeps our campus safe.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.white.withOpacity(0.9),
-            ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWelcomeCard(BuildContext context, Color color) {
+    return AnimatedWidgets.hoverCard(
+      elevation: 8,
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [color, color.withOpacity(0.85)],
           ),
-        ],
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(16)),
+                  child: const Icon(Icons.local_police_rounded, color: Colors.white, size: 32),
+                ),
+                const SizedBox(width: 24),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Law Enforcement Office', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w500)),
+                      Consumer<AppState>(
+                        builder: (context, appState, _) {
+                          final userName = appState.currentUser?.name ?? 'Officer';
+                          return Text(
+                            userName,
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Rapid response and campus security management. Monitor high-priority cases and critical alerts.',
+              style: TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -191,201 +126,88 @@ class _PoliceDashboardPageState extends State<PoliceDashboardPage>
     return StreamBuilder<List<ComplaintModel>>(
       stream: _complaintService.getAllComplaints(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
         final complaints = snapshot.data ?? [];
-        final highPriority = complaints.where((c) => c.priority == 'High').length;
-        final pending = complaints.where((c) => c.status == 'Pending').length;
-        final resolved = complaints.where((c) => c.status == 'Resolved').length;
+        final stats = [
+          {'label': 'Investigations', 'value': '${complaints.length}', 'icon': Icons.folder_shared_rounded, 'color': Colors.blue},
+          {'label': 'High Priority', 'value': '${complaints.where((c) => c.priority == 'High').length}', 'icon': Icons.priority_high_rounded, 'color': Colors.red},
+          {'label': 'Pending', 'value': '${complaints.where((c) => c.status == 'Pending').length}', 'icon': Icons.hourglass_top_rounded, 'color': Colors.orange},
+          {'label': 'Closed', 'value': '${complaints.where((c) => c.status == 'Resolved').length}', 'icon': Icons.verified_rounded, 'color': Colors.green},
+        ];
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Complaint Statistics',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
-            const SizedBox(height: 16),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final crossAxisCount = Responsive.getGridCrossAxisCount(
-                  context,
-                  mobile: 2,
-                  tablet: 3,
-                  desktop: 4,
-                );
-                return GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1.5,
-                  children: [
-                    _buildStatCard(
-                      context,
-                      'Total',
-                      '${complaints.length}',
-                      Icons.assignment,
-                      Colors.blue,
-                    ),
-                    _buildStatCard(
-                      context,
-                      'High Priority',
-                      '$highPriority',
-                      Icons.priority_high,
-                      Colors.red,
-                    ),
-                    _buildStatCard(
-                      context,
-                      'Pending',
-                      '$pending',
-                      Icons.pending,
-                      Colors.orange,
-                    ),
-                    _buildStatCard(
-                      context,
-                      'Resolved',
-                      '$resolved',
-                      Icons.check_circle,
-                      Colors.green,
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
+            crossAxisSpacing: 20,
+            mainAxisSpacing: 20,
+            childAspectRatio: 1.3,
+          ),
+          itemCount: stats.length,
+          itemBuilder: (context, index) {
+            final stat = stats[index];
+            return _buildStatCard(context, stat['icon'] as IconData, stat['label'] as String, stat['value'] as String, stat['color'] as Color);
+          },
         );
       },
     );
   }
 
-  Widget _buildStatCard(
-    BuildContext context,
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Icon(icon, color: color, size: 24),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: color,
-                    ),
-              ),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                    ),
-              ),
-            ],
-          ),
-        ],
+  Widget _buildStatCard(BuildContext context, IconData icon, String label, String value, Color color) {
+    return Card(
+      elevation: 0,
+      color: color.withOpacity(0.05),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withOpacity(0.1))),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 28),
+            const Spacer(),
+            AnimatedWidgets.counterText(
+              count: int.tryParse(value) ?? 0,
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: color),
+            ),
+            Text(label, style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor, fontWeight: FontWeight.w600)),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildQuickActions(BuildContext context, Color color) {
+    final actions = [
+      {'icon': Icons.assignment_rounded, 'title': 'All Cases', 'color': Colors.blue, 'target': 1},
+      {'icon': Icons.verified_user_rounded, 'title': 'Verifications', 'color': Colors.green, 'target': 2},
+      {'icon': Icons.picture_as_pdf_rounded, 'title': 'Reports', 'color': Colors.purple, 'target': 3},
+      {'icon': Icons.notification_important_rounded, 'title': 'Alerts', 'color': Colors.orange, 'target': 4},
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Quick Actions',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-        ),
-        const SizedBox(height: 16),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final crossAxisCount = Responsive.getGridCrossAxisCount(
+        const Text('Response Actions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 20),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
+            crossAxisSpacing: 20,
+            mainAxisSpacing: 20,
+            childAspectRatio: 1.1,
+          ),
+          itemCount: actions.length,
+          itemBuilder: (context, index) {
+            final action = actions[index];
+            return _buildActionCard(
               context,
-              mobile: 2,
-              tablet: 3,
-              desktop: 4,
-            );
-            return GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 1.3,
-              children: [
-                _buildActionCard(
-                  context,
-                  Icons.assignment,
-                  'View Complaints',
-                  Colors.blue,
-                  () {
-                    // Use drawer navigation - show message
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Use the drawer menu to navigate to Complaints'),
-                      ),
-                    );
-                  },
-                ),
-                _buildActionCard(
-                  context,
-                  Icons.verified_user,
-                  'Verify Actions',
-                  Colors.green,
-                  () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Use the drawer menu to navigate to Verify'),
-                      ),
-                    );
-                  },
-                ),
-                _buildActionCard(
-                  context,
-                  Icons.picture_as_pdf,
-                  'Generate Report',
-                  Colors.purple,
-                  () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Use the drawer menu to navigate to Generate Report'),
-                      ),
-                    );
-                  },
-                ),
-                _buildActionCard(
-                  context,
-                  Icons.notifications,
-                  'Send Notification',
-                  Colors.orange,
-                  () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Use the drawer menu to navigate to Send Notification'),
-                      ),
-                    );
-                  },
-                ),
-              ],
+              action['icon'] as IconData,
+              action['title'] as String,
+              action['color'] as Color,
+              action['target'] as int,
             );
           },
         ),
@@ -393,52 +215,31 @@ class _PoliceDashboardPageState extends State<PoliceDashboardPage>
     );
   }
 
-  Widget _buildActionCard(
-    BuildContext context,
-    IconData icon,
-    String title,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+  Widget _buildActionCard(BuildContext context, IconData icon, String title, Color color, int targetIndex) {
+    return AnimatedWidgets.scaleButton(
+      onPressed: () => Provider.of<AppState>(context, listen: false).setNavIndex(targetIndex),
+      child: AnimatedWidgets.hoverCard(
+        borderRadius: BorderRadius.circular(24),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(24),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
+              colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
             ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: color.withOpacity(0.1),
-                  ),
-                  child: Icon(icon, color: color, size: 28),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: color,
-                      ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.1)),
+                child: Icon(icon, color: color, size: 32),
+              ),
+              const SizedBox(height: 16),
+              Text(title, style: TextStyle(fontWeight: FontWeight.w800, color: color, fontSize: 13, letterSpacing: 0.5)),
+            ],
           ),
         ),
       ),

@@ -9,6 +9,7 @@ import '../../models/activity_model.dart';
 import '../../models/complaint_model.dart';
 import '../../models/user_model.dart';
 import '../../utils/responsive.dart';
+import '../../widgets/animated_widgets.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -17,98 +18,66 @@ class AdminDashboardPage extends StatefulWidget {
   State<AdminDashboardPage> createState() => _AdminDashboardPageState();
 }
 
-class _AdminDashboardPageState extends State<AdminDashboardPage>
-    with TickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
+class _AdminDashboardPageState extends State<AdminDashboardPage> {
   final ActivityService _activityService = ActivityService();
   final EmergencyAlertService _emergencyAlertService = EmergencyAlertService();
   final ComplaintService _complaintService = ComplaintService();
   final AuthService _authService = AuthService();
 
   @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _animationController,
-            curve: Curves.easeOutCubic,
-          ),
-        );
-
-    _animationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme.primary;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        return FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: isDark
-                      ? [color.withOpacity(0.05), Colors.transparent]
-                      : [Colors.grey.shade50, Colors.white],
-                ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [color.withOpacity(0.08), Colors.transparent, color.withOpacity(0.04)]
+              : [Colors.white, color.withOpacity(0.02), color.withOpacity(0.05)],
+        ),
+      ),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: Responsive.getPadding(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildEmergencyBanner(context),
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                child: _buildWelcomeCard(context, color),
               ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    padding: Responsive.getPadding(context),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: Responsive.isDesktop(context) ? 1200 : double.infinity,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildEmergencyBanner(context),
-                          _buildWelcomeCard(context, color),
-                          const SizedBox(height: 24),
-                          _buildStatsGrid(context, color),
-                          const SizedBox(height: 24),
-                          _buildQuickActions(context, color),
-                          const SizedBox(height: 24),
-                          _buildRecentActivity(context),
-                          const SizedBox(height: 24),
-                          _buildSystemStatus(context),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+              const SizedBox(height: 32),
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                delay: const Duration(milliseconds: 100),
+                child: _buildStatsGrid(context, color),
               ),
-            ),
+              const SizedBox(height: 32),
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                delay: const Duration(milliseconds: 200),
+                child: _buildQuickActions(context, color),
+              ),
+              const SizedBox(height: 32),
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                delay: const Duration(milliseconds: 300),
+                child: _buildRecentActivity(context),
+              ),
+              const SizedBox(height: 32),
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                delay: const Duration(milliseconds: 400),
+                child: _buildSystemStatus(context),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -116,42 +85,46 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: _emergencyAlertService.getActiveEmergencyAlerts(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const SizedBox.shrink();
-        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) return const SizedBox.shrink();
 
-        final alerts = snapshot.data!;
-        final criticalAlerts = alerts.where((a) => a['priority'] == 'critical').toList();
-        
+        final criticalAlerts = snapshot.data!.where((a) => a['priority'] == 'critical').toList();
         if (criticalAlerts.isEmpty) return const SizedBox.shrink();
 
-        return Container(
-          margin: const EdgeInsets.only(bottom: 24),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.red.shade100,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.red.shade300, width: 2),
-          ),
-          child: Column(
-            children: criticalAlerts.map((alert) {
-              return ListTile(
-                leading: const Icon(Icons.emergency, color: Colors.red, size: 32),
-                title: Text(
-                  alert['title'] ?? 'EmergencySOS',
-                  style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                subtitle: Text(
-                  '${alert['message']}\nLocation: ${alert['location'] ?? 'Unknown'}',
-                  style: TextStyle(color: Colors.red.shade900),
-                ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.check_circle_outline, color: Colors.red),
-                  onPressed: () => _emergencyAlertService.deactivateAlert(alert['id']),
-                  tooltip: 'Resolve Alert',
-                ),
-              );
-            }).toList(),
+        return AnimatedWidgets.pulsing(
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 24),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [Colors.redAccent, Colors.red]),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(color: Colors.red.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 6)),
+              ],
+            ),
+            child: Column(
+              children: criticalAlerts.map((alert) {
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle),
+                    child: const Icon(Icons.emergency_rounded, color: Colors.white, size: 32),
+                  ),
+                  title: Text(
+                    alert['title'] ?? 'EmergencySOS',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
+                  ),
+                  subtitle: Text(
+                    '${alert['message']}\nLocation: ${alert['location'] ?? 'Unknown'}',
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.check_circle_rounded, color: Colors.white, size: 32),
+                    onPressed: () => _emergencyAlertService.deactivateAlert(alert['id']),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
         );
       },
@@ -159,91 +132,57 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
   }
 
   Widget _buildWelcomeCard(BuildContext context, Color color) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [color, color.withOpacity(0.8)],
+    return AnimatedWidgets.hoverCard(
+      elevation: 8,
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [color, color.withOpacity(0.85)],
+          ),
+          borderRadius: BorderRadius.circular(24),
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(16)),
+                  child: const Icon(Icons.admin_panel_settings_rounded, color: Colors.white, size: 32),
                 ),
-                child: const Icon(
-                  Icons.admin_panel_settings,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome back, Admin!',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
+                const SizedBox(width: 24),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('System Administrator', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w500)),
+                      Consumer<AppState>(
+                        builder: (context, appState, _) {
+                          final userName = appState.currentUser?.name ?? 'Admin';
+                          return Text(
+                            userName,
+                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+                          );
+                        },
                       ),
-                    ),
-                    Consumer<AppState>(
-                      builder: (context, appState, _) {
-                        final userName = appState.currentUser?.name ?? 'Admin';
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              userName,
-                              style: Theme.of(context).textTheme.headlineSmall
-                                  ?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'ID: ${appState.currentUser?.uid ?? ""}',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.white.withOpacity(0.8),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Monitor and manage the campus safety system. Keep students safe and secure.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.white.withOpacity(0.9),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 24),
+            const Text(
+              'Master control center for campus safety. Real-time monitoring and management active.',
+              style: TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -252,13 +191,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'System Overview',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 16),
+        const Text('Real-time Analytics', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 20),
         StreamBuilder<List<ComplaintModel>>(
           stream: _complaintService.getAllComplaints(),
           builder: (context, complaintsSnapshot) {
@@ -268,126 +202,30 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
                 return StreamBuilder<List<UserModel>>(
                   stream: _authService.getUsersByRole('counsellor'),
                   builder: (context, counsellorsSnapshot) {
-                    return StreamBuilder<List<UserModel>>(
-                      stream: _authService.getUsersByRole('teacher'),
-                      builder: (context, teachersSnapshot) {
-                        final complaints = complaintsSnapshot.data ?? [];
-                        final students = studentsSnapshot.data ?? [];
-                        final counsellors = counsellorsSnapshot.data ?? [];
-                        final teachers = teachersSnapshot.data ?? [];
-                        
-                        final totalComplaints = complaints.length;
-                        final resolvedComplaints = complaints.where((c) => c.status == 'Resolved').length;
-                        final pendingComplaints = complaints.where((c) => c.status == 'Pending').length;
-                        final totalUsers = students.length + counsellors.length + teachers.length;
-                        
-                        // Calculate average response time (hours between created and updated)
-                        double avgResponseTime = 0.0;
-                        if (resolvedComplaints > 0) {
-                          final resolved = complaints.where((c) => c.status == 'Resolved' && c.updatedAt != null).toList();
-                          if (resolved.isNotEmpty) {
-                            final totalHours = resolved.fold<double>(0.0, (sum, c) {
-                              if (c.updatedAt != null) {
-                                final diff = c.updatedAt!.difference(c.createdAt);
-                                return sum + diff.inHours.toDouble();
-                              }
-                              return sum;
-                            });
-                            avgResponseTime = totalHours / resolved.length;
-                          }
-                        }
+                    final complaints = complaintsSnapshot.data ?? [];
+                    final students = studentsSnapshot.data ?? [];
+                    final counsellors = counsellorsSnapshot.data ?? [];
+                    
+                    final stats = [
+                      {'label': 'Total Reports', 'value': '${complaints.length}', 'icon': Icons.assignment_rounded, 'color': Colors.blue},
+                      {'label': 'Resolved', 'value': '${complaints.where((c) => c.status == 'Resolved').length}', 'icon': Icons.task_alt_rounded, 'color': Colors.green},
+                      {'label': 'Action Required', 'value': '${complaints.where((c) => c.status == 'Pending').length}', 'icon': Icons.warning_amber_rounded, 'color': Colors.orange},
+                      {'label': 'Total Students', 'value': '${students.length}', 'icon': Icons.people_alt_rounded, 'color': Colors.purple},
+                    ];
 
-                        final stats = [
-                          {
-                            'label': 'Total Complaints',
-                            'value': totalComplaints.toString(),
-                            'icon': Icons.assignment,
-                            'color': Colors.blue,
-                            'change': '',
-                            'changeColor': Colors.transparent,
-                          },
-                          {
-                            'label': 'Resolved',
-                            'value': resolvedComplaints.toString(),
-                            'icon': Icons.check_circle,
-                            'color': Colors.green,
-                            'change': totalComplaints > 0 ? '${((resolvedComplaints / totalComplaints) * 100).toStringAsFixed(0)}%' : '0%',
-                            'changeColor': Colors.green,
-                          },
-                          {
-                            'label': 'Pending',
-                            'value': pendingComplaints.toString(),
-                            'icon': Icons.pending,
-                            'color': Colors.orange,
-                            'change': totalComplaints > 0 ? '${((pendingComplaints / totalComplaints) * 100).toStringAsFixed(0)}%' : '0%',
-                            'changeColor': Colors.orange,
-                          },
-                          {
-                            'label': 'Active Users',
-                            'value': totalUsers.toString(),
-                            'icon': Icons.people,
-                            'color': Colors.purple,
-                            'change': '',
-                            'changeColor': Colors.transparent,
-                          },
-                          {
-                            'label': 'Counsellors',
-                            'value': counsellors.length.toString(),
-                            'icon': Icons.psychology,
-                            'color': Colors.teal,
-                            'change': '',
-                            'changeColor': Colors.transparent,
-                          },
-                          {
-                            'label': 'Response Time',
-                            'value': avgResponseTime > 0 ? '${avgResponseTime.toStringAsFixed(1)}h' : 'N/A',
-                            'icon': Icons.timer,
-                            'color': Colors.red,
-                            'change': '',
-                            'changeColor': Colors.transparent,
-                          },
-                        ];
-
-                        return LayoutBuilder(
-                          builder: (context, constraints) {
-                            final crossAxisCount = Responsive.getGridCrossAxisCount(
-                              context,
-                              mobile: 2,
-                              tablet: 3,
-                              desktop: 3,
-                            );
-                            final childAspectRatio = Responsive.getGridAspectRatio(
-                              context,
-                              mobile: 1.4,
-                              tablet: 1.3,
-                              desktop: 1.1,
-                            );
-
-                            return GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: crossAxisCount,
-                                crossAxisSpacing: 16,
-                                mainAxisSpacing: 16,
-                                childAspectRatio: childAspectRatio,
-                              ),
-                              itemCount: stats.length,
-                              itemBuilder: (context, index) {
-                                final stat = stats[index];
-                                return _buildStatCard(
-                                  context,
-                                  stat['icon'] as IconData,
-                                  stat['label'] as String,
-                                  stat['value'] as String,
-                                  stat['color'] as Color,
-                                  stat['change'] as String,
-                                  stat['changeColor'] as Color,
-                                );
-                              },
-                            );
-                          },
-                        );
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
+                        crossAxisSpacing: 20,
+                        mainAxisSpacing: 20,
+                        childAspectRatio: 1.3,
+                      ),
+                      itemCount: stats.length,
+                      itemBuilder: (context, index) {
+                        final stat = stats[index];
+                        return _buildStatCard(context, stat['icon'] as IconData, stat['label'] as String, stat['value'] as String, stat['color'] as Color);
                       },
                     );
                   },
@@ -400,274 +238,90 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
     );
   }
 
-  Widget _buildStatCard(
-    BuildContext context,
-    IconData icon,
-    String label,
-    String value,
-    Color color,
-    String change,
-    Color changeColor,
-  ) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
-              ),
+  Widget _buildStatCard(BuildContext context, IconData icon, String label, String value, Color color) {
+    return Card(
+      elevation: 0,
+      color: color.withOpacity(0.05),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withOpacity(0.1))),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 28),
+            const Spacer(),
+            AnimatedWidgets.counterText(
+              count: int.tryParse(value) ?? 0,
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: color),
             ),
-            child: Padding(
-              padding: EdgeInsets.all(
-                Responsive.isDesktop(context) ? 20 : 16,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(
-                          Responsive.isDesktop(context) ? 8 : 6,
-                        ),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: color.withOpacity(0.1),
-                        ),
-                        child: Icon(
-                          icon,
-                          color: color,
-                          size: constraints.maxWidth > 600 ? 20 : 18,
-                        ),
-                      ),
-                      const Spacer(),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.isDesktop(context) ? 8 : 6,
-                          vertical: Responsive.isDesktop(context) ? 4 : 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: changeColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          change,
-                          style: TextStyle(
-                            color: changeColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: Responsive.isDesktop(context) ? 12 : 10,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: Responsive.isDesktop(context) ? 12 : 8),
-                  Flexible(
-                    child: Text(
-                      value,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: color,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Flexible(
-                    child: Text(
-                      label,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withOpacity(0.7),
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
+            Text(label, style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor, fontWeight: FontWeight.w600)),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildQuickActions(BuildContext context, Color color) {
     final actions = [
-      {
-        'icon': Icons.people,
-        'title': 'Manage Users',
-        'subtitle': 'Students, Staff & Parents',
-        'color': Colors.blue,
-        'onTap': () => _navigateToUsers(context),
-      },
-      {
-        'icon': Icons.apartment,
-        'title': 'Departments',
-        'subtitle': 'Manage Departments',
-        'color': Colors.green,
-        'onTap': () => _navigateToDepartments(context),
-      },
-      {
-        'icon': Icons.notifications,
-        'title': 'Send Alerts',
-        'subtitle': 'Campus Notifications',
-        'color': Colors.orange,
-        'onTap': () => _sendAlert(context),
-      },
-      {
-        'icon': Icons.analytics,
-        'title': 'Analytics',
-        'subtitle': 'View Reports',
-        'color': Colors.purple,
-        'onTap': () => _navigateToAnalytics(context),
-      },
+      {'icon': Icons.people_rounded, 'title': 'Users', 'color': Colors.blue, 'onTap': () => _navigateToUsers(context)},
+      {'icon': Icons.apartment_rounded, 'title': 'Divisions', 'color': Colors.green, 'onTap': () => _navigateToDepartments(context)},
+      {'icon': Icons.broadcast_on_personal_rounded, 'title': 'Broadcast', 'color': Colors.orange, 'onTap': () => _sendAlert(context)},
+      {'icon': Icons.insights_rounded, 'title': 'Reports', 'color': Colors.purple, 'onTap': () => _navigateToAnalytics(context)},
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Quick Actions',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 16),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final crossAxisCount = Responsive.getGridCrossAxisCount(
-              context,
-              mobile: 2,
-              tablet: 3,
-              desktop: 4,
-            );
-            final childAspectRatio = Responsive.getGridAspectRatio(
-              context,
-              mobile: 1.4,
-              tablet: 1.3,
-              desktop: 1.2,
-            );
-
-            return GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: childAspectRatio,
-              ),
-              itemCount: actions.length,
-              itemBuilder: (context, index) {
-                final action = actions[index];
-                return _buildActionCard(
-                  context,
-                  action['icon'] as IconData,
-                  action['title'] as String,
-                  action['subtitle'] as String,
-                  action['color'] as Color,
-                  action['onTap'] as VoidCallback,
-                );
-              },
-            );
+        const Text('Management Tools', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 20),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
+            crossAxisSpacing: 20,
+            mainAxisSpacing: 20,
+            childAspectRatio: 1.1,
+          ),
+          itemCount: actions.length,
+          itemBuilder: (context, index) {
+            final action = actions[index];
+            return _buildActionCard(context, action['icon'] as IconData, action['title'] as String, action['color'] as Color, action['onTap'] as VoidCallback);
           },
         ),
       ],
     );
   }
 
-  Widget _buildActionCard(
-    BuildContext context,
-    IconData icon,
-    String title,
-    String subtitle,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
-                ),
-              ),
-              child: Padding(
-                padding: EdgeInsets.all(constraints.maxWidth > 600 ? 16 : 12),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(
-                        Responsive.isDesktop(context) ? 12 : 10,
-                      ),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: color.withOpacity(0.1),
-                      ),
-                      child: Icon(
-                        icon,
-                        color: color,
-                        size: Responsive.isDesktop(context) ? 24 : 20,
-                      ),
-                    ),
-                    SizedBox(height: Responsive.isDesktop(context) ? 8 : 6),
-                    Flexible(
-                      child: Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: color,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Flexible(
-                      child: Text(
-                        subtitle,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withOpacity(0.7),
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+  Widget _buildActionCard(BuildContext context, IconData icon, String title, Color color, VoidCallback onTap) {
+    return AnimatedWidgets.scaleButton(
+      onPressed: onTap,
+      child: AnimatedWidgets.hoverCard(
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
             ),
           ),
-        );
-      },
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.1)),
+                child: Icon(icon, color: color, size: 32),
+              ),
+              const SizedBox(height: 16),
+              Text(title, style: TextStyle(fontWeight: FontWeight.w800, color: color, fontSize: 13, letterSpacing: 0.5)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

@@ -6,6 +6,8 @@ import '../services/auth_service.dart';
 import '../services/app_state.dart';
 import '../services/cloudinary_service.dart';
 import '../models/user_model.dart';
+import '../widgets/animated_widgets.dart';
+import '../utils/responsive.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -56,7 +58,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       if (image != null) {
         setState(() {
           _idProofFile = File(image.path);
-          _idProofUrl = null; // Reset URL when new file is selected
+          _idProofUrl = null;
         });
       }
     } catch (e) {
@@ -79,33 +81,47 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            'Join the RagFree+ community',
-            style: textTheme.headlineMedium?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
+          AnimatedWidgets.slideIn(
+            beginOffset: const Offset(-0.3, 0),
+            child: Text(
+              'Join the RagFree+ ecosystem',
+              style: textTheme.headlineMedium?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
             ),
           ),
-          const SizedBox(height: 24),
-          _buildHeroBullet(
-            context,
-            icon: Icons.shield,
-            title: 'Secure onboarding',
-            subtitle:
-                'Verified ID proofs and admin approvals keep the campus safe.',
+          const SizedBox(height: 32),
+          AnimatedWidgets.slideIn(
+            beginOffset: const Offset(-0.3, 0),
+            delay: const Duration(milliseconds: 100),
+            child: _buildHeroBullet(
+              context,
+              icon: Icons.shield_outlined,
+              title: 'Secure Onboarding',
+              subtitle: 'Multi-factor verification keeps our campus safe.',
+            ),
           ),
-          _buildHeroBullet(
-            context,
-            icon: Icons.group,
-            title: 'Role-specific dashboards',
-            subtitle:
-                'Students, parents, teachers, and staff get tailored tools.',
+          AnimatedWidgets.slideIn(
+            beginOffset: const Offset(-0.3, 0),
+            delay: const Duration(milliseconds: 200),
+            child: _buildHeroBullet(
+              context,
+              icon: Icons.dashboard_outlined,
+              title: 'Custom Dashboards',
+              subtitle: 'Tailored tools for every role in the university.',
+            ),
           ),
-          _buildHeroBullet(
-            context,
-            icon: Icons.notifications_active,
-            title: 'Real-time alerts',
-            subtitle: 'Stay informed with emergency alerts and campus updates.',
+          AnimatedWidgets.slideIn(
+            beginOffset: const Offset(-0.3, 0),
+            delay: const Duration(milliseconds: 300),
+            child: _buildHeroBullet(
+              context,
+              icon: Icons.bolt_outlined,
+              title: 'Instant Alerts',
+              subtitle: 'Stay ahead with real-time incident reporting.',
+            ),
           ),
         ],
       ),
@@ -120,36 +136,34 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }) {
     final color = Theme.of(context).colorScheme.primary;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.only(bottom: 24),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(12),
             ),
             padding: const EdgeInsets.all(12),
-            child: Icon(icon, color: color),
+            child: Icon(icon, color: color, size: 28),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 20),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   subtitle,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withOpacity(0.7),
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                   ),
                 ),
               ],
@@ -162,9 +176,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   Future<void> _uploadIdProof() async {
     if (_idProofFile == null) return;
-
     setState(() => _isUploadingIdProof = true);
-
     try {
       final url = await _cloudinaryService.uploadImage(_idProofFile!);
       if (url != null && mounted) {
@@ -172,63 +184,35 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           _idProofUrl = url;
           _isUploadingIdProof = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('ID proof uploaded successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        throw Exception('Failed to upload ID proof');
       }
-    } 
-    catch (e) {
+    } catch (e) {
       if (mounted) {
         setState(() => _isUploadingIdProof = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to upload ID proof: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Upload failed: $e'), backgroundColor: Colors.red),
         );
       }
-    } 
-  }                                                           
+    }
+  }
 
-  Future<void> _register() async { 
+  Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedRole != 'parent' && _idProofFile == null && _idProofUrl == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ID proof is required'), backgroundColor: Colors.red),
+      );
+      return;
+    }
 
-    // Check if ID proof is required and uploaded (for all roles except parent and teacher)
-    if (_selectedRole != 'parent') {
-      if (_idProofFile == null && _idProofUrl == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please upload your ID proof'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
-      // If file is selected but not uploaded, upload it first
-      if (_idProofFile != null && _idProofUrl == null) {
-        await _uploadIdProof();
-        if (_idProofUrl == null) {
-          return; // Upload failed, don't proceed
-        }
-      }
+    if (_selectedRole != 'parent' && _idProofFile != null && _idProofUrl == null) {
+      await _uploadIdProof();
+      if (_idProofUrl == null) return;
     }
 
     setState(() => _isLoading = true);
-
     try {
-      // Check if passwords match
       if (_passwordController.text != _confirmPasswordController.text) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Passwords do not match')));
-        setState(() => _isLoading = false);
-        return;
+        throw Exception('Passwords do not match');
       }
 
       UserModel? user = await _authService.registerWithEmailAndPassword(
@@ -236,71 +220,29 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         password: _passwordController.text,
         name: _nameController.text.trim(),
         role: _selectedRole,
-        phone: _phoneController.text.trim().isEmpty
-            ? null
-            : _phoneController.text.trim(),
-        department: _departmentController.text.trim().isEmpty
-            ? null
-            : _departmentController.text.trim(),
-        idProofUrl: (_selectedRole != 'parent')
-            ? _idProofUrl
-            : null,
+        phone: _phoneController.text.trim(),
+        department: _departmentController.text.trim(),
+        idProofUrl: _idProofUrl,
       );
 
       if (user != null && mounted) {
-        // All users need approval (except admin, but admin doesn't register)
-        if (!user.isApproved) {
-          // Navigate to approval pending screen
-          Navigator.pushReplacementNamed(context, '/approval-pending');
-        } else {
-          // Only admin would be auto-approved, but they don't register
-          context.read<AppState>().setUser(user);
-          _navigateToDashboard(user.role);
-        }
+        Navigator.pushReplacementNamed(context, '/approval-pending');
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Colors.red),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  void _navigateToDashboard(String role) {
-    switch (role) {
-      case 'student':
-        Navigator.pushReplacementNamed(context, '/student');
-        break;
-      case 'parent':
-        Navigator.pushReplacementNamed(context, '/parent');
-        break;
-      case 'admin':
-        Navigator.pushReplacementNamed(context, '/admin');
-        break;
-      case 'counsellor':
-        Navigator.pushReplacementNamed(context, '/counsellor');
-        break;
-      case 'warden':
-        Navigator.pushReplacementNamed(context, '/warden');
-        break;
-      case 'police':
-        Navigator.pushReplacementNamed(context, '/police');
-        break;
-      case 'teacher':
-        Navigator.pushReplacementNamed(context, '/teacher');
-        break;
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = Theme.of(context).colorScheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       body: Container(
@@ -309,422 +251,225 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [color.withOpacity(0.1), Colors.transparent]
-                : [Colors.blue.shade50, Colors.white],
+                ? [color.withOpacity(0.05), Colors.transparent]
+                : [Colors.grey.shade50, Colors.white],
           ),
         ),
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final isWide = constraints.maxWidth >= 900;
-
+              final isDesktop = constraints.maxWidth >= 1024;
+              
               final form = Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 20),
-                    Icon(Icons.person_add, size: 64, color: color),
+                    AnimatedWidgets.bounceIn(
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.1)),
+                        child: Icon(Icons.person_add_rounded, size: 48, color: color),
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       'Create Account',
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.bold, color: color),
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: color,
+                      ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Join RagFree+ to ensure campus safety',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    DropdownButtonFormField<String>(
-                      value: _selectedRole,
-                      decoration: const InputDecoration(
-                        labelText: 'Select Your Role *',
-                        prefixIcon: Icon(Icons.person_outline),
-                        border: OutlineInputBorder(),
-                      ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'student',
-                          child: Row(
-                            children: [
-                              Icon(Icons.school, size: 20),
-                              SizedBox(width: 8),
-                              Text('Student'),
-                            ],
-                          ),
-                        ),
-                        DropdownMenuItem(
-                          value: 'parent',
-                          child: Row(
-                            children: [
-                              Icon(Icons.family_restroom, size: 20),
-                              SizedBox(width: 8),
-                              Text('Parent'),
-                            ],
-                          ),
-                        ),
-                        DropdownMenuItem(
-                          value: 'counsellor',
-                          child: Row(
-                            children: [
-                              Icon(Icons.psychology, size: 20),
-                              SizedBox(width: 8),
-                              Text('Counsellor'),
-                            ],
-                          ),
-                        ),
-                        DropdownMenuItem(
-                          value: 'warden',
-                          child: Row(
-                            children: [
-                              Icon(Icons.security, size: 20),
-                              SizedBox(width: 8),
-                              Text('Warden'),
-                            ],
-                          ),
-                        ),
-                        DropdownMenuItem(
-                          value: 'police',
-                          child: Row(
-                            children: [
-                              Icon(Icons.local_police, size: 20),
-                              SizedBox(width: 8),
-                              Text('Police'),
-                            ],
-                          ),
-                        ),
-                        DropdownMenuItem(
-                          value: 'teacher',
-                          child: Row(
-                            children: [
-                              Icon(Icons.person_outline, size: 20),
-                              SizedBox(width: 8),
-                              Text('Teacher'),
-                            ],
-                          ),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _selectedRole = value;
-                            _idProofFile = null;
-                            _idProofUrl = null;
-                          });
-                        }
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please select a role';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Full Name',
-                        prefixIcon: Icon(Icons.person),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your name';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: Icon(Icons.email),
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        if (!value.contains('@')) {
-                          return 'Please enter a valid email';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _phoneController,
-                      decoration: const InputDecoration(
-                        labelText: 'Phone (Optional)',
-                        prefixIcon: Icon(Icons.phone),
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: 16),
-                    if (_selectedRole == 'student' ||
-                        _selectedRole == 'counsellor' ||
-                        _selectedRole == 'warden')
-                      TextFormField(
-                        controller: _departmentController,
+                    const SizedBox(height: 32),
+                    AnimatedWidgets.slideIn(
+                      beginOffset: const Offset(0, 0.1),
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedRole,
                         decoration: const InputDecoration(
-                          labelText: 'Department',
-                          prefixIcon: Icon(Icons.business),
-                          border: OutlineInputBorder(),
+                          labelText: 'Role',
+                          prefixIcon: Icon(Icons.badge_outlined),
                         ),
+                        items: ['student', 'parent', 'counsellor', 'warden', 'police', 'teacher']
+                            .map((role) => DropdownMenuItem(
+                                  value: role,
+                                  child: Text(role[0].toUpperCase() + role.substring(1)),
+                                ))
+                            .toList(),
+                        onChanged: (v) => setState(() {
+                          _selectedRole = v!;
+                          _idProofFile = null;
+                          _idProofUrl = null;
+                        }),
                       ),
-                    if (_selectedRole == 'student' ||
-                        _selectedRole == 'counsellor' ||
-                        _selectedRole == 'warden')
+                    ),
+                    const SizedBox(height: 16),
+                    AnimatedWidgets.slideIn(
+                      beginOffset: const Offset(0, 0.1),
+                      delay: const Duration(milliseconds: 50),
+                      child: TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Full Name',
+                          prefixIcon: Icon(Icons.person_outline),
+                        ),
+                        validator: (v) => v!.isEmpty ? 'Name required' : null,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    AnimatedWidgets.slideIn(
+                      beginOffset: const Offset(0, 0.1),
+                      delay: const Duration(milliseconds: 100),
+                      child: TextFormField(
+                        controller: _emailController,
+                        decoration: const InputDecoration(
+                          labelText: 'Email',
+                          prefixIcon: Icon(Icons.alternate_email),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (v) => !v!.contains('@') ? 'Invalid email' : null,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    AnimatedWidgets.slideIn(
+                      beginOffset: const Offset(0, 0.1),
+                      delay: const Duration(milliseconds: 150),
+                      child: TextFormField(
+                        controller: _phoneController,
+                        decoration: const InputDecoration(
+                          labelText: 'Phone',
+                          prefixIcon: Icon(Icons.phone_outlined),
+                        ),
+                        keyboardType: TextInputType.phone,
+                      ),
+                    ),
+                    if (_selectedRole != 'parent' && _selectedRole != 'police') ...[
                       const SizedBox(height: 16),
-                    if (_selectedRole != 'parent') ...[
-                      Text(
-                        'ID Proof Document *',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
+                      AnimatedWidgets.slideIn(
+                        beginOffset: const Offset(0, 0.1),
+                        delay: const Duration(milliseconds: 200),
+                        child: TextFormField(
+                          controller: _departmentController,
+                          decoration: const InputDecoration(
+                            labelText: 'Department',
+                            prefixIcon: Icon(Icons.school_outlined),
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: _idProofFile == null && _idProofUrl == null
-                                ? Colors.red
-                                : Colors.grey,
-                            width: 2,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            if (_idProofFile != null || _idProofUrl != null)
-                              Container(
-                                height: 200,
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(10),
-                                  ),
-                                  color: Colors.grey.shade100,
-                                ),
-                                child: _idProofUrl != null
-                                    ? ClipRRect(
-                                        borderRadius:
-                                            const BorderRadius.vertical(
-                                              top: Radius.circular(10),
-                                            ),
-                                        child: Image.network(
-                                          _idProofUrl!,
-                                          fit: BoxFit.cover,
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                                return const Center(
-                                                  child: Icon(
-                                                    Icons.broken_image,
-                                                    size: 48,
-                                                    color: Colors.grey,
-                                                  ),
-                                                );
-                                              },
-                                        ),
-                                      )
-                                    : _idProofFile != null
-                                    ? ClipRRect(
-                                        borderRadius:
-                                            const BorderRadius.vertical(
-                                              top: Radius.circular(10),
-                                            ),
-                                        child: Image.file(
-                                          _idProofFile!,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      )
-                                    : const SizedBox(),
-                              ),
-                            Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      onPressed: _isUploadingIdProof
-                                          ? null
-                                          : _pickIdProof,
-                                      icon: const Icon(Icons.photo_library),
-                                      label: const Text('Select ID Proof'),
-                                    ),
-                                  ),
-                                  if (_idProofFile != null &&
-                                      _idProofUrl == null) ...[
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: FilledButton.icon(
-                                        onPressed: _isUploadingIdProof
-                                            ? null
-                                            : _uploadIdProof,
-                                        icon: _isUploadingIdProof
-                                            ? const SizedBox(
-                                                width: 16,
-                                                height: 16,
-                                                child:
-                                                    CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                    ),
-                                              )
-                                            : const Icon(Icons.cloud_upload),
-                                        label: Text(
-                                          _isUploadingIdProof
-                                              ? 'Uploading...'
-                                              : 'Upload',
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
+                    ],
+                    if (_selectedRole != 'parent') ...[
+                      const SizedBox(height: 24),
+                      Text('Proof of Identity', style: TextStyle(fontWeight: FontWeight.bold, color: color)),
+                      const SizedBox(height: 12),
+                      AnimatedWidgets.hoverCard(
+                        child: InkWell(
+                          onTap: _isUploadingIdProof ? null : _pickIdProof,
+                          child: Container(
+                            height: 120,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: color.withOpacity(0.3), style: BorderStyle.solid),
+                              borderRadius: BorderRadius.circular(12),
                             ),
+                            child: _idProofFile != null || _idProofUrl != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: _idProofUrl != null
+                                        ? Image.network(_idProofUrl!, fit: BoxFit.cover)
+                                        : Image.file(_idProofFile!, fit: BoxFit.cover),
+                                  )
+                                : Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.add_a_photo_outlined, color: color),
+                                      const SizedBox(height: 8),
+                                      const Text('Tap to upload ID proof'),
+                                    ],
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    AnimatedWidgets.slideIn(
+                      beginOffset: const Offset(0, 0.1),
+                      delay: const Duration(milliseconds: 250),
+                      child: TextFormField(
+                        controller: _passwordController,
+                        obscureText: _obscurePassword,
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          suffixIcon: IconButton(
+                            icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          ),
+                        ),
+                        validator: (v) => v!.length < 6 ? 'Too short' : null,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    AnimatedWidgets.slideIn(
+                      beginOffset: const Offset(0, 0.1),
+                      delay: const Duration(milliseconds: 300),
+                      child: TextFormField(
+                        controller: _confirmPasswordController,
+                        obscureText: _obscureConfirmPassword,
+                        decoration: InputDecoration(
+                          labelText: 'Confirm Password',
+                          prefixIcon: const Icon(Icons.lock_reset),
+                          suffixIcon: IconButton(
+                            icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
+                            onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    AnimatedWidgets.scaleButton(
+                      onPressed: _isLoading ? () {} : _register,
+                      child: FilledButton(
+                        onPressed: _isLoading ? null : _register,
+                        style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                        child: _isLoading
+                            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                            : const Text('Register Now', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: TextButton(
+                        onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('Already have an account? ', style: TextStyle(color: Theme.of(context).hintColor)),
+                            Text('Sign In', style: TextStyle(fontWeight: FontWeight.bold, color: color)),
                           ],
                         ),
                       ),
-                      if (_idProofFile == null && _idProofUrl == null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4, left: 12),
-                          child: Text(
-                            'ID proof is required for ${_selectedRole == 'student'
-                                ? 'students'
-                                : _selectedRole == 'counsellor'
-                                ? 'counsellors'
-                                : _selectedRole == 'warden'
-                                ? 'wardens'
-                                : _selectedRole == 'police'
-                                ? 'police officers'
-                                : 'this role'}',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.copyWith(color: Colors.red),
-                          ),
-                        ),
-                      const SizedBox(height: 16),
-                    ],
-                    TextFormField(
-                      controller: _passwordController,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        prefixIcon: const Icon(Icons.lock),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                          ),
-                          onPressed: () {
-                            setState(
-                              () => _obscurePassword = !_obscurePassword,
-                            );
-                          },
-                        ),
-                        border: const OutlineInputBorder(),
-                      ),
-                      obscureText: _obscurePassword,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a password';
-                        }
-                        if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _confirmPasswordController,
-                      decoration: InputDecoration(
-                        labelText: 'Confirm Password',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirmPassword
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                          ),
-                          onPressed: () {
-                            setState(
-                              () => _obscureConfirmPassword =
-                                  !_obscureConfirmPassword,
-                            );
-                          },
-                        ),
-                        border: const OutlineInputBorder(),
-                      ),
-                      obscureText: _obscureConfirmPassword,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please confirm your password';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 32),
-                    FilledButton(
-                      onPressed: _isLoading ? null : _register,
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Register'),
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/login');
-                      },
-                      child: const Text('Already have an account? Login'),
                     ),
                   ],
                 ),
               );
 
-              if (!isWide) {
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: form,
-                );
+              if (!isDesktop) {
+                return SingleChildScrollView(padding: const EdgeInsets.all(24), child: form);
               }
 
               return Row(
                 children: [
-                  Expanded(child: _buildHeroPanel(context, color)),
+                  Expanded(flex: 1, child: _buildHeroPanel(context, color)),
                   Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 48,
-                        vertical: 32,
-                      ),
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 520),
-                          child: Card(
-                            elevation: 6,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(32),
-                              child: form,
-                            ),
+                    flex: 1,
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 500),
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.all(48),
+                          child: AnimatedWidgets.hoverCard(
+                            elevation: 8,
+                            hoverElevation: 16,
+                            child: Padding(padding: const EdgeInsets.all(40), child: form),
                           ),
                         ),
                       ),
