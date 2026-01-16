@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
 import '../../services/auth_service.dart';
+import '../../services/chat_service.dart';
+import '../../models/chat_message_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class StudentProfilePage extends StatefulWidget {
@@ -154,6 +156,8 @@ class _StudentProfilePageState extends State<StudentProfilePage>
                     _buildEmergencyInfo(context),
                     const SizedBox(height: 24),
                     _buildPreferences(context),
+                    const SizedBox(height: 24),
+                    _buildRecentChats(context),
                     const SizedBox(height: 24),
                     _buildActions(context, color),
                   ],
@@ -666,6 +670,51 @@ class _StudentProfilePageState extends State<StudentProfilePage>
             }
           : null,
     );
+  }
+
+  Widget _buildRecentChats(BuildContext context) {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+    if (user == null) return const SizedBox.shrink();
+
+    final chatService = ChatService();
+
+    return _buildSection(context, 'Recent Support Chats', Icons.chat_outlined, [
+      StreamBuilder<List<ChatConversationModel>>(
+        stream: chatService.getStudentConversations(user.uid),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          final chats = snapshot.data!;
+          if (chats.isEmpty) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8.0),
+              child: Text('No recent chats found.'),
+            );
+          }
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: chats.length > 3 ? 3 : chats.length,
+            itemBuilder: (context, index) {
+              final chat = chats[index];
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: CircleAvatar(
+                  child: Text(chat.counselorName?.substring(0, 1) ?? 'C'),
+                ),
+                title: Text(chat.counselorName ?? 'Staff'),
+                subtitle: Text(chat.lastMessage ?? 'No messages yet', maxLines: 1, overflow: TextOverflow.ellipsis),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                onTap: () {
+                  final appState = Provider.of<AppState>(context, listen: false);
+                  appState.setNavigationIndex(2); // Navigate to Chat tab
+                },
+              );
+            },
+          );
+        },
+      ),
+    ]);
   }
 
   void _startEditing() {

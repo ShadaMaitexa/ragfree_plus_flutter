@@ -11,7 +11,7 @@ class EmailJSService {
   static const String _emailJSApiUrl = 'https://api.emailjs.com/api/v1.0/email/send';
   
   Future<void> initialize() async {
-
+    
     if (_publicKey == 'YOUR_PUBLIC_KEY' || 
         _serviceId == 'YOUR_SERVICE_ID' || 
         _templateId == 'YOUR_TEMPLATE_ID') {

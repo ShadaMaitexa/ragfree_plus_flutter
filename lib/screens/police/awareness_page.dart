@@ -64,7 +64,95 @@ class _PoliceAwarenessPageState extends State<PoliceAwarenessPage> {
               ],
             ),
           ),
+          FilledButton.icon(
+            onPressed: () => _showAddAwarenessDialog(context),
+            icon: const Icon(Icons.add),
+            label: const Text('Add Awareness'),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  void _showAddAwarenessDialog(BuildContext context) {
+    final titleController = TextEditingController();
+    final subtitleController = TextEditingController();
+    final contentController = TextEditingController();
+    String selectedRole = 'student';
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Create Awareness Topic'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(labelText: 'Title'),
+                ),
+                TextField(
+                  controller: subtitleController,
+                  decoration: const InputDecoration(labelText: 'Subtitle (Category)'),
+                ),
+                TextField(
+                  controller: contentController,
+                  decoration: const InputDecoration(labelText: 'Content'),
+                  maxLines: 5,
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: selectedRole,
+                  decoration: const InputDecoration(labelText: 'Target Audience'),
+                  items: const [
+                    DropdownMenuItem(value: 'student', child: Text('Students')),
+                    DropdownMenuItem(value: 'parent', child: Text('Parents')),
+                    DropdownMenuItem(value: 'all', child: Text('All Roles')),
+                    DropdownMenuItem(value: 'police', child: Text('Police')),
+                  ],
+                  onChanged: (val) => setState(() => selectedRole = val!),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                if (titleController.text.isEmpty || contentController.text.isEmpty) {
+                  return;
+                }
+                final model = AwarenessModel(
+                  id: '',
+                  title: titleController.text,
+                  subtitle: subtitleController.text,
+                  content: contentController.text,
+                  role: selectedRole,
+                  createdAt: DateTime.now(),
+                );
+                await _awarenessService.addAwareness(model);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Awareness topic added successfully')),
+                  );
+                }
+              },
+              child: const Text('Create'),
+            ),
+          ],
+        ),
       ),
     );
   }

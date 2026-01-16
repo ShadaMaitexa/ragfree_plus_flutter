@@ -364,7 +364,11 @@ class _StudentChatPageState extends State<StudentChatPage>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Counselor',
+                        conversation.counselorName?.toLowerCase().contains('teacher') == true 
+                            ? 'Teacher' 
+                            : conversation.counselorId != null 
+                              ? 'Staff/Support' 
+                              : 'Counselor',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w500,

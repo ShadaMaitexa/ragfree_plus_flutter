@@ -17,7 +17,7 @@ import 'screens/student/profile_page.dart';
 import 'screens/parent/home_page.dart' as parent;
 import 'screens/parent/child_complaints_page.dart' as parent;
 import 'screens/parent/chat_page.dart' as parent;
-import 'screens/parent/awareness_page.dart' as parent;
+import 'screens/parent/feedback_page.dart' as parent;
 import 'screens/parent/profile_page.dart' as parent;
 import 'screens/warden/dashboard_page.dart' as warden_pages;
 import 'screens/warden/view_complaints_page.dart' as warden_pages;
@@ -430,7 +430,7 @@ class ParentDashboard extends StatelessWidget {
       NavigationDestinationData(icon: Icons.home, label: 'Home'),
       NavigationDestinationData(icon: Icons.assignment, label: 'Child Complaints'),
       NavigationDestinationData(icon: Icons.chat_bubble, label: 'Chat'),
-      NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
+      NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
     ];
 
@@ -438,7 +438,7 @@ class ParentDashboard extends StatelessWidget {
       const parent.ParentHomePage(),
       const parent.ParentChildComplaintsPage(),
       const parent.ParentChatPage(),
-      const parent.ParentAwarenessPage(),
+      const parent.ParentFeedbackPage(),
       const parent.ParentProfilePage(),
     ];
 
@@ -1270,9 +1270,4 @@ class _TeacherProfileProxy extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       const teacher_pages.TeacherProfilePage();
-}
-
-      ),
-    );
-  }
 }

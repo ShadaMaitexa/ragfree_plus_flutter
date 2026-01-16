@@ -4,27 +4,27 @@ import '../../services/feedback_service.dart';
 import '../../services/app_state.dart';
 import '../../models/feedback_model.dart';
 
-class StudentFeedbackPage extends StatefulWidget {
-  const StudentFeedbackPage({super.key});
+class ParentFeedbackPage extends StatefulWidget {
+  const ParentFeedbackPage({super.key});
 
   @override
-  State<StudentFeedbackPage> createState() => _StudentFeedbackPageState();
+  State<ParentFeedbackPage> createState() => _ParentFeedbackPageState();
 }
 
-class _StudentFeedbackPageState extends State<StudentFeedbackPage> with SingleTickerProviderStateMixin {
+class _ParentFeedbackPageState extends State<ParentFeedbackPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _formKey = GlobalKey<FormState>();
   final _contentController = TextEditingController();
   double _rating = 5;
-  String _selectedCategory = 'App Experience';
+  String _selectedCategory = 'Safety Monitoring';
   bool _isSubmitting = false;
   final FeedbackService _feedbackService = FeedbackService();
 
   final List<String> _categories = [
+    'Safety Monitoring',
     'App Experience',
-    'Campus Safety',
-    'Counseling Service',
     'Response Time',
+    'Campus Protocols',
     'Other',
   ];
 
@@ -96,27 +96,30 @@ class _StudentFeedbackPageState extends State<StudentFeedbackPage> with SingleTi
     final color = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('Feedback'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: 'Send Feedback'),
-            Tab(text: 'My History'),
+            Tab(text: 'Send'),
+            Tab(text: 'History'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildFeedbackForm(context, color),
-          _buildFeedbackHistory(context),
+          _buildForm(context, color),
+          _buildHistory(context),
         ],
       ),
     );
   }
 
-  Widget _buildFeedbackForm(BuildContext context, Color color) {
+  Widget _buildForm(BuildContext context, Color color) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Form(
@@ -125,7 +128,7 @@ class _StudentFeedbackPageState extends State<StudentFeedbackPage> with SingleTi
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'We value your feedback',
+              'Guardian Feedback',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: color,
@@ -133,12 +136,12 @@ class _StudentFeedbackPageState extends State<StudentFeedbackPage> with SingleTi
             ),
             const SizedBox(height: 8),
             Text(
-              'Help us improve RagFree+ and campus safety by sharing your thoughts.',
+              'Your perspective as a parent is vital. Share your thoughts on how we can improve safety and communication.',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 32),
             Text(
-              'How would you rate your experience?',
+              'Rate your experience with the platform',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -173,7 +176,7 @@ class _StudentFeedbackPageState extends State<StudentFeedbackPage> with SingleTi
             DropdownButtonFormField<String>(
               value: _selectedCategory,
               decoration: const InputDecoration(
-                labelText: 'Category',
+                labelText: 'Feedback Category',
                 border: OutlineInputBorder(),
               ),
               items: _categories.map((c) {
@@ -185,14 +188,14 @@ class _StudentFeedbackPageState extends State<StudentFeedbackPage> with SingleTi
             TextFormField(
               controller: _contentController,
               decoration: const InputDecoration(
-                labelText: 'Your Feedback',
-                hintText: 'What can we do better?',
+                labelText: 'Message',
+                hintText: 'Describe your suggestions or concerns...',
                 border: OutlineInputBorder(),
               ),
               maxLines: 5,
               validator: (val) {
                 if (val == null || val.isEmpty) {
-                  return 'Please enter your feedback';
+                  return 'Please enter your message';
                 }
                 return null;
               },
@@ -214,7 +217,7 @@ class _StudentFeedbackPageState extends State<StudentFeedbackPage> with SingleTi
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Submit Feedback'),
+                    : const Text('Send Feedback'),
               ),
             ),
           ],
@@ -223,7 +226,7 @@ class _StudentFeedbackPageState extends State<StudentFeedbackPage> with SingleTi
     );
   }
 
-  Widget _buildFeedbackHistory(BuildContext context) {
+  Widget _buildHistory(BuildContext context) {
     final appState = Provider.of<AppState>(context, listen: false);
     final user = appState.currentUser!;
 
