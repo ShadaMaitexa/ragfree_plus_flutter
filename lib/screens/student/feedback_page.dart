@@ -245,7 +245,7 @@ class _StudentFeedbackPageState extends State<StudentFeedbackPage> with SingleTi
               child: ListTile(
                 title: Row(
                   children: [
-                    Text(f.category, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(f.category ?? 'General', style: const TextStyle(fontWeight: FontWeight.bold)),
                     const Spacer(),
                     ...List.generate(5, (i) => Icon(
                       i < f.rating ? Icons.star : Icons.star_border,

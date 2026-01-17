@@ -707,7 +707,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
                 trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                 onTap: () {
                   final appState = Provider.of<AppState>(context, listen: false);
-                  appState.setNavigationIndex(2); // Navigate to Chat tab
+                  appState.setNavIndex(2); // Navigate to Chat tab
                 },
               );
             },

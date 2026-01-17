@@ -57,7 +57,7 @@ class _PoliceDashboardPageState extends State<PoliceDashboardPage> {
               AnimatedWidgets.slideIn(
                 beginOffset: const Offset(0, 0.2),
                 delay: const Duration(milliseconds: 300),
-                child: _buildRecentComplaints(context),
+                child: _buildRecentComplaints(context, color),
               ),
             ],
           ),

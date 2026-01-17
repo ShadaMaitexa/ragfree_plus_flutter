@@ -484,33 +484,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   Widget _buildSystemStatus(BuildContext context) {
-    final statuses = [
-      {
-        'service': 'Database',
-        'status': 'Online',
-        'color': Colors.green,
-        'uptime': '99.9%',
-      },
-      {
-        'service': 'API Server',
-        'status': 'Online',
-        'color': Colors.green,
-        'uptime': '99.8%',
-      },
-      {
-        'service': 'Notification Service',
-        'status': 'Online',
-        'color': Colors.green,
-        'uptime': '99.7%',
-      },
-      {
-        'service': 'File Storage',
-        'status': 'Maintenance',
-        'color': Colors.orange,
-        'uptime': '98.5%',
-      },
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -521,16 +494,49 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 16),
-        Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            children: statuses.map((status) {
-              return _buildStatusItem(context, status);
-            }).toList(),
-          ),
+        StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance.collection('users').limit(1).snapshots(),
+          builder: (context, snapshot) {
+            final isOnline = snapshot.hasData || snapshot.connectionState == ConnectionState.active;
+            final statuses = [
+              {
+                'service': 'Cloud Firestore',
+                'status': isOnline ? 'Online' : 'Reconnecting...',
+                'color': isOnline ? Colors.green : Colors.orange,
+                'uptime': '99.9%',
+              },
+              {
+                'service': 'Authentication',
+                'status': 'Online',
+                'color': Colors.green,
+                'uptime': '99.9%',
+              },
+              {
+                'service': 'Storage (Cloudinary)',
+                'status': 'Online',
+                'color': Colors.green,
+                'uptime': '99.5%',
+              },
+              {
+                'service': 'Notification Engine',
+                'status': 'Online',
+                'color': Colors.green,
+                'uptime': '99.7%',
+              },
+            ];
+
+            return Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: statuses.map((status) {
+                  return _buildStatusItem(context, status);
+                }).toList(),
+              ),
+            );
+          },
         ),
       ],
     );

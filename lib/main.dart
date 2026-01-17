@@ -676,10 +676,10 @@ class CounsellorDashboard extends StatelessWidget {
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
     ];
 
-    final pages = const <Widget>[
+    final pages = [
       _CounsellorPages.dashboard,
-      _CounsellorPages.assignedComplaints,
-      _CounsellorPages.scheduleSession,
+      _CounsellorPages.assigned,
+      _CounsellorPages.schedule,
       _CounsellorPages.chat,
       _CounsellorPages.awareness,
       _CounsellorPages.profile,
@@ -846,12 +846,7 @@ class WardenDashboard extends StatelessWidget {
   }
 }
 
-class PoliceDashboard extends StatefulWidget {
-  const PoliceDashboard({super.key});
 
-  @override
-  State<PoliceDashboard> createState() => _PoliceDashboardState();
-}
 
 // Lightweight indirection to avoid heavy imports at top
 class _WardenDashboardPages {

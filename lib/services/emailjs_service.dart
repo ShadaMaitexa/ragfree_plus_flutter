@@ -31,7 +31,7 @@ class EmailJSService {
       // Skip if not configured
       if (_publicKey == 'YOUR_PUBLIC_KEY' || 
           _serviceId == 'YOUR_SERVICE_ID' || 
-          _templateId == 'YOUR_TEMPLATE_ID') {
+          _templateId == 'YOUR_TEMPLATE_ID') { 
         print('EmailJS: Configuration not set, skipping email send');
         return false;
       }

@@ -67,17 +67,34 @@ class AnimatedWidgets {
   // Animated Counter
   static Widget animatedCounter({
     required int value,
+    String suffix = '',
     TextStyle? style,
     Duration duration = const Duration(milliseconds: 1000),
     Curve curve = Curves.easeOutCubic,
   }) {
     return AnimatedCounterText(
       value: value,
+      suffix: suffix,
       style: style,
       duration: duration,
       curve: curve,
     );
   }
+
+  static Widget counterText({
+    int? value,
+    int? count,
+    String suffix = '',
+    TextStyle? style,
+    Duration duration = const Duration(milliseconds: 1000),
+    Curve curve = Curves.easeOutCubic,
+  }) => animatedCounter(
+    value: value ?? count ?? 0,
+    suffix: suffix,
+    style: style,
+    duration: duration,
+    curve: curve,
+  );
 
   // Animated Progress Bar
   static Widget animatedProgressBar({
@@ -405,6 +422,7 @@ class _AnimatedBounceInState extends State<AnimatedBounceIn>
 
 class AnimatedCounterText extends StatefulWidget {
   final int value;
+  final String suffix;
   final TextStyle? style;
   final Duration duration;
   final Curve curve;
@@ -412,6 +430,7 @@ class AnimatedCounterText extends StatefulWidget {
   const AnimatedCounterText({
     super.key,
     required this.value,
+    this.suffix = '',
     this.style,
     this.duration = const Duration(milliseconds: 1000),
     this.curve = Curves.easeOutCubic,
@@ -470,7 +489,7 @@ class _AnimatedCounterTextState extends State<AnimatedCounterText>
       animation: _counterAnimation,
       builder: (context, child) {
         return Text(
-          _counterAnimation.value.toString(),
+          '${_counterAnimation.value}${widget.suffix}',
           style: widget.style,
         );
       },

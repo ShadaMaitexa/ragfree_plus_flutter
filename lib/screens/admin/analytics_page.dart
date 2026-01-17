@@ -83,7 +83,7 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
                             children: [
                               _buildOverviewTab(context, complaints, users),
                               _buildComplaintsTab(context, complaints),
-                              _buildUsersTab(context, users),
+                              _buildUsersTab(context, complaints, users),
                             ],
                           ),
                         ),
@@ -359,7 +359,7 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     );
   }
 
-  Widget _buildUsersTab(BuildContext context, List<UserModel> users) {
+  Widget _buildUsersTab(BuildContext context, List<ComplaintModel> complaints, List<UserModel> users) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -369,7 +369,7 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
           const SizedBox(height: 20),
           _buildUserActivityStatic(context, users),
           const SizedBox(height: 20),
-          _buildUserEngagement(context),
+          _buildUserEngagement(context, complaints, users),
         ],
       ),
     );
@@ -660,7 +660,14 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     );
   }
 
-  Widget _buildUserEngagement(BuildContext context) {
+  Widget _buildUserEngagement(BuildContext context, List<ComplaintModel> complaints, List<UserModel> users) {
+    final totalUsers = users.length;
+    final totalComplaints = complaints.length;
+    final reportsPerUser = totalUsers > 0 ? totalComplaints / totalUsers : 0.0;
+    
+    final resolvedComplaints = complaints.where((c) => c.status == 'Resolved').length;
+    final responseRate = totalComplaints > 0 ? (resolvedComplaints / totalComplaints) * 100 : 0.0;
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -678,20 +685,20 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
             const SizedBox(height: 16),
             _buildEngagementItem(
               context,
-              'Average Session Time',
-              '12.5 min',
+              'Active Users',
+              totalUsers.toString(),
               Colors.blue,
             ),
             _buildEngagementItem(
               context,
               'Reports per User',
-              '2.3',
+              reportsPerUser.toStringAsFixed(1),
               Colors.green,
             ),
             _buildEngagementItem(
               context,
-              'Response Rate',
-              '87.5%',
+              'Resolution Rate',
+              '${responseRate.toStringAsFixed(1)}%',
               Colors.orange,
             ),
           ],
