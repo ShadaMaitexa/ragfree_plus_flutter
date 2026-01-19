@@ -16,6 +16,11 @@ class ComplaintModel {
   final String? assignedTo; // Counselor/Admin ID
   final String? assignedToName;
   final String? location;
+  final String? institution;
+  final String? institutionNormalized;
+  final String? reporterId;
+  final String? reporterName;
+  final String? reporterRole;
   final Map<String, dynamic>? metadata; // Additional data
   final bool isAnonymous;
 
@@ -35,6 +40,11 @@ class ComplaintModel {
     this.assignedTo,
     this.assignedToName,
     this.location,
+    this.institution,
+    this.institutionNormalized,
+    this.reporterId,
+    this.reporterName,
+    this.reporterRole,
     this.metadata,
     this.isAnonymous = false,
   });
@@ -58,6 +68,11 @@ class ComplaintModel {
       assignedTo: data['assignedTo'],
       assignedToName: data['assignedToName'],
       location: data['location'],
+      institution: data['institution'],
+      institutionNormalized: data['institutionNormalized'],
+      reporterId: data['reporterId'],
+      reporterName: data['reporterName'],
+      reporterRole: data['reporterRole'],
       metadata: data['metadata'],
       isAnonymous: data['isAnonymous'] ?? false,
     );
@@ -80,6 +95,11 @@ class ComplaintModel {
       'assignedTo': assignedTo,
       'assignedToName': assignedToName,
       'location': location,
+      'institution': institution,
+      'institutionNormalized': institutionNormalized,
+      'reporterId': reporterId,
+      'reporterName': reporterName,
+      'reporterRole': reporterRole,
       'metadata': metadata,
       'isAnonymous': isAnonymous,
     };
@@ -101,6 +121,11 @@ class ComplaintModel {
     String? assignedTo,
     String? assignedToName,
     String? location,
+    String? institution,
+    String? institutionNormalized,
+    String? reporterId,
+    String? reporterName,
+    String? reporterRole,
     Map<String, dynamic>? metadata,
     bool? isAnonymous,
   }) {
@@ -120,6 +145,11 @@ class ComplaintModel {
       assignedTo: assignedTo ?? this.assignedTo,
       assignedToName: assignedToName ?? this.assignedToName,
       location: location ?? this.location,
+      institution: institution ?? this.institution,
+      institutionNormalized: institutionNormalized ?? this.institutionNormalized,
+      reporterId: reporterId ?? this.reporterId,
+      reporterName: reporterName ?? this.reporterName,
+      reporterRole: reporterRole ?? this.reporterRole,
       metadata: metadata ?? this.metadata,
       isAnonymous: isAnonymous ?? this.isAnonymous,
     );

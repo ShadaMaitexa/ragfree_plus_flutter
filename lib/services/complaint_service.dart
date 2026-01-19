@@ -15,6 +15,26 @@ class ComplaintService {
     List<File>? mediaFiles,
   }) async {
     try {
+      // Fetch current user details to populate reporter info and institution
+      final user = FirebaseAuth.instance.currentUser;
+      ComplaintModel complaintToSubmit = complaint;
+      
+      if (user != null) {
+        final userDoc = await _firestore.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          final userData = userDoc.data();
+          if (userData != null) {
+             complaintToSubmit = complaintToSubmit.copyWith(
+               institution: complaintToSubmit.institution ?? userData['institution'],
+               institutionNormalized: complaintToSubmit.institutionNormalized ?? userData['institutionNormalized'],
+               reporterId: complaintToSubmit.reporterId ?? user.uid,
+               reporterName: complaintToSubmit.reporterName ?? userData['name'],
+               reporterRole: complaintToSubmit.reporterRole ?? userData['role'],
+             );
+          }
+        }
+      }
+
       // Upload media files to Cloudinary if any
       List<String> mediaUrls = [];
       if (mediaFiles != null && mediaFiles.isNotEmpty) {
@@ -36,7 +56,7 @@ class ComplaintService {
       }
 
       // Update complaint with media URLs
-      final complaintWithMedia = complaint.copyWith(mediaUrls: mediaUrls);
+      final complaintWithMedia = complaintToSubmit.copyWith(mediaUrls: mediaUrls);
 
       // Save to Firestore - always use Firestore's auto-generated ID for consistency
       final docRef = _firestore.collection('complaints').doc();
@@ -51,14 +71,14 @@ class ComplaintService {
       final finalComplaint = complaintWithMedia.copyWith(id: complaintId);
 
       // Send email notification to student (if not anonymous)
-      if (complaint.studentId != null) {
+      if (complaintToSubmit.studentId != null) {
         try {
-          final userEmail = await _emailJSService.getUserEmail(complaint.studentId!);
+          final userEmail = await _emailJSService.getUserEmail(complaintToSubmit.studentId!);
           if (userEmail != null) {
             await _emailJSService.sendComplaintSubmittedEmail(
               userEmail: userEmail,
-              userName: complaint.studentName ?? 'Student',
-              complaintTitle: complaint.title,
+              userName: complaintToSubmit.studentName ?? 'Student',
+              complaintTitle: complaintToSubmit.title,
               complaintId: complaintId,
             );
           }
@@ -129,11 +149,23 @@ class ComplaintService {
             .toList());
   }
 
-  // Get complaints for Teacher (College incidents)
+  // Get complaints for Teacher (College incidents) - DEPRECATED/LEGACY
   Stream<List<ComplaintModel>> getCollegeComplaints() {
     return _firestore
         .collection('complaints')
         .where('incidentType', isEqualTo: 'College')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
+            .toList());
+  }
+
+  // Get complaints by Institution (for Teachers/Admin)
+  Stream<List<ComplaintModel>> getComplaintsByInstitution(String institutionNormalized) {
+    if (institutionNormalized.isEmpty) return Stream.value([]);
+    return _firestore
+        .collection('complaints')
+        .where('institutionNormalized', isEqualTo: institutionNormalized)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))

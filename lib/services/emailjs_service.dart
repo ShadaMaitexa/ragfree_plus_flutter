@@ -88,7 +88,6 @@ If you have any questions, please contact the administration.
 Best regards,
 RAG FREE+ Team
     ''';
-
     await sendEmail(
       toEmail: userEmail,
       toName: userName,
@@ -120,15 +119,14 @@ We appreciate your patience.
 
 Best regards,
 RAG FREE+ Team
-    ''';
-
+    '''; 
     await sendEmail(
       toEmail: userEmail,
       toName: userName,
       subject: subject,
       message: message,
       additionalParams: {
-        'user_role': userRole,
+        'user_role': userRole, 
       },
     );
   }

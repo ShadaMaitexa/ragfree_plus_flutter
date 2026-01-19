@@ -6,6 +6,8 @@ class UserModel {
   final bool isApproved; // For police and counsellor/warden
   final String? phone;
   final String? department;
+  final String? institution;
+  final String? institutionNormalized;
   final String? idProofUrl; // ID proof document URL
   final DateTime createdAt;
 
@@ -17,6 +19,8 @@ class UserModel {
     this.isApproved = false,
     this.phone,
     this.department,
+    this.institution,
+    this.institutionNormalized,
     this.idProofUrl,
     required this.createdAt,
   });
@@ -30,6 +34,8 @@ class UserModel {
       'isApproved': isApproved,
       'phone': phone,
       'department': department,
+      'institution': institution,
+      'institutionNormalized': institutionNormalized,
       'idProofUrl': idProofUrl,
       'createdAt': createdAt.toIso8601String(),
     };
@@ -44,6 +50,8 @@ class UserModel {
       isApproved: map['isApproved'] ?? false,
       phone: map['phone'],
       department: map['department'],
+      institution: map['institution'],
+      institutionNormalized: map['institutionNormalized'],
       idProofUrl: map['idProofUrl'],
       createdAt: map['createdAt'] != null
           ? DateTime.parse(map['createdAt'])
@@ -59,6 +67,8 @@ class UserModel {
     bool? isApproved,
     String? phone,
     String? department,
+    String? institution,
+    String? institutionNormalized,
     String? idProofUrl,
     DateTime? createdAt,
   }) {
@@ -70,6 +80,8 @@ class UserModel {
       isApproved: isApproved ?? this.isApproved,
       phone: phone ?? this.phone,
       department: department ?? this.department,
+      institution: institution ?? this.institution,
+      institutionNormalized: institutionNormalized ?? this.institutionNormalized,
       idProofUrl: idProofUrl ?? this.idProofUrl,
       createdAt: createdAt ?? this.createdAt,
     );

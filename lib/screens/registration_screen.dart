@@ -24,6 +24,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _confirmPasswordController = TextEditingController();
   final _phoneController = TextEditingController();
   final _departmentController = TextEditingController();
+  final _institutionController = TextEditingController();
 
   String _selectedRole = 'student';
   bool _isLoading = false;
@@ -45,6 +46,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     _confirmPasswordController.dispose();
     _phoneController.dispose();
     _departmentController.dispose();
+    _institutionController.dispose();
     super.dispose();
   }
 
@@ -72,6 +74,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       }
     }
   }
+
+
 
   Widget _buildHeroPanel(BuildContext context, Color color) {
     final textTheme = Theme.of(context).textTheme;
@@ -222,6 +226,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         role: _selectedRole,
         phone: _phoneController.text.trim(),
         department: _departmentController.text.trim(),
+        institution: _institutionController.text.trim(),
         idProofUrl: _idProofUrl,
       );
 
@@ -354,6 +359,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             labelText: 'Department',
                             prefixIcon: Icon(Icons.school_outlined),
                           ),
+                        ),
+                      ),
+                    ],
+                    if (['student', 'teacher', 'counsellor', 'warden'].contains(_selectedRole)) ...[
+                      const SizedBox(height: 16),
+                      AnimatedWidgets.slideIn(
+                        beginOffset: const Offset(0, 0.1),
+                        delay: const Duration(milliseconds: 220),
+                        child: TextFormField(
+                          controller: _institutionController,
+                          decoration: const InputDecoration(
+                            labelText: 'Institution',
+                            prefixIcon: Icon(Icons.account_balance_outlined),
+                          ),
+                          validator: (v) => v!.isEmpty ? 'Institution required' : null,
                         ),
                       ),
                     ],

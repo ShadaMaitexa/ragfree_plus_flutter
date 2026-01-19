@@ -12,12 +12,14 @@ class AddComplaintDialog extends StatefulWidget {
   final VoidCallback onComplaintAdded;
   final ComplaintModel? editComplaint;
   final bool isParent;
+  final bool isTeacher;
 
   const AddComplaintDialog({
     super.key,
     required this.onComplaintAdded,
     this.editComplaint,
     this.isParent = false,
+    this.isTeacher = false,
   });
 
   @override
@@ -109,7 +111,7 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  if (!widget.isParent)
+                  if (!widget.isParent && !widget.isTeacher)
                     CheckboxListTile(
                       title: const Text('Submit anonymously'),
                       subtitle: const Text('Your identity will be kept confidential'),
@@ -157,6 +159,29 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                             return null;
                           },
                         );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (widget.isTeacher) ...[
+                    const Text(
+                      'Student Name (Optional)',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    // For now, simpler text field for teacher to enter student name if known
+                    // In future, this could be a searchable dropdown of students in the institution
+                    TextFormField(
+                      initialValue: _selectedChildName,
+                      decoration: const InputDecoration(
+                        labelText: 'Student Name',
+                        hintText: 'Enter student name or leave blank',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (val) {
+                        setState(() {
+                          _selectedChildName = val.trim().isEmpty ? null : val.trim();
+                        });
                       },
                     ),
                     const SizedBox(height: 16),
@@ -458,8 +483,19 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
         throw Exception('User not logged in');
       }
 
-      final studentId = widget.isParent ? _selectedChildId : (_isAnonymous ? null : user.uid);
-      final studentName = widget.isParent ? _selectedChildName : (_isAnonymous ? null : user.name);
+      String? studentId;
+      String? studentName;
+
+      if (widget.isParent) {
+        studentId = _selectedChildId;
+        studentName = _selectedChildName;
+      } else if (widget.isTeacher) {
+        studentId = null; // Teacher is reporting, not necessarily ON BEHALF of a specific linked student account
+        studentName = _selectedChildName; // Manually entered name
+      } else {
+        studentId = _isAnonymous ? null : user.uid;
+        studentName = _isAnonymous ? null : user.name;
+      }
 
       if (widget.editComplaint != null) {
         // Update existing
@@ -503,7 +539,12 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
               ? null
               : _locationController.text.trim(),
           isAnonymous: _isAnonymous,
-          metadata: widget.isParent ? {'submittedByParent': user.uid, 'parentName': user.name} : null,
+          isAnonymous: _isAnonymous,
+          metadata: widget.isParent 
+              ? {'submittedByParent': user.uid, 'parentName': user.name} 
+              : widget.isTeacher 
+                  ? {'submittedByTeacher': user.uid, 'teacherName': user.name}
+                  : null,
         );
 
         List<File> allMediaFiles = [];

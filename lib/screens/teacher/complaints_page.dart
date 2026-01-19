@@ -7,6 +7,7 @@ import '../../models/complaint_model.dart';
 import '../../models/chat_message_model.dart';
 import 'chat_page.dart';
 import 'package:intl/intl.dart';
+import '../../widgets/add_complaint_dialog.dart';
 
 class TeacherComplaintsPage extends StatefulWidget {
   const TeacherComplaintsPage({super.key});
@@ -51,30 +52,49 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
-        return FadeTransition(
-          opacity: _fadeAnimation,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: isDark
-                    ? [color.withOpacity(0.05), Colors.transparent]
-                    : [Colors.grey.shade50, Colors.white],
+        return Scaffold(
+          body: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [color.withOpacity(0.05), Colors.transparent]
+                      : [Colors.grey.shade50, Colors.white],
+                ),
+              ),
+              child: Column(
+                children: [
+                  _buildHeader(context, color),
+                  _buildFilterChips(context),
+                  Expanded(
+                    child: _buildComplaintsList(context),
+                  ),
+                ],
               ),
             ),
-            child: Column(
-              children: [
-                _buildHeader(context, color),
-                _buildFilterChips(context),
-                Expanded(
-                  child: _buildComplaintsList(context),
-                ),
-              ],
-            ),
+          ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => _showAddComplaintDialog(context),
+            label: const Text('Report Incident'),
+            icon: const Icon(Icons.add_alert_outlined),
           ),
         );
       },
+    );
+  }
+
+  void _showAddComplaintDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AddComplaintDialog(
+        isTeacher: true,
+        onComplaintAdded: () {
+          // Stream automatically updates
+        },
+      ),
     );
   }
 
@@ -141,8 +161,11 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
   }
 
   Widget _buildComplaintsList(BuildContext context) {
+    final user = Provider.of<AppState>(context).currentUser;
+    final institutionNormalized = user?.institutionNormalized ?? '';
+
     return StreamBuilder<List<ComplaintModel>>(
-      stream: _complaintService.getCollegeComplaints(),
+      stream: _complaintService.getComplaintsByInstitution(institutionNormalized),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());

@@ -20,6 +20,7 @@ class AuthService {
     required String role,
     String? phone,
     String? department,
+    String? institution,
     String? idProofUrl,
   }) async {
     try {
@@ -35,6 +36,9 @@ class AuthService {
       // Admin is created separately and doesn't go through this flow
       bool needsApproval = role != 'admin';
 
+      // Normalize institution name for checking matching
+      final institutionNormalized = institution?.trim().replaceAll(RegExp(r'\s+'), '').toLowerCase();
+
       // Create user document in Firestore
       UserModel userModel = UserModel(
         uid: userCredential.user!.uid,
@@ -44,6 +48,8 @@ class AuthService {
         isApproved: !needsApproval, // Only admin is auto-approved
         phone: phone,
         department: department,
+        institution: institution,
+        institutionNormalized: institutionNormalized,
         idProofUrl: idProofUrl,
         createdAt: DateTime.now(),
       );

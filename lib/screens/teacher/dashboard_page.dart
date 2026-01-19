@@ -133,8 +133,11 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
   }
 
   Widget _buildStatsGrid(BuildContext context, Color color) {
+    final user = Provider.of<AppState>(context).currentUser;
+    final institutionNormalized = user?.institutionNormalized ?? '';
+
     return StreamBuilder<List<dynamic>>(
-      stream: _complaintService.getAllComplaints().map((c) => [
+      stream: _complaintService.getComplaintsByInstitution(institutionNormalized).map((c) => [
             c.length,
             c.where((x) => x.status == 'Resolved').length,
             c.where((x) => x.status != 'Resolved').length,

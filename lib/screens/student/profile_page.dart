@@ -24,7 +24,9 @@ class _StudentProfilePageState extends State<StudentProfilePage>
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _departmentController = TextEditingController();
   final TextEditingController _studentIdController = TextEditingController();
+  final TextEditingController _studentIdController = TextEditingController();
   final TextEditingController _yearController = TextEditingController();
+  final TextEditingController _institutionController = TextEditingController();
 
   final AuthService _authService = AuthService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -91,6 +93,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
       _emailController.text = user.email;
       _phoneController.text = user.phone ?? '';
       _departmentController.text = user.department ?? '';
+      _institutionController.text = user.institution ?? '';
       
       // Load additional profile data from Firestore
       _firestore.collection('users').doc(user.uid).get().then((doc) {
@@ -117,6 +120,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
     _departmentController.dispose();
     _studentIdController.dispose();
     _yearController.dispose();
+    _institutionController.dispose();
     super.dispose();
   }
 
@@ -321,6 +325,13 @@ class _StudentProfilePageState extends State<StudentProfilePage>
         'Department',
         _departmentController,
         Icons.apartment,
+        enabled: _isEditing,
+      ),
+      _buildEditableField(
+        context,
+        'Institution',
+        _institutionController,
+        Icons.account_balance,
         enabled: _isEditing,
       ),
       _buildEditableField(
@@ -750,6 +761,9 @@ class _StudentProfilePageState extends State<StudentProfilePage>
         'gender': _selectedGender,
         'bloodGroup': _selectedBloodGroup,
         'emergencyContact': _selectedEmergencyContact,
+        'emergencyContact': _selectedEmergencyContact,
+        'institution': _institutionController.text.trim(),
+        'institutionNormalized': _institutionController.text.trim().replaceAll(RegExp(r'\s+'), '').toLowerCase(),
       });
 
       // Update AppState
@@ -761,6 +775,8 @@ class _StudentProfilePageState extends State<StudentProfilePage>
         department: _departmentController.text.trim().isEmpty 
             ? null 
             : _departmentController.text.trim(),
+        institution: _institutionController.text.trim(),
+        institutionNormalized: _institutionController.text.trim().replaceAll(RegExp(r'\s+'), '').toLowerCase(),
       );
       appState.setUser(updatedUser);
 
