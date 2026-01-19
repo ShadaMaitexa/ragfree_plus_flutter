@@ -246,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen> {
             delay: const Duration(milliseconds: 100),
             child: Text(
               'RagFree+',
-              textAlign: Center,
+              textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900, color: color, letterSpacing: -1),
             ),
           ),
@@ -256,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
             delay: const Duration(milliseconds: 200),
             child: Text(
               'Secure Login',
-              textAlign: Center,
+              textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).hintColor),
             ),
           ),

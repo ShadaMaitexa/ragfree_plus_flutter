@@ -37,7 +37,7 @@ class EmailJSService {
       }
 
       final templateParams = {
-        'to_email': toEmail,
+        'to_email': toEmail, 
         'to_name': toName,
         'subject': subject,
         'message': message,

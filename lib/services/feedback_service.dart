@@ -41,4 +41,19 @@ class FeedbackService {
                 }))
             .toList());
   }
+
+  // Get user's own feedback
+  Stream<List<FeedbackModel>> getUserFeedback(String userId) {
+    return _firestore
+        .collection('feedback')
+        .where('userId', isEqualTo: userId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => FeedbackModel.fromMap({
+                  ...doc.data(),
+                  'id': doc.id,
+                }))
+            .toList());
+  }
 }
