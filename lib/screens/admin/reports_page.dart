@@ -17,7 +17,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('System Reports')),
+      appBar: AppBar(title: const Text('Complaint Logs')),
       body: Stack(
         children: [
           SingleChildScrollView(

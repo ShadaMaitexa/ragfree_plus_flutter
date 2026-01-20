@@ -223,7 +223,7 @@ class _ParentHomePageState extends State<ParentHomePage> {
   Widget _buildQuickActions(BuildContext context, Color color) {
     final actions = [
       {'icon': Icons.assignment_rounded, 'title': 'Reports', 'color': Colors.blue, 'target': 1},
-      {'icon': Icons.forum_rounded, 'title': 'Support Chat', 'color': Colors.green, 'target': 2},
+      {'icon': Icons.forum_rounded, 'title': 'Chat', 'color': Colors.green, 'target': 2},
       {'icon': Icons.school_rounded, 'title': 'Awareness', 'color': Colors.orange, 'target': 3},
       {'icon': Icons.admin_panel_settings_rounded, 'title': 'Child Profile', 'color': Colors.purple, 'target': 4},
     ];

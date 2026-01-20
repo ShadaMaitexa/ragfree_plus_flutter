@@ -78,7 +78,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
           ),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => _showAddComplaintDialog(context),
-            label: const Text('Report Incident'),
+            label: const Text('New Complaint'),
             icon: const Icon(Icons.add_alert_outlined),
           ),
         );
@@ -123,7 +123,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
                       ),
                 ),
                 Text(
-                  'Monitor and respond to student safety reports',
+                  'Monitor and respond to student safety complaints',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -538,6 +538,8 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
 
   void _showForwardDialog(BuildContext context, ComplaintModel complaint) {
     String selectedRole = 'police';
+    final descriptionController = TextEditingController();
+    
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -563,6 +565,16 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
                 ],
                 onChanged: (val) => setDialogState(() => selectedRole = val!),
               ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: descriptionController,
+                decoration: const InputDecoration(
+                  labelText: 'Forward Description',
+                  hintText: 'Add a note for the recipient...',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
             ],
           ),
           actions: [
@@ -583,6 +595,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
                     forwardToRole: selectedRole,
                     forwarderId: user.uid,
                     forwarderName: user.name,
+                    description: descriptionController.text.trim(),
                   );
 
                   if (context.mounted) {

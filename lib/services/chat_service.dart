@@ -202,4 +202,29 @@ class ChatService {
       throw Exception('Failed to get counselors: ${e.toString()}');
     }
   }
+  // Clear chat messages
+  Future<void> clearChat(String chatId) async {
+    try {
+      final messages = await _firestore
+          .collection('chat_conversations')
+          .doc(chatId)
+          .collection('messages')
+          .get();
+
+      final batch = _firestore.batch();
+      for (var doc in messages.docs) {
+        batch.delete(doc.reference);
+      }
+      
+      // Update conversation last message
+      batch.update(_firestore.collection('chat_conversations').doc(chatId), {
+        'lastMessage': 'Chat cleared',
+        'lastMessageAt': Timestamp.now(),
+      });
+      
+      await batch.commit();
+    } catch (e) {
+      throw Exception('Failed to clear chat: ${e.toString()}');
+    }
+  }
 }

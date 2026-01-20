@@ -329,7 +329,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
       ),
       _buildEditableField(
         context,
-        'Institution',
+        'College Name',
         _institutionController,
         Icons.account_balance,
         enabled: _isEditing,
@@ -690,7 +690,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
 
     final chatService = ChatService();
 
-    return _buildSection(context, 'Recent Support Chats', Icons.chat_outlined, [
+    return _buildSection(context, 'Recent Chats', Icons.chat_outlined, [
       StreamBuilder<List<ChatConversationModel>>(
         stream: chatService.getStudentConversations(user.uid),
         builder: (context, snapshot) {

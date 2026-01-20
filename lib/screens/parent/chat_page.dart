@@ -95,7 +95,7 @@ class _ParentChatPageState extends State<ParentChatPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Parent Support Chat',
+                      'Chat',
                       style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(fontWeight: FontWeight.w700, color: color),
                     ),
@@ -852,6 +852,14 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.delete_sweep, color: Colors.orange),
+              title: const Text('Clear Chat'),
+              onTap: () {
+                Navigator.pop(context);
+                _showClearChatDialog(context);
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.block),
               title: const Text('Block User'),
               onTap: () {
@@ -943,6 +951,42 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
               ).showSnackBar(const SnackBar(content: Text('User reported')));
             },
             child: const Text('Report'),
+          ),
+        ],
+      ),
+    );
+  }
+  void _showClearChatDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear Chat'),
+        content: const Text('Are you sure you want to clear all messages in this chat? This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              try {
+                await widget.chatService.clearChat(widget.conversation.id);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Chat cleared')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            style: FilledButton.styleFrom(backgroundColor: Colors.orange),
+            child: const Text('Clear'),
           ),
         ],
       ),

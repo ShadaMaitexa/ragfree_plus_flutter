@@ -147,14 +147,13 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
           {'label': 'Case Reports', 'value': '${snapshot.data?[0] ?? 0}', 'icon': Icons.assignment_rounded, 'color': Colors.blue},
           {'label': 'Resolved', 'value': '${snapshot.data?[1] ?? 0}', 'icon': Icons.task_alt_rounded, 'color': Colors.green},
           {'label': 'Active Cases', 'value': '${snapshot.data?[2] ?? 0}', 'icon': Icons.warning_amber_rounded, 'color': Colors.orange},
-          {'label': 'Integrity Index', 'value': '98%', 'icon': Icons.verified_rounded, 'color': Colors.purple},
         ];
 
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
+            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 3, desktop: 3),
             crossAxisSpacing: 20,
             mainAxisSpacing: 20,
             childAspectRatio: 1.3,
@@ -199,6 +198,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
       {'icon': Icons.assignment_rounded, 'title': 'Reports', 'color': Colors.blue, 'target': 1},
       {'icon': Icons.forum_rounded, 'title': 'Student Hub', 'color': Colors.green, 'target': 2},
       {'icon': Icons.tips_and_updates_rounded, 'title': 'Wellness', 'color': Colors.orange, 'target': 3},
+      {'icon': Icons.add_moderator_rounded, 'title': 'Awareness+', 'color': Colors.teal, 'target': 3, 'isAction': true},
       {'icon': Icons.notifications_active_rounded, 'title': 'Alerts', 'color': Colors.purple, 'target': 0},
     ];
 
@@ -232,9 +232,20 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
     );
   }
 
-  Widget _buildActionCard(BuildContext context, IconData icon, String title, Color color, int targetIndex) {
+  Widget _buildActionCard(BuildContext context, IconData icon, String title, Color color, int targetIndex, {bool isAction = false}) {
     return AnimatedWidgets.scaleButton(
-      onPressed: () => DefaultTabController.of(context).animateTo(targetIndex),
+      onPressed: () {
+        if (isAction) {
+          DefaultTabController.of(context).animateTo(targetIndex);
+          // Small delay to ensure tab switch happens before dialog
+          Future.delayed(const Duration(milliseconds: 300), () {
+            // Signal to Awareness page to show add dialog or use a shared event bus/callback
+            // For now, let's just navigate to tab and we'll add a FAB to the awareness page
+          });
+        } else {
+          DefaultTabController.of(context).animateTo(targetIndex);
+        }
+      },
       child: AnimatedWidgets.hoverCard(
         borderRadius: BorderRadius.circular(24),
         child: Container(

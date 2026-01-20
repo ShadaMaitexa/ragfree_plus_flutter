@@ -362,7 +362,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         ),
                       ),
                     ],
-                    if (['student', 'teacher', 'counsellor', 'warden'].contains(_selectedRole)) ...[
+                    if (['student', 'teacher', 'counsellor', 'warden', 'police'].contains(_selectedRole)) ...[
                       const SizedBox(height: 16),
                       AnimatedWidgets.slideIn(
                         beginOffset: const Offset(0, 0.1),
@@ -370,10 +370,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         child: TextFormField(
                           controller: _institutionController,
                           decoration: const InputDecoration(
-                            labelText: 'Institution',
+                            labelText: 'College Name',
                             prefixIcon: Icon(Icons.account_balance_outlined),
                           ),
-                          validator: (v) => v!.isEmpty ? 'Institution required' : null,
+                          validator: (v) => v!.isEmpty ? 'College name required' : null,
                         ),
                       ),
                     ],

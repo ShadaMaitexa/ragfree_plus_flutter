@@ -25,7 +25,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
@@ -70,7 +70,6 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                     controller: _tabController,
                     children: [
                       _buildAllComplaintsTab(context),
-                      _buildHighPriorityTab(context),
                       _buildPendingTab(context),
                       _buildInProgressTab(context),
                     ],
@@ -145,7 +144,6 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
         unselectedLabelColor: Theme.of(context).colorScheme.onSurface,
         tabs: const [
           Tab(text: 'All'),
-          Tab(text: 'High Priority'),
           Tab(text: 'Pending'),
           Tab(text: 'In Progress'),
         ],

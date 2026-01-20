@@ -113,7 +113,7 @@ class _PoliceDashboardPageState extends State<PoliceDashboardPage> {
             ),
             const SizedBox(height: 24),
             const Text(
-              'Rapid response and campus security management. Monitor high-priority cases and critical alerts.',
+              'Rapid response and campus security management. Monitor active cases and critical alerts.',
               style: TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
             ),
           ],
@@ -129,7 +129,6 @@ class _PoliceDashboardPageState extends State<PoliceDashboardPage> {
         final complaints = snapshot.data ?? [];
         final stats = [
           {'label': 'Investigations', 'value': '${complaints.length}', 'icon': Icons.folder_shared_rounded, 'color': Colors.blue},
-          {'label': 'High Priority', 'value': '${complaints.where((c) => c.priority == 'High').length}', 'icon': Icons.priority_high_rounded, 'color': Colors.red},
           {'label': 'Pending', 'value': '${complaints.where((c) => c.status == 'Pending').length}', 'icon': Icons.hourglass_top_rounded, 'color': Colors.orange},
           {'label': 'Closed', 'value': '${complaints.where((c) => c.status == 'Resolved').length}', 'icon': Icons.verified_rounded, 'color': Colors.green},
         ];

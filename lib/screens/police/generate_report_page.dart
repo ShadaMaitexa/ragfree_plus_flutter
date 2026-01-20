@@ -107,13 +107,13 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Generate Report',
+                  'Complaint Log',
                   style: Theme.of(context).textTheme.headlineSmall
                       ?.copyWith(fontWeight: FontWeight.w700, color: color),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Create comprehensive reports on ragging complaints',
+                  'Create comprehensive logs of ragging complaints',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(
                       context,
@@ -172,7 +172,7 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
                       labelText: 'Priority',
                       border: OutlineInputBorder(),
                     ),
-                    items: ['All', 'High', 'Medium', 'Low'].map((priority) {
+                    items: ['All', 'Medium', 'Low'].map((priority) {
                       return DropdownMenuItem(
                           value: priority, child: Text(priority));
                     }).toList(),
@@ -249,7 +249,6 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
                 _buildStatRow('Pending', '$pending', Colors.orange),
                 _buildStatRow('In Progress', '$inProgress', Colors.blue),
                 _buildStatRow('Resolved', '$resolved', Colors.green),
-                _buildStatRow('High Priority', '$highPriority', Colors.red),
                 const SizedBox(height: 16),
                 const Divider(),
                 const SizedBox(height: 16),

@@ -387,6 +387,7 @@ class ComplaintService {
     required String forwardToRole,
     required String forwarderId,
     required String forwarderName,
+    String? description,
   }) async {
     try {
       await _firestore.collection('complaints').doc(complaintId).update({
@@ -394,6 +395,7 @@ class ComplaintService {
         'metadata.forwardedBy': forwarderId,
         'metadata.forwardedByName': forwarderName,
         'metadata.forwardedAt': Timestamp.now(),
+        'metadata.forwardDescription': description,
         'updatedAt': Timestamp.now(),
       });
     } catch (e) {

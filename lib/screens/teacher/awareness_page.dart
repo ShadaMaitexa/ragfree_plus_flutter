@@ -43,32 +43,40 @@ class _TeacherAwarenessPageState extends State<TeacherAwarenessPage>
     final color = Theme.of(context).colorScheme.primary;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        return FadeTransition(
-          opacity: _fadeAnimation,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: isDark
-                    ? [color.withOpacity(0.05), Colors.transparent]
-                    : [Colors.grey.shade50, Colors.white],
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: AnimatedBuilder(
+        animation: _animationController,
+        builder: (context, child) {
+          return FadeTransition(
+            opacity: _fadeAnimation,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [color.withOpacity(0.05), Colors.transparent]
+                      : [Colors.grey.shade50, Colors.white],
+                ),
+              ),
+              child: Column(
+                children: [
+                  _buildHeader(context, color),
+                  Expanded(
+                    child: _buildAwarenessContent(context),
+                  ),
+                ],
               ),
             ),
-            child: Column(
-              children: [
-                _buildHeader(context, color),
-                Expanded(
-                  child: _buildAwarenessContent(context),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddAwarenessDialog(context),
+        label: const Text('Post Awareness'),
+        icon: const Icon(Icons.add_moderator_rounded),
+      ),
     );
   }
 
@@ -245,6 +253,76 @@ class _TeacherAwarenessPageState extends State<TeacherAwarenessPage>
             Text(
               item.content,
               style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ),
+      ),
+    );
+  void _showAddAwarenessDialog(BuildContext context) {
+    final titleController = TextEditingController();
+    final subtitleController = TextEditingController();
+    final contentController = TextEditingController();
+    String selectedRole = 'student';
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('New Awareness Post'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(labelText: 'Title'),
+                ),
+                TextField(
+                  controller: subtitleController,
+                  decoration: const InputDecoration(labelText: 'Subtitle'),
+                ),
+                TextField(
+                  controller: contentController,
+                  decoration: const InputDecoration(labelText: 'Content'),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: selectedRole,
+                  decoration: const InputDecoration(labelText: 'Target Audience'),
+                  items: const [
+                    DropdownMenuItem(value: 'student', child: Text('Students')),
+                    DropdownMenuItem(value: 'parent', child: Text('Parents')),
+                    DropdownMenuItem(value: 'teacher', child: Text('Teachers')),
+                    DropdownMenuItem(value: 'all', child: Text('Everyone')),
+                  ],
+                  onChanged: (v) => setDialogState(() => selectedRole = v!),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                if (titleController.text.isEmpty || contentController.text.isEmpty) {
+                  return;
+                }
+                final newAwareness = AwarenessModel(
+                  id: '',
+                  title: titleController.text,
+                  subtitle: subtitleController.text,
+                  content: contentController.text,
+                  role: selectedRole,
+                  createdAt: DateTime.now(),
+                );
+                await _awarenessService.addAwareness(newAwareness);
+                if (context.mounted) Navigator.pop(context);
+              },
+              child: const Text('Post'),
             ),
           ],
         ),

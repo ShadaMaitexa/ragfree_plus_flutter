@@ -104,7 +104,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                           ?.copyWith(fontWeight: FontWeight.w700, color: color),
                     ),
                     Text(
-                      'Track and manage your reports',
+                      'Track and manage your complaints',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(
                           context,
@@ -132,7 +132,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                         Expanded(
                           child: _buildStatCard(
                             context,
-                            'Total Reports',
+                            'Total Complaints',
                             '${complaints.length}',
                             Icons.assignment,
                             Colors.blue,
@@ -229,7 +229,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
           ),
           const SizedBox(height: 8),
           Text(
-            'Report any incidents to get help and support',
+            'File a complaint to get help and support',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
             ),
@@ -239,7 +239,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
           FilledButton.icon(
             onPressed: () => _showAddComplaintDialog(context),
             icon: const Icon(Icons.add),
-            label: const Text('Report Incident'),
+            label: const Text('File Complaint'),
             style: FilledButton.styleFrom(
               backgroundColor: color,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),

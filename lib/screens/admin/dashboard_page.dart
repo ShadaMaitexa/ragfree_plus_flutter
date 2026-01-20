@@ -208,7 +208,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     final counsellors = counsellorsSnapshot.data ?? [];
                     
                     final stats = [
-                      {'label': 'Total Reports', 'value': '${complaints.length}', 'icon': Icons.assignment_rounded, 'color': Colors.blue},
+                      {'label': 'Total Complaints', 'value': '${complaints.length}', 'icon': Icons.assignment_rounded, 'color': Colors.blue},
                       {'label': 'Resolved', 'value': '${complaints.where((c) => c.status == 'Resolved').length}', 'icon': Icons.task_alt_rounded, 'color': Colors.green},
                       {'label': 'Action Required', 'value': '${complaints.where((c) => c.status == 'Pending').length}', 'icon': Icons.warning_amber_rounded, 'color': Colors.orange},
                       {'label': 'Total Students', 'value': '${students.length}', 'icon': Icons.people_alt_rounded, 'color': Colors.purple},
