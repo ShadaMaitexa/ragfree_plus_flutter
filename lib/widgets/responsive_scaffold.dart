@@ -56,9 +56,14 @@ class ResponsiveScaffold extends StatelessWidget {
                   ),
                 );
               },
-              child: KeyedSubtree(
-                key: ValueKey<int>(selectedIndex),
-                child: pages[selectedIndex],
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1600),
+                  child: KeyedSubtree(
+                    key: ValueKey<int>(selectedIndex),
+                    child: pages[selectedIndex],
+                  ),
+                ),
               ),
             ),
           ),

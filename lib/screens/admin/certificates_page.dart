@@ -19,18 +19,11 @@ class _AdminCertificatesPageState extends State<AdminCertificatesPage> {
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme.primary;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Certificate Management'),
-        actions: [
-          IconButton(
-            onPressed: () => _showIssueDialog(context),
-            icon: const Icon(Icons.add_circle),
-            tooltip: 'Issue New Certificate',
-          ),
-        ],
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
       ),
-      body: StreamBuilder<List<CertificateModel>>(
+      child: StreamBuilder<List<CertificateModel>>(
         stream: _certificateService.getCertificates(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -38,15 +31,39 @@ class _AdminCertificatesPageState extends State<AdminCertificatesPage> {
           }
           final certificates = snapshot.data ?? [];
 
-          return Container(
-            padding: const EdgeInsets.all(16),
+          return SingleChildScrollView(
+            padding: Responsive.getPadding(context),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSummaryCards(context, color, certificates),
-                const SizedBox(height: 24),
-                Expanded(
-                  child: _buildCertificateList(context, certificates),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Certificate Registry',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                    FilledButton.icon(
+                      onPressed: () => _showIssueDialog(context),
+                      icon: const Icon(Icons.add_circle, size: 20),
+                      label: const Text('Issue New'),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 24),
+                _buildSummaryCards(context, color, certificates),
+                const SizedBox(height: 32),
+                Text(
+                  'Recent Certificates',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildCertificateList(context, certificates),
               ],
             ),
           );
@@ -105,6 +122,8 @@ class _AdminCertificatesPageState extends State<AdminCertificatesPage> {
     }
 
     return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: items.length,
       itemBuilder: (context, index) {
         final cert = items[index];

@@ -21,60 +21,110 @@ class _StudentBookAppointmentPageState
 
   @override
   Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.primary;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Book Counseling Session'),
+        centerTitle: true,
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _chatService.getAvailableCounselors(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+      body: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              color.withOpacity(0.05),
+              Theme.of(context).colorScheme.surface,
+            ],
+          ),
+        ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: _chatService.getAvailableCounselors(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
 
-          final counselors = snapshot.data ?? [];
+                final counselors = snapshot.data ?? [];
 
-          if (counselors.isEmpty) {
-            return const Center(child: Text('No counselors availalbe'));
-          }
+                if (counselors.isEmpty) {
+                  return const Center(child: Text('No counselors availalbe'));
+                }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: counselors.length,
-            itemBuilder: (context, index) {
-              final counselor = counselors[index];
-              return Card(
-                elevation: 2,
-                margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(16),
-                  leading: CircleAvatar(
-                    radius: 28,
-                    child: Text(
-                      counselor['name'].substring(0, 1).toUpperCase(),
-                      style: const TextStyle(fontSize: 20),
-                    ),
-                  ),
-                  title: Text(
-                    counselor['name'],
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                  subtitle: Text(counselor['department'] ?? 'Counselor'),
-                  trailing: FilledButton(
-                    onPressed: () => _showBookingSheet(context, counselor),
-                    child: const Text('View Slots'),
-                  ),
-                ),
-              );
-            },
-          );
-        },
+                return ListView.builder(
+                  padding: Responsive.getPadding(context),
+                  itemCount: counselors.length,
+                  itemBuilder: (context, index) {
+                    final counselor = counselors[index];
+                    return AnimatedWidgets.slideIn(
+                      delay: Duration(milliseconds: index * 100),
+                      child: Card(
+                        elevation: 0,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(
+                            color: color.withOpacity(0.1),
+                          ),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(20),
+                          leading: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: color.withOpacity(0.2), width: 2),
+                            ),
+                            child: CircleAvatar(
+                              radius: 28,
+                              backgroundColor: color.withOpacity(0.1),
+                              child: Text(
+                                counselor['name'].substring(0, 1).toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: color,
+                                ),
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            counselor['name'],
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 18),
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              counselor['department'] ?? 'Counselor',
+                              style: TextStyle(color: Theme.of(context).hintColor),
+                            ),
+                          ),
+                          trailing: FilledButton.icon(
+                            onPressed: () => _showBookingSheet(context, counselor),
+                            icon: const Icon(Icons.calendar_month, size: 18),
+                            label: const Text('View Slots'),
+                            style: FilledButton.styleFrom(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ),
       ),
     );
   }

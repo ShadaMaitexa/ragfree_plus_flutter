@@ -56,25 +56,32 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                     : [Colors.grey.shade50, Colors.white],
               ),
             ),
-            child: Column(
-              children: [
-                StreamBuilder<List<Map<String, dynamic>>>(
-                  stream: _departmentService.getDepartments(),
-                  builder: (context, snapshot) {
-                    final departments = snapshot.data ?? [];
-                    return Column(
-                      children: [
-                        _buildHeader(context, color, departments),
-                        Expanded(
-                          child: departments.isEmpty
-                              ? _buildEmptyState(context, color)
-                              : _buildDepartmentsList(context, departments),
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: _departmentService.getDepartments(),
+              builder: (context, snapshot) {
+                final departments = snapshot.data ?? [];
+                
+                return SingleChildScrollView(
+                  padding: Responsive.getPadding(context),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(context, color, departments),
+                      const SizedBox(height: 32),
+                      Text(
+                        'Departments List',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
-                      ],
-                    );
-                  },
-                ),
-              ],
+                      ),
+                      const SizedBox(height: 16),
+                      departments.isEmpty
+                          ? _buildEmptyState(context, color)
+                          : _buildDepartmentsList(context, departments),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         );
@@ -128,36 +135,34 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
             ],
           ),
           const SizedBox(height: 20),
-          Row(
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: Responsive.isMobile(context) ? 2 : 3,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 1.5,
             children: [
-              Expanded(
-                child: _buildStatCard(
-                  context,
-                  'Total Departments',
-                  '${departments.length}',
-                  Icons.apartment,
-                  Colors.blue,
-                ),
+              _buildStatCard(
+                context,
+                'Total Departments',
+                '${departments.length}',
+                Icons.apartment,
+                Colors.blue,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  context,
-                  'Total Students',
-                  '${departments.fold(0, (sum, d) => sum + (int.tryParse(d['students']?.toString() ?? '0') ?? 0))}',
-                  Icons.people,
-                  Colors.green,
-                ),
+              _buildStatCard(
+                context,
+                'Total Students',
+                '${departments.fold(0, (sum, d) => sum + (int.tryParse(d['students']?.toString() ?? '0') ?? 0))}',
+                Icons.people,
+                Colors.green,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  context,
-                  'Total Staff',
-                  '${departments.fold(0, (sum, d) => sum + (int.tryParse(d['staff']?.toString() ?? '0') ?? 0))}',
-                  Icons.work,
-                  Colors.orange,
-                ),
+              _buildStatCard(
+                context,
+                'Total Staff',
+                '${departments.fold(0, (sum, d) => sum + (int.tryParse(d['staff']?.toString() ?? '0') ?? 0))}',
+                Icons.work,
+                Colors.orange,
               ),
             ],
           ),
@@ -248,7 +253,9 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
 
   Widget _buildDepartmentsList(BuildContext context, List<Map<String, dynamic>> departments) {
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
       itemCount: departments.length,
       itemBuilder: (context, index) {
         final department = departments[index];

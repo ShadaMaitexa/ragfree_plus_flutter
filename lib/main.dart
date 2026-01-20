@@ -408,7 +408,7 @@ class StudentDashboard extends StatelessWidget {
         }
       },
       child: ResponsiveScaffold(
-        title: 'Student Dashboard',
+        title: destinations[selectedIndex].label,
         selectedIndex: selectedIndex,
         onDestinationSelected: (i) => appState.setNavIndex(i),
         destinations: destinations,
@@ -450,7 +450,7 @@ class ParentDashboard extends StatelessWidget {
         }
       },
       child: ResponsiveScaffold(
-        title: 'Parent Dashboard',
+        title: destinations[selectedIndex].label,
         selectedIndex: selectedIndex,
         onDestinationSelected: (i) => appState.setNavIndex(i),
         destinations: destinations,
@@ -506,7 +506,7 @@ class AdminDashboard extends StatelessWidget {
         }
       },
       child: ResponsiveScaffold(
-        title: 'Admin Dashboard',
+        title: destinations[selectedIndex].label,
         selectedIndex: selectedIndex,
         onDestinationSelected: (i) => appState.setNavIndex(i),
         destinations: destinations,
@@ -693,7 +693,7 @@ class CounsellorDashboard extends StatelessWidget {
         }
       },
       child: ResponsiveScaffold(
-        title: 'Counsellor Dashboard',
+        title: destinations[selectedIndex].label,
         selectedIndex: selectedIndex,
         onDestinationSelected: (i) => appState.setNavIndex(i),
         destinations: destinations,
@@ -836,7 +836,7 @@ class WardenDashboard extends StatelessWidget {
         }
       },
       child: ResponsiveScaffold(
-        title: 'Warden Dashboard',
+        title: destinations[selectedIndex].label,
         selectedIndex: selectedIndex,
         onDestinationSelected: (i) => appState.setNavIndex(i),
         destinations: destinations,
@@ -1050,7 +1050,7 @@ class PoliceDashboard extends StatelessWidget {
         }
       },
       child: ResponsiveScaffold(
-        title: 'Police Dashboard',
+        title: destinations[selectedIndex].label,
         selectedIndex: selectedIndex,
         onDestinationSelected: (i) => appState.setNavIndex(i),
         destinations: destinations,
@@ -1191,7 +1191,7 @@ class TeacherDashboard extends StatelessWidget {
         }
       },
       child: ResponsiveScaffold(
-        title: 'Teacher Dashboard',
+        title: destinations[selectedIndex].label,
         selectedIndex: selectedIndex,
         onDestinationSelected: (i) => appState.setNavIndex(i),
         destinations: destinations,
