@@ -76,25 +76,8 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
               ),
             ),
           ),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () => _showAddComplaintDialog(context),
-            label: const Text('New Complaint'),
-            icon: const Icon(Icons.add_alert_outlined),
-          ),
         );
       },
-    );
-  }
-
-  void _showAddComplaintDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AddComplaintDialog(
-        isTeacher: true,
-        onComplaintAdded: () {
-          // Stream automatically updates
-        },
-      ),
     );
   }
 
