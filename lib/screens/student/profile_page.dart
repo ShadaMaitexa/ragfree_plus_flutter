@@ -5,6 +5,7 @@ import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
 import '../../models/chat_message_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../utils/responsive.dart';
 
 class StudentProfilePage extends StatefulWidget {
   const StudentProfilePage({super.key});
@@ -23,7 +24,6 @@ class _StudentProfilePageState extends State<StudentProfilePage>
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _departmentController = TextEditingController();
-  final TextEditingController _studentIdController = TextEditingController();
   final TextEditingController _studentIdController = TextEditingController();
   final TextEditingController _yearController = TextEditingController();
   final TextEditingController _institutionController = TextEditingController();
@@ -765,7 +765,6 @@ class _StudentProfilePageState extends State<StudentProfilePage>
         'year': _yearController.text.trim(),
         'gender': _selectedGender,
         'bloodGroup': _selectedBloodGroup,
-        'emergencyContact': _selectedEmergencyContact,
         'emergencyContact': _selectedEmergencyContact,
         'institution': _institutionController.text.trim(),
         'institutionNormalized': _institutionController.text.trim().replaceAll(RegExp(r'\s+'), '').toLowerCase(),

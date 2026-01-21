@@ -459,6 +459,9 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
         throw Exception('User not logged in');
       }
 
+      String? studentId;
+      String? studentName;
+
       if (widget.isParent) {
         studentId = _selectedChildId;
         studentName = _selectedChildName;

@@ -258,6 +258,8 @@ class _TeacherAwarenessPageState extends State<TeacherAwarenessPage>
         ),
       ),
     );
+  }
+
   void _showAddAwarenessDialog(BuildContext context) {
     final titleController = TextEditingController();
     final subtitleController = TextEditingController();

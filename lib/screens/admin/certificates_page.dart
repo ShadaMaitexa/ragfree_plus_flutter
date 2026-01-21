@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../services/certificate_service.dart';
 import '../../services/pdf_service.dart';
 import '../../models/certificate_model.dart';
+import '../../utils/responsive.dart';
 
 class AdminCertificatesPage extends StatefulWidget {
   const AdminCertificatesPage({super.key});

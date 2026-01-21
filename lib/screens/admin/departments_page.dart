@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/department_service.dart';
+import '../../utils/responsive.dart';
 
 class AdminDepartmentsPage extends StatefulWidget {
   const AdminDepartmentsPage({super.key});

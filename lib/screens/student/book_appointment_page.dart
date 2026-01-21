@@ -5,6 +5,8 @@ import '../../services/app_state.dart';
 import '../../services/appointment_service.dart';
 import '../../services/chat_service.dart'; // To get counselors
 import '../../models/appointment_slot_model.dart';
+import '../../utils/responsive.dart';
+import '../../widgets/animated_widgets.dart';
 
 class StudentBookAppointmentPage extends StatefulWidget {
   const StudentBookAppointmentPage({super.key});
@@ -65,6 +67,7 @@ class _StudentBookAppointmentPageState
                   itemBuilder: (context, index) {
                     final counselor = counselors[index];
                     return AnimatedWidgets.slideIn(
+                      beginOffset: const Offset(0, 0.1),
                       delay: Duration(milliseconds: index * 100),
                       child: Card(
                         elevation: 0,
