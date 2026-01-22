@@ -52,9 +52,18 @@ class ChatService {
       // Create new conversation document reference to get ID
       final docRef = _firestore.collection('chat_conversations').doc();
       
-      final updatedConversation = conversation.copyWith(id: docRef.id);
+      final conversation = ChatConversationModel(
+        id: docRef.id,
+        studentId: studentId,
+        studentName: studentName,
+        counselorId: counselorId,
+        counselorName: counselorName,
+        complaintId: complaintId,
+        complaintTitle: complaintTitle,
+        createdAt: DateTime.now(),
+      );
 
-      await docRef.set(updatedConversation.toMap());
+      await docRef.set(conversation.toMap());
 
       return docRef.id;
     } catch (e) {

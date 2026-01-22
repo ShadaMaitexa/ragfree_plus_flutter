@@ -36,6 +36,7 @@ class FeedbackModel {
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'userId': userId,
       'userName': userName,
       'userRole': userRole,
@@ -44,5 +45,27 @@ class FeedbackModel {
       'createdAt': Timestamp.fromDate(createdAt),
       'category': category,
     };
+  }
+
+  FeedbackModel copyWith({
+    String? id,
+    String? userId,
+    String? userName,
+    String? userRole,
+    String? content,
+    double? rating,
+    DateTime? createdAt,
+    String? category,
+  }) {
+    return FeedbackModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      userName: userName ?? this.userName,
+      userRole: userRole ?? this.userRole,
+      content: content ?? this.content,
+      rating: rating ?? this.rating,
+      createdAt: createdAt ?? this.createdAt,
+      category: category ?? this.category,
+    );
   }
 }

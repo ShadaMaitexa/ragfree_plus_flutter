@@ -42,6 +42,7 @@ class AwarenessModel {
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'title': title,
       'subtitle': subtitle,
       'content': content,

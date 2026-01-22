@@ -54,4 +54,30 @@ class AppointmentSlotModel {
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
+
+  AppointmentSlotModel copyWith({
+    String? id,
+    String? counselorId,
+    String? counselorName,
+    DateTime? date,
+    String? startTime,
+    String? endTime,
+    String? status,
+    String? studentId,
+    String? studentName,
+    DateTime? createdAt,
+  }) {
+    return AppointmentSlotModel(
+      id: id ?? this.id,
+      counselorId: counselorId ?? this.counselorId,
+      counselorName: counselorName ?? this.counselorName,
+      date: date ?? this.date,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      status: status ?? this.status,
+      studentId: studentId ?? this.studentId,
+      studentName: studentName ?? this.studentName,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }

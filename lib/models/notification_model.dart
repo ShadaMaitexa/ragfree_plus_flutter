@@ -50,5 +50,29 @@ class NotificationModel {
       'relatedType': relatedType,
     };
   }
+
+  NotificationModel copyWith({
+    String? id,
+    String? userId,
+    String? title,
+    String? message,
+    String? type,
+    DateTime? createdAt,
+    bool? isRead,
+    String? relatedId,
+    String? relatedType,
+  }) {
+    return NotificationModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      title: title ?? this.title,
+      message: message ?? this.message,
+      type: type ?? this.type,
+      createdAt: createdAt ?? this.createdAt,
+      isRead: isRead ?? this.isRead,
+      relatedId: relatedId ?? this.relatedId,
+      relatedType: relatedType ?? this.relatedType,
+    );
+  }
 }
 

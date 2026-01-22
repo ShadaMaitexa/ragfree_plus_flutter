@@ -163,6 +163,42 @@ class AnimatedWidgets {
       curve: curve,
     );
   }
+
+  // Fade Up Animation
+  static Widget fadeUp({
+    required Widget child,
+    Duration delay = Duration.zero,
+    Duration duration = const Duration(milliseconds: 500),
+  }) {
+    return AnimatedFadeIn(
+      delay: delay,
+      duration: duration,
+      child: AnimatedSlideIn(
+        beginOffset: const Offset(0, 0.2),
+        delay: delay,
+        duration: duration,
+        child: child,
+      ),
+    );
+  }
+
+  // Fade Down Animation
+  static Widget fadeDown({
+    required Widget child,
+    Duration delay = Duration.zero,
+    Duration duration = const Duration(milliseconds: 500),
+  }) {
+    return AnimatedFadeIn(
+      delay: delay,
+      duration: duration,
+      child: AnimatedSlideIn(
+        beginOffset: const Offset(0, -0.2),
+        delay: delay,
+        duration: duration,
+        child: child,
+      ),
+    );
+  }
 }
 
 // Implementation Classes

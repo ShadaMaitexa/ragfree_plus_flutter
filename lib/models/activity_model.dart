@@ -43,8 +43,29 @@ class ActivityModel {
       'description': description,
       'timestamp': Timestamp.fromDate(timestamp),
       'relatedId': relatedId,
-      'metadata': metadata,
     };
+  }
+
+  ActivityModel copyWith({
+    String? id,
+    String? userId,
+    String? type,
+    String? title,
+    String? description,
+    DateTime? timestamp,
+    String? relatedId,
+    Map<String, dynamic>? metadata,
+  }) {
+    return ActivityModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      type: type ?? this.type,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      timestamp: timestamp ?? this.timestamp,
+      relatedId: relatedId ?? this.relatedId,
+      metadata: metadata ?? this.metadata,
+    );
   }
 }
 

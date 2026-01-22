@@ -50,6 +50,30 @@ class ChatMessageModel {
       'messageType': messageType,
     };
   }
+
+  ChatMessageModel copyWith({
+    String? id,
+    String? chatId,
+    String? senderId,
+    String? senderName,
+    String? senderRole,
+    String? message,
+    DateTime? timestamp,
+    bool? isRead,
+    String? messageType,
+  }) {
+    return ChatMessageModel(
+      id: id ?? this.id,
+      chatId: chatId ?? this.chatId,
+      senderId: senderId ?? this.senderId,
+      senderName: senderName ?? this.senderName,
+      senderRole: senderRole ?? this.senderRole,
+      message: message ?? this.message,
+      timestamp: timestamp ?? this.timestamp,
+      isRead: isRead ?? this.isRead,
+      messageType: messageType ?? this.messageType,
+    );
+  }
 }
 
 class ChatConversationModel {
@@ -112,6 +136,34 @@ class ChatConversationModel {
       'lastMessage': lastMessage,
       'unreadCount': unreadCount,
     };
+  }
+
+  ChatConversationModel copyWith({
+    String? id,
+    String? studentId,
+    String? studentName,
+    String? counselorId,
+    String? counselorName,
+    String? complaintId,
+    String? complaintTitle,
+    DateTime? createdAt,
+    DateTime? lastMessageAt,
+    String? lastMessage,
+    int? unreadCount,
+  }) {
+    return ChatConversationModel(
+      id: id ?? this.id,
+      studentId: studentId ?? this.studentId,
+      studentName: studentName ?? this.studentName,
+      counselorId: counselorId ?? this.counselorId,
+      counselorName: counselorName ?? this.counselorName,
+      complaintId: complaintId ?? this.complaintId,
+      complaintTitle: complaintTitle ?? this.complaintTitle,
+      createdAt: createdAt ?? this.createdAt,
+      lastMessageAt: lastMessageAt ?? this.lastMessageAt,
+      lastMessage: lastMessage ?? this.lastMessage,
+      unreadCount: unreadCount ?? this.unreadCount,
+    );
   }
 }
 

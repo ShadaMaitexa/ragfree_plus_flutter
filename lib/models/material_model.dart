@@ -34,6 +34,7 @@ class MaterialModel {
 
   Map<String, dynamic> toFirestore() {
     return {
+      'id': id,
       'title': title,
       'category': category,
       'type': type,
@@ -41,5 +42,25 @@ class MaterialModel {
       'size': size,
       'updatedAt': Timestamp.fromDate(updatedAt),
     };
+  }
+
+  MaterialModel copyWith({
+    String? id,
+    String? title,
+    String? category,
+    String? type,
+    String? url,
+    String? size,
+    DateTime? updatedAt,
+  }) {
+    return MaterialModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      category: category ?? this.category,
+      type: type ?? this.type,
+      url: url ?? this.url,
+      size: size ?? this.size,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 }

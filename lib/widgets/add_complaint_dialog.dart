@@ -11,6 +11,7 @@ import 'package:ragfree_plus_flutter/models/complaint_model.dart';
 import 'package:ragfree_plus_flutter/utils/responsive.dart';
 import 'package:ragfree_plus_flutter/widgets/animated_widgets.dart';
 import 'package:ragfree_plus_flutter/services/parent_student_service.dart';
+import 'package:ragfree_plus_flutter/models/parent_student_link_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AddComplaintDialog extends StatefulWidget {
@@ -145,17 +146,19 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                             border: OutlineInputBorder(),
                             hintText: 'Choose a child',
                           ),
-                          items: links.map((link) {
-                            return DropdownMenuItem(
+                          items: links.map<DropdownMenuItem<String>>((link) {
+                            return DropdownMenuItem<String>(
                               value: link.studentId,
                               child: Text(link.studentName),
                             );
                           }).toList(),
                           onChanged: (value) {
-                            setState(() {
-                              _selectedChildId = value;
-                              _selectedChildName = links.firstWhere((l) => l.studentId == value).studentName;
-                            });
+                            if (value != null) {
+                              setState(() {
+                                _selectedChildId = value;
+                                _selectedChildName = links.firstWhere((l) => l.studentId == value).studentName;
+                              });
+                            }
                           },
                           validator: (value) {
                             if (!_isAnonymous && value == null) return 'Please select a child';

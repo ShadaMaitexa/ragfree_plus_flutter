@@ -28,10 +28,27 @@ class CertificateModel {
 
   Map<String, dynamic> toFirestore() {
     return {
+      'id': id,
       'studentName': studentName,
       'course': course,
       'issueDate': Timestamp.fromDate(issueDate),
       'status': status,
     };
+  }
+
+  CertificateModel copyWith({
+    String? id,
+    String? studentName,
+    String? course,
+    DateTime? issueDate,
+    String? status,
+  }) {
+    return CertificateModel(
+      id: id ?? this.id,
+      studentName: studentName ?? this.studentName,
+      course: course ?? this.course,
+      issueDate: issueDate ?? this.issueDate,
+      status: status ?? this.status,
+    );
   }
 }
