@@ -74,17 +74,17 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
               ),
               const SizedBox(height: 32),
               AnimatedWidgets.fadeUp(
-                delay: 200,
+                delay: const Duration(milliseconds: 200),
                 child: _buildStatsGrid(context, color),
               ),
               const SizedBox(height: 32),
               AnimatedWidgets.fadeUp(
-                delay: 400,
+                delay: const Duration(milliseconds: 400),
                 child: _buildRecentActivity(context, user?.uid ?? ''),
               ),
               const SizedBox(height: 32),
               AnimatedWidgets.fadeUp(
-                delay: 600,
+                delay: const Duration(milliseconds: 600),
                 child: _buildNotifications(context, user?.uid ?? ''),
               ),
             ],
