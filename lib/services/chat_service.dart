@@ -49,21 +49,12 @@ class ChatService {
         }
       }
 
-      // Create new conversation
-      final conversation = ChatConversationModel(
-        id: '',
-        studentId: studentId,
-        studentName: studentName,
-        counselorId: counselorId,
-        counselorName: counselorName,
-        complaintId: complaintId,
-        complaintTitle: complaintTitle,
-        createdAt: DateTime.now(),
-      );
+      // Create new conversation document reference to get ID
+      final docRef = _firestore.collection('chat_conversations').doc();
+      
+      final updatedConversation = conversation.copyWith(id: docRef.id);
 
-      final docRef = await _firestore
-          .collection('chat_conversations')
-          .add(conversation.toMap());
+      await docRef.set(updatedConversation.toMap());
 
       return docRef.id;
     } catch (e) {
@@ -90,11 +81,15 @@ class ChatService {
         timestamp: DateTime.now(),
       );
 
-      await _firestore
+      final docRef = _firestore
           .collection('chat_conversations')
           .doc(chatId)
           .collection('messages')
-          .add(messageModel.toMap());
+          .doc();
+
+      final updatedMessage = messageModel.copyWith(id: docRef.id);
+
+      await docRef.set(updatedMessage.toMap());
 
       // Update conversation last message
       await _firestore.collection('chat_conversations').doc(chatId).update({

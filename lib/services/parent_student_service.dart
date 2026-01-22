@@ -52,11 +52,13 @@ class ParentStudentService {
         linkedAt: DateTime.now(),
       );
 
-      final docRef = await _firestore
-          .collection('parent_student_links')
-          .add(link.toMap());
+      // Create link document reference to get ID
+      final docRef = _firestore.collection('parent_student_links').doc();
+      final updatedLink = link.copyWith(id: docRef.id);
 
-      return link.copyWith(id: docRef.id);
+      await docRef.set(updatedLink.toMap());
+
+      return updatedLink;
     } catch (e) {
       throw Exception('Failed to link student: ${e.toString()}');
     }

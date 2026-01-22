@@ -51,7 +51,9 @@ class ActivityService {
           description = complaint.title;
       }
 
-      await _firestore.collection('activities').add({
+      final docRef = _firestore.collection('activities').doc();
+      await docRef.set({
+        'id': docRef.id,
         'userId': userId,
         'type': 'complaint',
         'title': title,
@@ -76,7 +78,9 @@ class ActivityService {
     required String senderName,
   }) async {
     try {
-      await _firestore.collection('activities').add({
+      final docRef = _firestore.collection('activities').doc();
+      await docRef.set({
+        'id': docRef.id,
         'userId': userId,
         'type': 'chat',
         'title': 'New message from $senderName',
@@ -100,7 +104,9 @@ class ActivityService {
     required String description,
   }) async {
     try {
-      await _firestore.collection('activities').add({
+      final docRef = _firestore.collection('activities').doc();
+      await docRef.set({
+        'id': docRef.id,
         'userId': userId,
         'type': 'system',
         'title': title,
@@ -119,7 +125,9 @@ class ActivityService {
     String? message,
   }) async {
     try {
-      await _firestore.collection('activities').add({
+      final docRef = _firestore.collection('activities').doc();
+      await docRef.set({
+        'id': docRef.id,
         'userId': userId,
         'type': 'system', // or 'emergency' if we add it
         'title': '🚨 EMERGENCY SOS TRIGGERED',

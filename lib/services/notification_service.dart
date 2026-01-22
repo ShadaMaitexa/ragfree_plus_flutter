@@ -64,7 +64,9 @@ class NotificationService {
     bool sendEmail = true,
   }) async {
     try {
-      await _firestore.collection('notifications').add({
+      final docRef = _firestore.collection('notifications').doc();
+      await docRef.set({
+        'id': docRef.id,
         'userId': userId,
         'title': title,
         'message': message,
@@ -120,6 +122,7 @@ class NotificationService {
       for (var userId in userIds) {
         final docRef = _firestore.collection('notifications').doc();
         batch.set(docRef, {
+          'id': docRef.id,
           'userId': userId,
           'title': title,
           'message': message,

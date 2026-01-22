@@ -28,6 +28,7 @@ class ComplaintService {
              complaintToSubmit = complaintToSubmit.copyWith(
                institution: complaintToSubmit.institution ?? userData['institution'],
                institutionNormalized: complaintToSubmit.institutionNormalized ?? userData['institutionNormalized'],
+               studentDepartment: complaintToSubmit.studentDepartment ?? userData['department'],
                reporterId: complaintToSubmit.reporterId ?? user.uid,
                reporterName: complaintToSubmit.reporterName ?? userData['name'],
                reporterRole: complaintToSubmit.reporterRole ?? userData['role'],
@@ -61,15 +62,12 @@ class ComplaintService {
 
       // Save to Firestore - always use Firestore's auto-generated ID for consistency
       final docRef = _firestore.collection('complaints').doc();
-      
-      // Remove id from map before saving (Firestore manages the document ID)
-      final complaintMap = complaintWithMedia.toMap();
-      complaintMap.remove('id');
-      
-      await docRef.set(complaintMap);
-
       final complaintId = docRef.id;
+      
+      // Update complaint with ID and media URLs
       final finalComplaint = complaintWithMedia.copyWith(id: complaintId);
+      
+      await docRef.set(finalComplaint.toMap());
 
       // Send email notification to student (if not anonymous)
       if (complaintToSubmit.studentId != null) {
@@ -167,6 +165,19 @@ class ComplaintService {
     return _firestore
         .collection('complaints')
         .where('institutionNormalized', isEqualTo: institutionNormalized)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
+            .toList());
+  }
+
+  // Get complaints by Department (for Teachers)
+  Stream<List<ComplaintModel>> getComplaintsByDepartment(String institutionNormalized, String department) {
+    if (institutionNormalized.isEmpty || department.isEmpty) return Stream.value([]);
+    return _firestore
+        .collection('complaints')
+        .where('institutionNormalized', isEqualTo: institutionNormalized)
+        .where('studentDepartment', isEqualTo: department)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))

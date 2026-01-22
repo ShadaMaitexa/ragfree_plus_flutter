@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
-import '../services/complaint_service.dart';
-import '../services/app_state.dart';
-import '../models/complaint_model.dart';
-import '../models/parent_student_link_model.dart';
-import '../services/parent_student_service.dart';
+import 'package:ragfree_plus_flutter/services/app_state.dart';
+import 'package:ragfree_plus_flutter/services/complaint_service.dart';
+import 'package:ragfree_plus_flutter/services/notification_service.dart';
+import 'package:ragfree_plus_flutter/services/activity_service.dart';
+import 'package:ragfree_plus_flutter/models/activity_model.dart';
+import 'package:ragfree_plus_flutter/models/complaint_model.dart';
+import 'package:ragfree_plus_flutter/utils/responsive.dart';
+import 'package:ragfree_plus_flutter/widgets/animated_widgets.dart';
+import 'package:ragfree_plus_flutter/services/parent_student_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AddComplaintDialog extends StatefulWidget {
   final VoidCallback onComplaintAdded;
@@ -459,15 +464,15 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
         throw Exception('User not logged in');
       }
 
-      String? studentId;
-      String? studentName;
+      String? sId;
+      String? sName;
 
       if (widget.isParent) {
-        studentId = _selectedChildId;
-        studentName = _selectedChildName;
+        sId = _selectedChildId;
+        sName = _selectedChildName;
       } else {
-        studentId = _isAnonymous ? null : user.uid;
-        studentName = _isAnonymous ? null : user.name;
+        sId = _isAnonymous ? null : user.uid;
+        sName = _isAnonymous ? null : user.name;
       }
 
       if (widget.editComplaint != null) {
@@ -482,8 +487,8 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
               ? null
               : _locationController.text.trim(),
           isAnonymous: _isAnonymous,
-          studentId: studentId,
-          studentName: studentName,
+          studentId: sId,
+          studentName: sName,
         );
 
         List<File> allMediaFiles = [];
@@ -499,8 +504,8 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
         // Create new
         final complaint = ComplaintModel(
           id: '',
-          studentId: studentId,
-          studentName: studentName,
+          studentId: sId,
+          studentName: sName,
           title: _titleController.text.trim(),
           description: _descriptionController.text.trim(),
           category: _selectedCategory,

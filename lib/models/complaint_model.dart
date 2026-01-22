@@ -21,6 +21,7 @@ class ComplaintModel {
   final String? reporterId;
   final String? reporterName;
   final String? reporterRole;
+  final String? studentDepartment;
   final Map<String, dynamic>? metadata; // Additional data
   final bool isAnonymous;
 
@@ -28,6 +29,7 @@ class ComplaintModel {
     required this.id,
     this.studentId,
     this.studentName,
+    this.studentDepartment,
     required this.title,
     required this.description,
     required this.category,
@@ -54,6 +56,7 @@ class ComplaintModel {
       id: data['id'] ?? '',
       studentId: data['studentId'],
       studentName: data['studentName'],
+      studentDepartment: data['studentDepartment'],
       title: data['title'] ?? '',
       description: data['description'] ?? '',
       category: data['category'] ?? '',
@@ -83,6 +86,7 @@ class ComplaintModel {
       'id': id,
       'studentId': studentId,
       'studentName': studentName,
+      'studentDepartment': studentDepartment,
       'title': title,
       'description': description,
       'category': category,
@@ -109,6 +113,7 @@ class ComplaintModel {
     String? id,
     String? studentId,
     String? studentName,
+    String? studentDepartment,
     String? title,
     String? description,
     String? category,
@@ -133,6 +138,7 @@ class ComplaintModel {
       id: id ?? this.id,
       studentId: studentId ?? this.studentId,
       studentName: studentName ?? this.studentName,
+      studentDepartment: studentDepartment ?? this.studentDepartment,
       title: title ?? this.title,
       description: description ?? this.description,
       category: category ?? this.category,

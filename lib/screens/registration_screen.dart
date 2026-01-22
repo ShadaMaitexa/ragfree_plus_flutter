@@ -359,6 +359,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             labelText: 'Department',
                             prefixIcon: Icon(Icons.school_outlined),
                           ),
+                          validator: (v) => (v == null || v.isEmpty) ? 'Department required' : null,
                         ),
                       ),
                     ],

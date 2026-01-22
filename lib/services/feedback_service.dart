@@ -7,7 +7,9 @@ class FeedbackService {
   // Submit feedback
   Future<void> submitFeedback(FeedbackModel feedback) async {
     try {
-      await _firestore.collection('feedback').add(feedback.toMap());
+      final docRef = _firestore.collection('feedback').doc();
+      final updatedFeedback = feedback.copyWith(id: docRef.id);
+      await docRef.set(updatedFeedback.toMap());
     } catch (e) {
       throw Exception('Failed to submit feedback: ${e.toString()}');
     }

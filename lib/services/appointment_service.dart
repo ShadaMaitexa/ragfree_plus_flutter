@@ -8,7 +8,9 @@ class AppointmentService {
   // Create a new slot
   Future<void> createSlot(AppointmentSlotModel slot) async {
     try {
-      await _firestore.collection('appointment_slots').add(slot.toMap());
+      final docRef = _firestore.collection('appointment_slots').doc();
+      final updatedSlot = slot.copyWith(id: docRef.id);
+      await docRef.set(updatedSlot.toMap());
     } catch (e) {
       throw Exception('Failed to create slot: ${e.toString()}');
     }

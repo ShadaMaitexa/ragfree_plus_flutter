@@ -28,7 +28,9 @@ class AwarenessService {
   }
 
   Future<void> addAwareness(AwarenessModel model) async {
-    await _firestore.collection('awareness').add(model.toMap());
+    final docRef = _firestore.collection('awareness').doc();
+    final updatedModel = model.copyWith(id: docRef.id);
+    await docRef.set(updatedModel.toMap());
   }
 
   Future<void> updateAwareness(AwarenessModel model) async {

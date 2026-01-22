@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../services/complaint_service.dart';
-import '../../services/app_state.dart';
-import '../../services/chat_service.dart';
-import '../../models/complaint_model.dart';
-import '../../models/chat_message_model.dart';
-import 'chat_page.dart';
+import 'package:ragfree_plus_flutter/services/complaint_service.dart';
+import 'package:ragfree_plus_flutter/services/app_state.dart';
+import 'package:ragfree_plus_flutter/services/chat_service.dart';
+import 'package:ragfree_plus_flutter/models/complaint_model.dart';
+import 'package:ragfree_plus_flutter/models/chat_message_model.dart';
+import 'package:ragfree_plus_flutter/screens/teacher/chat_page.dart';
 import 'package:intl/intl.dart';
-import '../../widgets/add_complaint_dialog.dart';
+import 'package:ragfree_plus_flutter/widgets/add_complaint_dialog.dart';
 
 class TeacherComplaintsPage extends StatefulWidget {
   const TeacherComplaintsPage({super.key});
@@ -36,6 +36,16 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
     );
 
     _animationController.forward();
+    
+    // Set default filter to 'My Department' if teacher has a department
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = Provider.of<AppState>(context, listen: false).currentUser;
+      if (user?.department != null && user!.department!.isNotEmpty) {
+        setState(() {
+          _selectedFilter = 'My Department';
+        });
+      }
+    });
   }
 
   @override
@@ -118,7 +128,18 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
   }
 
   Widget _buildFilterChips(BuildContext context) {
-    final filters = ['All', 'Pending', 'Verified', 'Accepted', 'In Progress', 'Resolved'];
+    final user = Provider.of<AppState>(context).currentUser;
+    final hasDepartment = user?.department != null && user!.department!.isNotEmpty;
+    
+    final filters = [
+      'All',
+      if (hasDepartment) 'My Department',
+      'Pending',
+      'Verified',
+      'Accepted',
+      'In Progress',
+      'Resolved'
+    ];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       height: 50,
@@ -146,9 +167,12 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
   Widget _buildComplaintsList(BuildContext context) {
     final user = Provider.of<AppState>(context).currentUser;
     final institutionNormalized = user?.institutionNormalized ?? '';
+    final department = user?.department ?? '';
 
     return StreamBuilder<List<ComplaintModel>>(
-      stream: _complaintService.getComplaintsByInstitution(institutionNormalized),
+      stream: _selectedFilter == 'My Department'
+          ? _complaintService.getComplaintsByDepartment(institutionNormalized, department)
+          : _complaintService.getComplaintsByInstitution(institutionNormalized),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -157,7 +181,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
           return Center(child: Text('Error: ${snapshot.error}'));
         }
         final complaints = snapshot.data ?? [];
-        final filteredComplaints = _selectedFilter == 'All'
+        final filteredComplaints = (_selectedFilter == 'All' || _selectedFilter == 'My Department')
             ? complaints
             : complaints.where((c) {
                 return c.status == _selectedFilter;
@@ -171,12 +195,16 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
                 Icon(Icons.assignment_outlined, size: 64, color: Colors.grey),
                 const SizedBox(height: 16),
                 Text(
-                  'No Complaints',
+                  _selectedFilter == 'My Department' 
+                      ? 'No Department Complaints' 
+                      : 'No Complaints',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'No complaints found for the selected filter',
+                  _selectedFilter == 'My Department'
+                      ? 'Try switching to "All" to see institution-wide reports'
+                      : 'No complaints found for the selected filter',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],

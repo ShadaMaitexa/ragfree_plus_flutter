@@ -14,7 +14,11 @@ class DepartmentService {
 
   Future<void> addDepartment(Map<String, dynamic> department) async {
     try {
-      await _firestore.collection('departments').add(department);
+      final docRef = _firestore.collection('departments').doc();
+      await docRef.set({
+        ...department,
+        'id': docRef.id,
+      });
     } catch (e) {
       throw Exception('Failed to add department: $e');
     }

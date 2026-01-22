@@ -15,7 +15,9 @@ class CertificateService {
   }
 
   Future<void> issueCertificate(CertificateModel cert) async {
-    await _firestore.collection('certificates').add(cert.toFirestore());
+    final docRef = _firestore.collection('certificates').doc();
+    final updatedCert = cert.copyWith(id: docRef.id);
+    await docRef.set(updatedCert.toFirestore());
   }
 
   Future<void> updateStatus(String id, String status) async {

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../services/app_state.dart';
-import '../../services/complaint_service.dart';
-import '../../services/notification_service.dart';
-import '../../services/activity_service.dart';
-import '../../models/activity_model.dart';
-import '../../utils/responsive.dart';
-import '../../widgets/animated_widgets.dart';
+import 'package:ragfree_plus_flutter/services/app_state.dart';
+import 'package:ragfree_plus_flutter/services/complaint_service.dart';
+import 'package:ragfree_plus_flutter/services/notification_service.dart';
+import 'package:ragfree_plus_flutter/services/activity_service.dart';
+import 'package:ragfree_plus_flutter/models/activity_model.dart';
+import 'package:ragfree_plus_flutter/models/complaint_model.dart';
+import 'package:ragfree_plus_flutter/utils/responsive.dart';
+import 'package:ragfree_plus_flutter/widgets/animated_widgets.dart';
 
 class TeacherDashboardPage extends StatefulWidget {
   const TeacherDashboardPage({super.key});
@@ -22,111 +23,72 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final user = Provider.of<AppState>(context).currentUser;
+    final color = Theme.of(context).primaryColor;
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [color.withOpacity(0.08), Colors.transparent, color.withOpacity(0.04)]
-              : [Colors.white, color.withOpacity(0.02), color.withOpacity(0.05)],
-        ),
-      ),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: Responsive.getPadding(context),
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.isMobile(context) ? 16 : 32,
+            vertical: 24,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AnimatedWidgets.slideIn(
-                beginOffset: const Offset(0, 0.2),
-                child: _buildWelcomeCard(context, color),
+              AnimatedWidgets.fadeDown(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Welcome back,',
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        Text(
+                          user?.name ?? 'Teacher',
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                      ],
+                    ),
+                    CircleAvatar(
+                      radius: 25,
+                      backgroundColor: color.withOpacity(0.1),
+                      child: Text(
+                        (user?.name ?? 'T').substring(0, 1).toUpperCase(),
+                        style: TextStyle(
+                          color: color,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 32),
-              AnimatedWidgets.slideIn(
-                beginOffset: const Offset(0, 0.2),
-                delay: const Duration(milliseconds: 100),
+              AnimatedWidgets.fadeUp(
+                delay: 200,
                 child: _buildStatsGrid(context, color),
               ),
               const SizedBox(height: 32),
-              AnimatedWidgets.slideIn(
-                beginOffset: const Offset(0, 0.2),
-                delay: const Duration(milliseconds: 200),
-                child: _buildQuickActions(context, color),
+              AnimatedWidgets.fadeUp(
+                delay: 400,
+                child: _buildRecentActivity(context, user?.uid ?? ''),
               ),
               const SizedBox(height: 32),
-              AnimatedWidgets.slideIn(
-                beginOffset: const Offset(0, 0.2),
-                delay: const Duration(milliseconds: 300),
-                child: _buildRecentNotifications(context),
-              ),
-              const SizedBox(height: 32),
-              AnimatedWidgets.slideIn(
-                beginOffset: const Offset(0, 0.2),
-                delay: const Duration(milliseconds: 400),
-                child: _buildRecentActivity(context),
+              AnimatedWidgets.fadeUp(
+                delay: 600,
+                child: _buildNotifications(context, user?.uid ?? ''),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWelcomeCard(BuildContext context, Color color) {
-    return AnimatedWidgets.hoverCard(
-      elevation: 8,
-      borderRadius: BorderRadius.circular(24),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [color, color.withOpacity(0.85)],
-          ),
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(16)),
-                  child: const Icon(Icons.school_rounded, color: Colors.white, size: 32),
-                ),
-                const SizedBox(width: 24),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Campus Educator', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w500)),
-                      Consumer<AppState>(
-                        builder: (context, appState, _) {
-                          final userName = appState.currentUser?.name ?? 'Teacher';
-                          return Text(
-                            userName,
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Supporting student wellbeing and maintaining campus safety. Monitor active reports and engage with students.',
-              style: TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
-            ),
-          ],
         ),
       ),
     );
@@ -135,309 +97,199 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
   Widget _buildStatsGrid(BuildContext context, Color color) {
     final user = Provider.of<AppState>(context).currentUser;
     final institutionNormalized = user?.institutionNormalized ?? '';
+    final department = user?.department ?? '';
 
-    return StreamBuilder<List<dynamic>>(
-      stream: _complaintService.getComplaintsByInstitution(institutionNormalized).map((c) => [
-            c.length,
-            c.where((x) => x.status == 'Resolved').length,
-            c.where((x) => x.status != 'Resolved').length,
-          ]),
+    return StreamBuilder<List<ComplaintModel>>(
+      stream: (department.isNotEmpty) 
+          ? _complaintService.getComplaintsByDepartment(institutionNormalized, department)
+          : _complaintService.getComplaintsByInstitution(institutionNormalized),
       builder: (context, snapshot) {
+        final complaints = snapshot.data ?? [];
+        final total = complaints.length;
+        final resolved = complaints.where((x) => x.status == 'Resolved').length;
+        final active = total - resolved;
+
         final stats = [
-          {'label': 'Case Reports', 'value': '${snapshot.data?[0] ?? 0}', 'icon': Icons.assignment_rounded, 'color': Colors.blue},
-          {'label': 'Resolved', 'value': '${snapshot.data?[1] ?? 0}', 'icon': Icons.task_alt_rounded, 'color': Colors.green},
-          {'label': 'Active Cases', 'value': '${snapshot.data?[2] ?? 0}', 'icon': Icons.warning_amber_rounded, 'color': Colors.orange},
+          {'label': department.isNotEmpty ? '$department Cases' : 'Case Reports', 'value': '$total', 'icon': Icons.assignment_rounded, 'color': Colors.blue},
+          {'label': 'Resolved', 'value': '$resolved', 'icon': Icons.task_alt_rounded, 'color': Colors.green},
+          {'label': 'Active Cases', 'value': '$active', 'icon': Icons.warning_amber_rounded, 'color': Colors.orange},
         ];
 
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 3, desktop: 3),
-            crossAxisSpacing: 20,
-            mainAxisSpacing: 20,
-            childAspectRatio: 1.3,
+            crossAxisCount: Responsive.isMobile(context) ? 1 : 3,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: Responsive.isMobile(context) ? 4 : 1.5,
           ),
           itemCount: stats.length,
           itemBuilder: (context, index) {
             final stat = stats[index];
-            return _buildStatCard(context, stat['icon'] as IconData, stat['label'] as String, stat['value'] as String, stat['color'] as Color);
+            return Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: (stat['color'] as Color).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Icon(
+                      stat['icon'] as IconData,
+                      color: stat['color'] as Color,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          stat['label'] as String,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
+                        Text(
+                          stat['value'] as String,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
           },
         );
       },
     );
   }
 
-  Widget _buildStatCard(BuildContext context, IconData icon, String label, String value, Color color) {
-    return Card(
-      elevation: 0,
-      color: color.withOpacity(0.05),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withOpacity(0.1))),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildRecentActivity(BuildContext context, String userId) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Icon(icon, color: color, size: 28),
-            const Spacer(),
-            AnimatedWidgets.counterText(
-              count: int.tryParse(value.replaceAll('%', '')) ?? 0,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: color),
-              suffix: value.contains('%') ? '%' : '',
+            Text(
+              'Recent Activity',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            Text(label, style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor, fontWeight: FontWeight.w600)),
+            TextButton(
+              onPressed: () {
+                // Navigate to activity log
+              },
+              child: const Text('View All'),
+            ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuickActions(BuildContext context, Color color) {
-    final actions = [
-      {'icon': Icons.assignment_rounded, 'title': 'Reports', 'color': Colors.blue, 'target': 1},
-      {'icon': Icons.forum_rounded, 'title': 'Student Hub', 'color': Colors.green, 'target': 2},
-      {'icon': Icons.tips_and_updates_rounded, 'title': 'Wellness', 'color': Colors.orange, 'target': 3},
-      {'icon': Icons.add_moderator_rounded, 'title': 'Awareness+', 'color': Colors.teal, 'target': 3, 'isAction': true},
-      {'icon': Icons.notifications_active_rounded, 'title': 'Alerts', 'color': Colors.purple, 'target': 0},
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Mentorship Tools', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-        const SizedBox(height: 20),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
-            crossAxisSpacing: 20,
-            mainAxisSpacing: 20,
-            childAspectRatio: 1.1,
-          ),
-          itemCount: actions.length,
-          itemBuilder: (context, index) {
-            final action = actions[index];
-            return _buildActionCard(
-              context,
-              action['icon'] as IconData,
-              action['title'] as String,
-              action['color'] as Color,
-              action['target'] as int,
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionCard(BuildContext context, IconData icon, String title, Color color, int targetIndex, {bool isAction = false}) {
-    return AnimatedWidgets.scaleButton(
-      onPressed: () {
-        if (isAction) {
-          DefaultTabController.of(context).animateTo(targetIndex);
-          // Small delay to ensure tab switch happens before dialog
-          Future.delayed(const Duration(milliseconds: 300), () {
-            // Signal to Awareness page to show add dialog or use a shared event bus/callback
-            // For now, let's just navigate to tab and we'll add a FAB to the awareness page
-          });
-        } else {
-          DefaultTabController.of(context).animateTo(targetIndex);
-        }
-      },
-      child: AnimatedWidgets.hoverCard(
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.1)),
-                child: Icon(icon, color: color, size: 32),
-              ),
-              const SizedBox(height: 16),
-              Text(title, style: TextStyle(fontWeight: FontWeight.w800, color: color, fontSize: 13, letterSpacing: 0.5)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecentNotifications(BuildContext context) {
-    final appState = Provider.of<AppState>(context, listen: false);
-    final user = appState.currentUser;
-
-    if (user == null) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Recent Notifications',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-        ),
-        const SizedBox(height: 16),
-        StreamBuilder(
-          stream: _notificationService.getUserNotifications(user.uid),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              );
-            }
-            if (snapshot.hasError) {
-              return Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(child: Text('Error: ${snapshot.error}')),
-                ),
-              );
-            }
-            final notifications = snapshot.data ?? [];
-            if (notifications.isEmpty) {
-              return Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(Icons.notifications_none, size: 48, color: Colors.grey),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No Notifications',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }
-            return Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: notifications.take(5).map((notification) {
-                  return ListTile(
-                    leading: Icon(Icons.notifications, color: Colors.blue),
-                    title: Text(notification.title),
-                    subtitle: Text(notification.message),
-                    trailing: Text(
-                      _getTimeAgo(notification.createdAt),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  );
-                }).toList(),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRecentActivity(BuildContext context) {
-    final appState = Provider.of<AppState>(context, listen: false);
-    final user = appState.currentUser;
-
-    if (user == null) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Recent Activity',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
         ),
         const SizedBox(height: 16),
         StreamBuilder<List<ActivityModel>>(
-          stream: _activityService.getUserActivities(user.uid, limit: 5),
+          stream: _activityService.getUserActivities(userId),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              );
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
             }
-            if (snapshot.hasError) {
-              return Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(child: Text('Error: ${snapshot.error}')),
-                ),
-              );
-            }
-            final activities = snapshot.data ?? [];
+
+            final activities = snapshot.data!;
             if (activities.isEmpty) {
-              return Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+              return Container(
+                padding: const EdgeInsets.all(32),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(
-                    child: Column(
+                child: Column(
+                  children: [
+                    Icon(Icons.history, color: Colors.grey[300], size: 48),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No recent activity',
+                      style: TextStyle(color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: activities.length,
+                separatorBuilder: (context, index) => Divider(
+                  height: 1,
+                  color: Colors.grey[100],
+                  indent: 72,
+                ),
+                itemBuilder: (context, index) {
+                  final activity = activities[index];
+                  return ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    leading: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: _getActivityColor(activity.type).withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        _getActivityIcon(activity.type),
+                        color: _getActivityColor(activity.type),
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      activity.title,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.history, size: 48, color: Colors.grey),
-                        const SizedBox(height: 16),
+                        Text(activity.description),
+                        const SizedBox(height: 4),
                         Text(
-                          'No Recent Activity',
-                          style: Theme.of(context).textTheme.titleMedium,
+                          _formatDate(activity.timestamp),
+                          style: TextStyle(color: Colors.grey[500], fontSize: 12),
                         ),
                       ],
                     ),
-                  ),
-                ),
-              );
-            }
-            return Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: activities.map((activity) {
-                  return ListTile(
-                    leading: Icon(Icons.history, color: Colors.blue),
-                    title: Text(activity.title),
-                    subtitle: Text(activity.description),
-                    trailing: Text(
-                      _getTimeAgo(activity.timestamp),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
                   );
-                }).toList(),
+                },
               ),
             );
           },
@@ -446,20 +298,83 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
     );
   }
 
-  String _getTimeAgo(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
+  Widget _buildNotifications(BuildContext context, String userId) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Notifications',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Placeholder for notifications
+        Container(
+          padding: const EdgeInsets.all(32),
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Icon(Icons.notifications_none, color: Colors.grey[300], size: 48),
+              const SizedBox(height: 16),
+              Text(
+                'Stay tuned for updates',
+                style: TextStyle(color: Colors.grey[500]),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
-    if (difference.inDays > 0) {
-      return '${difference.inDays} day${difference.inDays > 1 ? 's' : ''} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} hour${difference.inHours > 1 ? 's' : ''} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minute${difference.inMinutes > 1 ? 's' : ''} ago';
+  IconData _getActivityIcon(String type) {
+    switch (type) {
+      case 'complaint':
+        return Icons.assignment_late_rounded;
+      case 'chat':
+        return Icons.chat_rounded;
+      case 'appointment':
+        return Icons.event_rounded;
+      default:
+        return Icons.info_rounded;
+    }
+  }
+
+  Color _getActivityColor(String type) {
+    switch (type) {
+      case 'complaint':
+        return Colors.red;
+      case 'chat':
+        return Colors.blue;
+      case 'appointment':
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inMinutes < 60) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}h ago';
     } else {
-      return 'Just now';
+      return '${date.day}/${date.month}';
     }
   }
 }
-
-
