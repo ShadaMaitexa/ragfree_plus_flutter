@@ -7,7 +7,8 @@ class WardenViewComplaintsPage extends StatefulWidget {
   const WardenViewComplaintsPage({super.key});
 
   @override
-  State<WardenViewComplaintsPage> createState() => _WardenViewComplaintsPageState();
+  State<WardenViewComplaintsPage> createState() =>
+      _WardenViewComplaintsPageState();
 }
 
 class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
@@ -28,7 +29,11 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.assignment_turned_in_outlined, size: 64, color: Colors.grey[400]),
+                  Icon(
+                    Icons.assignment_turned_in_outlined,
+                    size: 64,
+                    color: Colors.grey[400],
+                  ),
                   const SizedBox(height: 16),
                   const Text('No complaints currently filed'),
                 ],
@@ -45,30 +50,48 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
               return Card(
                 elevation: 2,
                 margin: const EdgeInsets.only(bottom: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: ExpansionTile(
                   leading: CircleAvatar(
                     backgroundColor: _getStatusColor(c.status).withOpacity(0.1),
-                    child: Icon(Icons.description, color: _getStatusColor(c.status)),
+                    child: Icon(
+                      Icons.description,
+                      color: _getStatusColor(c.status),
+                    ),
                   ),
-                  title: Text(c.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text('By ${c.studentName ?? "Anonymous"} • ${DateFormat('MMM dd').format(c.createdAt)}'),
+                  title: Text(
+                    c.title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    'By ${c.studentName ?? "Anonymous"} • ${DateFormat('MMM dd').format(c.createdAt)}',
+                  ),
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Description:', style: TextStyle(fontWeight: FontWeight.bold)),
+                          const Text(
+                            'Description:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                           const SizedBox(height: 4),
                           Text(c.description),
                           const SizedBox(height: 16),
                           Row(
                             children: [
-                              const Text('Type: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                              const Text(
+                                'Type: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
                               Chip(
                                 label: Text(c.incidentType),
-                                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.1),
                               ),
                               const Spacer(),
                               TextButton.icon(
@@ -78,8 +101,9 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
                               ),
                               const SizedBox(width: 8),
                               ElevatedButton(
-                                onPressed: () => _updateStatus(c),
-                                child: const Text('Update Status'),
+                                onPressed: () =>
+                                    _setComplaintStatus(c, 'In Progress'),
+                                child: const Text('Take Action'),
                               ),
                             ],
                           ),
@@ -115,9 +139,15 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
                   border: OutlineInputBorder(),
                 ),
                 items: const [
-                  DropdownMenuItem(value: 'admin', child: Text('College Admin')),
+                  DropdownMenuItem(
+                    value: 'admin',
+                    child: Text('College Admin'),
+                  ),
                   DropdownMenuItem(value: 'police', child: Text('Police')),
-                  DropdownMenuItem(value: 'counsellor', child: Text('Counsellor')),
+                  DropdownMenuItem(
+                    value: 'counsellor',
+                    child: Text('Counsellor'),
+                  ),
                 ],
                 onChanged: (val) => setDialogState(() => selectedRole = val!),
               ),
@@ -146,9 +176,9 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
                   }
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
                   }
                 }
               },
@@ -169,7 +199,10 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Update Status', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                'Update Status',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
               ListTile(
                 title: const Text('Pending'),
@@ -190,10 +223,15 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
     );
   }
 
-  Future<void> _setComplaintStatus(ComplaintModel complaint, String status) async {
+  Future<void> _setComplaintStatus(
+    ComplaintModel complaint,
+    String status,
+  ) async {
     await _complaintService.updateComplaintStatus(complaint.id, status);
     if (mounted) Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Status updated to $status')));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Status updated to $status')));
   }
 
   Color _getStatusColor(String status) {

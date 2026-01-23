@@ -33,8 +33,16 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDark
-              ? [color.withOpacity(0.08), Colors.transparent, color.withOpacity(0.04)]
-              : [Colors.white, color.withOpacity(0.02), color.withOpacity(0.05)],
+              ? [
+                  color.withOpacity(0.08),
+                  Colors.transparent,
+                  color.withOpacity(0.04),
+                ]
+              : [
+                  Colors.white,
+                  color.withOpacity(0.02),
+                  color.withOpacity(0.05),
+                ],
         ),
       ),
       child: SafeArea(
@@ -94,21 +102,39 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(16)),
-                  child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 32),
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.psychology_rounded,
+                    color: Colors.white,
+                    size: 32,
+                  ),
                 ),
                 const SizedBox(width: 24),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Student Counsellor', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w500)),
+                      const Text(
+                        'Student Counsellor',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                       Consumer<AppState>(
                         builder: (context, appState, _) {
-                          final userName = appState.currentUser?.name ?? 'Counsellor';
+                          final userName =
+                              appState.currentUser?.name ?? 'Counsellor';
                           return Text(
                             userName,
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
                           );
                         },
                       ),
@@ -140,19 +166,45 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
           builder: (context, slotSnapshot) {
             final complaints = complaintSnapshot.data ?? [];
             final slots = slotSnapshot.data ?? [];
-            
+
             final stats = [
-              {'label': 'Active Cases', 'value': '${complaints.where((c) => c.status != 'Resolved').length}', 'icon': Icons.assignment_ind_rounded, 'color': Colors.blue},
-              {'label': 'Pending Sessions', 'value': '${slots.where((s) => s.status == 'booked').length}', 'icon': Icons.calendar_today_rounded, 'color': Colors.orange},
-              {'label': 'Success Rate', 'value': '94%', 'icon': Icons.auto_graph_rounded, 'color': Colors.green},
-              {'label': 'Hours Logged', 'value': '128', 'icon': Icons.timer_rounded, 'color': Colors.purple},
+              {
+                'label': 'Active Cases',
+                'value':
+                    '${complaints.where((c) => c.status != 'Resolved').length}',
+                'icon': Icons.assignment_ind_rounded,
+                'color': Colors.blue,
+              },
+              {
+                'label': 'Pending Sessions',
+                'value': '${slots.where((s) => s.status == 'booked').length}',
+                'icon': Icons.calendar_today_rounded,
+                'color': Colors.orange,
+              },
+              {
+                'label': 'Success Rate',
+                'value': '94%',
+                'icon': Icons.auto_graph_rounded,
+                'color': Colors.green,
+              },
+              {
+                'label': 'Hours Logged',
+                'value': '128',
+                'icon': Icons.timer_rounded,
+                'color': Colors.purple,
+              },
             ];
 
             return GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
+                crossAxisCount: Responsive.getGridCrossAxisCount(
+                  context,
+                  mobile: 2,
+                  tablet: 4,
+                  desktop: 4,
+                ),
                 crossAxisSpacing: 20,
                 mainAxisSpacing: 20,
                 childAspectRatio: 1.3,
@@ -160,7 +212,13 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
               itemCount: stats.length,
               itemBuilder: (context, index) {
                 final stat = stats[index];
-                return _buildStatCard(context, stat['icon'] as IconData, stat['label'] as String, stat['value'] as String, stat['color'] as Color);
+                return _buildStatCard(
+                  context,
+                  stat['icon'] as IconData,
+                  stat['label'] as String,
+                  stat['value'] as String,
+                  stat['color'] as Color,
+                );
               },
             );
           },
@@ -169,11 +227,20 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
     );
   }
 
-  Widget _buildStatCard(BuildContext context, IconData icon, String label, String value, Color color) {
+  Widget _buildStatCard(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+    Color color,
+  ) {
     return Card(
       elevation: 0,
       color: color.withOpacity(0.05),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withOpacity(0.1))),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: color.withOpacity(0.1)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -184,10 +251,21 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
             const Spacer(),
             AnimatedWidgets.counterText(
               count: int.tryParse(value.replaceAll('%', '')) ?? 0,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: color),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                color: color,
+              ),
               suffix: value.contains('%') ? '%' : '',
             ),
-            Text(label, style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor, fontWeight: FontWeight.w600)),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).hintColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
@@ -196,22 +274,50 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
 
   Widget _buildQuickActions(BuildContext context, Color color) {
     final actions = [
-      {'icon': Icons.groups_rounded, 'title': 'My Cases', 'color': Colors.blue, 'target': 1},
-      {'icon': Icons.schedule_rounded, 'title': 'Schedule', 'color': Colors.orange, 'target': 2},
-      {'icon': Icons.forum_rounded, 'title': 'Messages', 'color': Colors.green, 'target': 3},
-      {'icon': Icons.assessment_rounded, 'title': 'Log Progress', 'color': Colors.purple, 'target': 4},
+      {
+        'icon': Icons.groups_rounded,
+        'title': 'My Cases',
+        'color': Colors.blue,
+        'target': 1,
+      },
+      {
+        'icon': Icons.schedule_rounded,
+        'title': 'Schedule',
+        'color': Colors.orange,
+        'target': 2,
+      },
+      {
+        'icon': Icons.forum_rounded,
+        'title': 'Messages',
+        'color': Colors.green,
+        'target': 3,
+      },
+      {
+        'icon': Icons.assessment_rounded,
+        'title': 'Log Progress',
+        'color': Colors.purple,
+        'target': 5,
+      },
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Therapeutic Tools', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        const Text(
+          'Therapeutic Tools',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+        ),
         const SizedBox(height: 20),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
+            crossAxisCount: Responsive.getGridCrossAxisCount(
+              context,
+              mobile: 2,
+              tablet: 4,
+              desktop: 4,
+            ),
             crossAxisSpacing: 20,
             mainAxisSpacing: 20,
             childAspectRatio: 1.1,
@@ -232,9 +338,18 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
     );
   }
 
-  Widget _buildActionCard(BuildContext context, IconData icon, String title, Color color, int targetIndex) {
+  Widget _buildActionCard(
+    BuildContext context,
+    IconData icon,
+    String title,
+    Color color,
+    int targetIndex,
+  ) {
     return AnimatedWidgets.scaleButton(
-      onPressed: () => Provider.of<AppState>(context, listen: false).setNavIndex(targetIndex),
+      onPressed: () => Provider.of<AppState>(
+        context,
+        listen: false,
+      ).setNavIndex(targetIndex),
       child: AnimatedWidgets.hoverCard(
         borderRadius: BorderRadius.circular(24),
         child: Container(
@@ -251,11 +366,22 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.1)),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color.withOpacity(0.1),
+                ),
                 child: Icon(icon, color: color, size: 32),
               ),
               const SizedBox(height: 16),
-              Text(title, style: TextStyle(fontWeight: FontWeight.w800, color: color, fontSize: 13, letterSpacing: 0.5)),
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                  fontSize: 13,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ],
           ),
         ),
@@ -267,11 +393,19 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Recent Interactions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        const Text(
+          'Recent Interactions',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+        ),
         const SizedBox(height: 20),
         Card(
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1))),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(
+              color: Theme.of(context).dividerColor.withOpacity(0.1),
+            ),
+          ),
           child: ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -279,20 +413,53 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
             separatorBuilder: (context, index) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final items = [
-                {'icon': Icons.assignment_rounded, 'title': 'Case #C001 Assigned', 'subtitle': 'Emma Johnson • Harassment', 'color': Colors.blue},
-                {'icon': Icons.check_circle_rounded, 'title': 'Resolution Filed', 'subtitle': 'Case #C012 • Success', 'color': Colors.green},
-                {'icon': Icons.event_rounded, 'title': 'Session Booked', 'subtitle': 'Alex Palmer • Tomorrow 2PM', 'color': Colors.orange},
-                {'icon': Icons.chat_rounded, 'title': 'New Inquiry', 'subtitle': 'Anonymous Support Request', 'color': Colors.purple},
+                {
+                  'icon': Icons.assignment_rounded,
+                  'title': 'Case #C001 Assigned',
+                  'subtitle': 'Emma Johnson • Harassment',
+                  'color': Colors.blue,
+                },
+                {
+                  'icon': Icons.check_circle_rounded,
+                  'title': 'Resolution Filed',
+                  'subtitle': 'Case #C012 • Success',
+                  'color': Colors.green,
+                },
+                {
+                  'icon': Icons.event_rounded,
+                  'title': 'Session Booked',
+                  'subtitle': 'Alex Palmer • Tomorrow 2PM',
+                  'color': Colors.orange,
+                },
+                {
+                  'icon': Icons.chat_rounded,
+                  'title': 'New Inquiry',
+                  'subtitle': 'Anonymous Support Request',
+                  'color': Colors.purple,
+                },
               ];
               final item = items[index];
               return ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 8,
+                ),
                 leading: Container(
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: (item['color'] as Color).withOpacity(0.1), shape: BoxShape.circle),
-                  child: Icon(item['icon'] as IconData, color: item['color'] as Color, size: 20),
+                  decoration: BoxDecoration(
+                    color: (item['color'] as Color).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    item['icon'] as IconData,
+                    color: item['color'] as Color,
+                    size: 20,
+                  ),
                 ),
-                title: Text(item['title'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text(
+                  item['title'] as String,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 subtitle: Text(item['subtitle'] as String),
                 trailing: const Icon(Icons.chevron_right_rounded, size: 20),
               );
@@ -333,9 +500,7 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
   void _navigateToChat(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const CounsellorChatPage(),
-      ),
+      MaterialPageRoute(builder: (context) => const CounsellorChatPage()),
     );
   }
 }

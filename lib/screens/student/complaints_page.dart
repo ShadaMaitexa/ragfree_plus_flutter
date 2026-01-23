@@ -7,6 +7,7 @@ import '../../services/app_state.dart';
 import '../../models/complaint_model.dart';
 import '../../utils/responsive.dart';
 import 'package:intl/intl.dart';
+import '../../services/pdf_service.dart';
 import '../../widgets/add_complaint_dialog.dart';
 
 class StudentComplaintsPage extends StatefulWidget {
@@ -66,9 +67,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
             child: Column(
               children: [
                 _buildHeader(context, color),
-                Expanded(
-                  child: _buildComplaintsContent(context),
-                ),
+                Expanded(child: _buildComplaintsContent(context)),
               ],
             ),
           ),
@@ -280,14 +279,20 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
         }
         final complaints = snapshot.data ?? [];
         if (complaints.isEmpty) {
-          return _buildEmptyState(context, Theme.of(context).colorScheme.primary);
+          return _buildEmptyState(
+            context,
+            Theme.of(context).colorScheme.primary,
+          );
         }
         return _buildComplaintsList(context, complaints);
       },
     );
   }
 
-  Widget _buildComplaintsList(BuildContext context, List<ComplaintModel> complaints) {
+  Widget _buildComplaintsList(
+    BuildContext context,
+    List<ComplaintModel> complaints,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return ListView.builder(
@@ -382,10 +387,14 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withOpacity(0.3),
                         ),
                       ),
                       child: Text(
@@ -414,9 +423,9 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                     Expanded(
                       child: Text(
                         complaint.title,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -424,7 +433,10 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                     if (complaint.isAnonymous)
                       Container(
                         margin: const EdgeInsets.only(left: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.grey.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
@@ -432,11 +444,18 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.visibility_off, size: 12, color: Colors.grey),
+                            Icon(
+                              Icons.visibility_off,
+                              size: 12,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               'Anonymous',
-                              style: TextStyle(fontSize: 10, color: Colors.grey),
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey,
+                              ),
                             ),
                           ],
                         ),
@@ -526,10 +545,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
     );
   }
 
-  void _showComplaintDetails(
-    BuildContext context,
-    ComplaintModel complaint,
-  ) {
+  void _showComplaintDetails(BuildContext context, ComplaintModel complaint) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -544,7 +560,10 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Text('Status: ', style: Theme.of(context).textTheme.titleSmall),
+                  Text(
+                    'Status: ',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                   Text(
                     complaint.status,
                     style: const TextStyle(fontWeight: FontWeight.w600),
@@ -607,6 +626,14 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
           ),
         ),
         actions: [
+          TextButton.icon(
+            onPressed: () => _downloadComplaintReport(context, complaint),
+            icon: const Icon(Icons.download, color: Colors.green),
+            label: const Text(
+              'Download Report',
+              style: TextStyle(color: Colors.green),
+            ),
+          ),
           if (complaint.status == 'Pending') ...[
             TextButton.icon(
               onPressed: () {
@@ -631,13 +658,14 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
     );
   }
 
-  void _showEditComplaintDialog(BuildContext context, ComplaintModel complaint) {
+  void _showEditComplaintDialog(
+    BuildContext context,
+    ComplaintModel complaint,
+  ) {
     showDialog(
       context: context,
-      builder: (context) => AddComplaintDialog(
-        editComplaint: complaint,
-        onComplaintAdded: () {},
-      ),
+      builder: (context) =>
+          AddComplaintDialog(editComplaint: complaint, onComplaintAdded: () {}),
     );
   }
 
@@ -668,9 +696,9 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                 }
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
                 }
               }
             },
@@ -691,5 +719,39 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
         },
       ),
     );
+  }
+
+  Future<void> _downloadComplaintReport(
+    BuildContext context,
+    ComplaintModel complaint,
+  ) async {
+    try {
+      final appState = Provider.of<AppState>(context, listen: false);
+      final user = appState.currentUser;
+
+      if (user == null) return;
+
+      await PdfService().generateComplaintReport(
+        studentName: user.name,
+        complaintTitle: complaint.title,
+        description: complaint.description,
+        status: complaint.status,
+        priority: complaint.priority,
+        incidentType: complaint.incidentType,
+        createdAt: complaint.createdAt,
+      );
+
+      Navigator.pop(context); // Close the dialog
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Complaint report downloaded successfully'),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error downloading report: $e')));
+    }
   }
 }

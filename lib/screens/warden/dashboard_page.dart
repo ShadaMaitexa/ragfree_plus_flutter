@@ -27,8 +27,16 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDark
-              ? [color.withOpacity(0.08), Colors.transparent, color.withOpacity(0.04)]
-              : [Colors.white, color.withOpacity(0.02), color.withOpacity(0.05)],
+              ? [
+                  color.withOpacity(0.08),
+                  Colors.transparent,
+                  color.withOpacity(0.04),
+                ]
+              : [
+                  Colors.white,
+                  color.withOpacity(0.02),
+                  color.withOpacity(0.05),
+                ],
         ),
       ),
       child: SafeArea(
@@ -88,21 +96,39 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(16)),
-                  child: const Icon(Icons.security_rounded, color: Colors.white, size: 32),
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.security_rounded,
+                    color: Colors.white,
+                    size: 32,
+                  ),
                 ),
                 const SizedBox(width: 24),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Hostel Warden', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w500)),
+                      const Text(
+                        'Hostel Warden',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                       Consumer<AppState>(
                         builder: (context, appState, _) {
-                          final userName = appState.currentUser?.name ?? 'Warden';
+                          final userName =
+                              appState.currentUser?.name ?? 'Warden';
                           return Text(
                             userName,
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
                           );
                         },
                       ),
@@ -128,17 +154,44 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
       builder: (context, snapshot) {
         final complaints = snapshot.data ?? [];
         final stats = [
-          {'label': 'Total Reports', 'value': '${complaints.length}', 'icon': Icons.folder_rounded, 'color': Colors.blue},
-          {'label': 'Pending', 'value': '${complaints.where((c) => c.status == 'Pending').length}', 'icon': Icons.hourglass_empty_rounded, 'color': Colors.orange},
-          {'label': 'Active', 'value': '${complaints.where((c) => c.status == 'In Progress').length}', 'icon': Icons.run_circle_rounded, 'color': Colors.indigo},
-          {'label': 'Resolved', 'value': '${complaints.where((c) => c.status == 'Resolved').length}', 'icon': Icons.task_alt_rounded, 'color': Colors.green},
+          {
+            'label': 'Total Complaints',
+            'value': '${complaints.length}',
+            'icon': Icons.folder_rounded,
+            'color': Colors.blue,
+          },
+          {
+            'label': 'Pending',
+            'value': '${complaints.where((c) => c.status == 'Pending').length}',
+            'icon': Icons.hourglass_empty_rounded,
+            'color': Colors.orange,
+          },
+          {
+            'label': 'Active',
+            'value':
+                '${complaints.where((c) => c.status == 'In Progress').length}',
+            'icon': Icons.run_circle_rounded,
+            'color': Colors.indigo,
+          },
+          {
+            'label': 'Resolved',
+            'value':
+                '${complaints.where((c) => c.status == 'Resolved').length}',
+            'icon': Icons.task_alt_rounded,
+            'color': Colors.green,
+          },
         ];
 
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
+            crossAxisCount: Responsive.getGridCrossAxisCount(
+              context,
+              mobile: 2,
+              tablet: 4,
+              desktop: 4,
+            ),
             crossAxisSpacing: 20,
             mainAxisSpacing: 20,
             childAspectRatio: 1.3,
@@ -146,18 +199,33 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
           itemCount: stats.length,
           itemBuilder: (context, index) {
             final stat = stats[index];
-            return _buildStatCard(context, stat['icon'] as IconData, stat['label'] as String, stat['value'] as String, stat['color'] as Color);
+            return _buildStatCard(
+              context,
+              stat['icon'] as IconData,
+              stat['label'] as String,
+              stat['value'] as String,
+              stat['color'] as Color,
+            );
           },
         );
       },
     );
   }
 
-  Widget _buildStatCard(BuildContext context, IconData icon, String label, String value, Color color) {
+  Widget _buildStatCard(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+    Color color,
+  ) {
     return Card(
       elevation: 0,
       color: color.withOpacity(0.05),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withOpacity(0.1))),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: color.withOpacity(0.1)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -168,9 +236,20 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
             const Spacer(),
             AnimatedWidgets.counterText(
               count: int.tryParse(value) ?? 0,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: color),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                color: color,
+              ),
             ),
-            Text(label, style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor, fontWeight: FontWeight.w600)),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).hintColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
@@ -179,22 +258,50 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
 
   Widget _buildQuickActions(BuildContext context, Color color) {
     final actions = [
-      {'icon': Icons.assignment_rounded, 'title': 'Reports', 'color': Colors.blue, 'target': 1},
-      {'icon': Icons.people_rounded, 'title': 'Students', 'color': Colors.purple, 'target': 3},
-      {'icon': Icons.forward_to_inbox_rounded, 'title': 'Escalations', 'color': Colors.orange, 'target': 2},
-      {'icon': Icons.feedback_rounded, 'title': 'Feedback', 'color': Colors.teal, 'target': 4},
+      {
+        'icon': Icons.assignment_rounded,
+        'title': 'Complaints',
+        'color': Colors.blue,
+        'target': 1,
+      },
+      {
+        'icon': Icons.people_rounded,
+        'title': 'Students',
+        'color': Colors.purple,
+        'target': 3,
+      },
+      {
+        'icon': Icons.forward_to_inbox_rounded,
+        'title': 'Escalations',
+        'color': Colors.orange,
+        'target': 2,
+      },
+      {
+        'icon': Icons.feedback_rounded,
+        'title': 'Feedback',
+        'color': Colors.teal,
+        'target': 4,
+      },
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Operational Tools', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        const Text(
+          'Operational Tools',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+        ),
         const SizedBox(height: 20),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
+            crossAxisCount: Responsive.getGridCrossAxisCount(
+              context,
+              mobile: 2,
+              tablet: 4,
+              desktop: 4,
+            ),
             crossAxisSpacing: 20,
             mainAxisSpacing: 20,
             childAspectRatio: 1.1,
@@ -215,9 +322,18 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
     );
   }
 
-  Widget _buildActionCard(BuildContext context, IconData icon, String title, Color color, int targetIndex) {
+  Widget _buildActionCard(
+    BuildContext context,
+    IconData icon,
+    String title,
+    Color color,
+    int targetIndex,
+  ) {
     return AnimatedWidgets.scaleButton(
-      onPressed: () => Provider.of<AppState>(context, listen: false).setNavIndex(targetIndex),
+      onPressed: () => Provider.of<AppState>(
+        context,
+        listen: false,
+      ).setNavIndex(targetIndex),
       child: AnimatedWidgets.hoverCard(
         borderRadius: BorderRadius.circular(24),
         child: Container(
@@ -234,11 +350,22 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.1)),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color.withOpacity(0.1),
+                ),
                 child: Icon(icon, color: color, size: 32),
               ),
               const SizedBox(height: 16),
-              Text(title, style: TextStyle(fontWeight: FontWeight.w800, color: color, fontSize: 13, letterSpacing: 0.5)),
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                  fontSize: 13,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ],
           ),
         ),
@@ -250,14 +377,19 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Recent Complaints', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text(
+          'Recent Complaints',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 16),
         StreamBuilder<List<ComplaintModel>>(
           stream: _complaintService.getHostelComplaints(),
           builder: (context, snapshot) {
-            if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+            if (!snapshot.hasData)
+              return const Center(child: CircularProgressIndicator());
             final complaints = snapshot.data!.take(5).toList();
-            if (complaints.isEmpty) return const Center(child: Text('No complaints found'));
+            if (complaints.isEmpty)
+              return const Center(child: Text('No complaints found'));
 
             return ListView.builder(
               shrinkWrap: true,
@@ -268,11 +400,19 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
                   child: ListTile(
-                    title: Text(c.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    title: Text(
+                      c.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     subtitle: Text(c.studentName ?? 'Anonymous'),
                     trailing: Chip(
-                      label: Text(c.status, style: const TextStyle(fontSize: 10)),
-                      backgroundColor: _getStatusColor(c.status).withOpacity(0.1),
+                      label: Text(
+                        c.status,
+                        style: const TextStyle(fontSize: 10),
+                      ),
+                      backgroundColor: _getStatusColor(
+                        c.status,
+                      ).withOpacity(0.1),
                       side: BorderSide.none,
                     ),
                   ),
@@ -287,9 +427,12 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'Resolved': return Colors.green;
-      case 'In Progress': return Colors.blue;
-      default: return Colors.orange;
+      case 'Resolved':
+        return Colors.green;
+      case 'In Progress':
+        return Colors.blue;
+      default:
+        return Colors.orange;
     }
   }
 }

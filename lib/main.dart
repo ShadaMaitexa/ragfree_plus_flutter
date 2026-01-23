@@ -357,9 +357,18 @@ PageRoute _buildFadeRoute(Widget page, RouteSettings settings) {
       const end = Offset.zero;
       const curve = Curves.easeOutCubic;
 
-      var slideTween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-      var scaleTween = Tween<double>(begin: 0.98, end: 1.0).chain(CurveTween(curve: curve));
-      var fadeTween = Tween<double>(begin: 0.0, end: 1.0).chain(CurveTween(curve: curve));
+      var slideTween = Tween(
+        begin: begin,
+        end: end,
+      ).chain(CurveTween(curve: curve));
+      var scaleTween = Tween<double>(
+        begin: 0.98,
+        end: 1.0,
+      ).chain(CurveTween(curve: curve));
+      var fadeTween = Tween<double>(
+        begin: 0.0,
+        end: 1.0,
+      ).chain(CurveTween(curve: curve));
 
       return FadeTransition(
         opacity: animation.drive(fadeTween),
@@ -428,7 +437,10 @@ class ParentDashboard extends StatelessWidget {
 
     const destinations = [
       NavigationDestinationData(icon: Icons.home, label: 'Home'),
-      NavigationDestinationData(icon: Icons.assignment, label: 'Child Complaints'),
+      NavigationDestinationData(
+        icon: Icons.assignment,
+        label: 'Child Complaints',
+      ),
       NavigationDestinationData(icon: Icons.chat_bubble, label: 'Chat'),
       NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
@@ -476,7 +488,6 @@ class AdminDashboard extends StatelessWidget {
       NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
       NavigationDestinationData(icon: Icons.notifications, label: 'Alerts'),
       NavigationDestinationData(icon: Icons.receipt_long, label: 'Reports'),
-      NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
       NavigationDestinationData(icon: Icons.analytics, label: 'Analytics'),
       NavigationDestinationData(icon: Icons.verified, label: 'Certifs'),
       NavigationDestinationData(icon: Icons.folder_open, label: 'Materials'),
@@ -491,7 +502,6 @@ class AdminDashboard extends StatelessWidget {
       _AdminPages.awareness,
       _AdminPages.notifications,
       _AdminPages.reports,
-      _AdminPages.feedback,
       _AdminPages.analytics,
       _AdminPages.certificates,
       _AdminPages.materials,
@@ -526,7 +536,6 @@ class _AdminPages {
     page: _AdminPage.notifications,
   );
   static const Widget reports = _AdminLazy(page: _AdminPage.reports);
-  static const Widget feedback = _AdminLazy(page: _AdminPage.feedback);
   static const Widget analytics = _AdminLazy(page: _AdminPage.analytics);
   static const Widget certificates = _AdminLazy(page: _AdminPage.certificates);
   static const Widget materials = _AdminLazy(page: _AdminPage.materials);
@@ -541,7 +550,6 @@ enum _AdminPage {
   awareness,
   notifications,
   reports,
-  feedback,
   analytics,
   certificates,
   materials,
@@ -569,8 +577,6 @@ class _AdminLazy extends StatelessWidget {
         return const _AdminNotificationsProxy();
       case _AdminPage.reports:
         return const _AdminReportsProxy();
-      case _AdminPage.feedback:
-        return const _AdminFeedbackProxy();
       case _AdminPage.analytics:
         return const _AdminAnalyticsProxy();
       case _AdminPage.certificates:
@@ -599,8 +605,7 @@ class _AdminManageUsersProxy extends StatelessWidget {
 class _AdminComplaintsProxy extends StatelessWidget {
   const _AdminComplaintsProxy();
   @override
-  Widget build(BuildContext context) =>
-      const admin_pages.AdminComplaintsPage();
+  Widget build(BuildContext context) => const admin_pages.AdminComplaintsPage();
 }
 
 class _AdminDepartmentsProxy extends StatelessWidget {
@@ -629,12 +634,6 @@ class _AdminReportsProxy extends StatelessWidget {
   Widget build(BuildContext context) => const admin_pages.AdminReportsPage();
 }
 
-class _AdminFeedbackProxy extends StatelessWidget {
-  const _AdminFeedbackProxy();
-  @override
-  Widget build(BuildContext context) => const admin_pages.AdminFeedbackPage();
-}
-
 class _AdminAnalyticsProxy extends StatelessWidget {
   const _AdminAnalyticsProxy();
   @override
@@ -644,7 +643,8 @@ class _AdminAnalyticsProxy extends StatelessWidget {
 class _AdminCertificatesProxy extends StatelessWidget {
   const _AdminCertificatesProxy();
   @override
-  Widget build(BuildContext context) => const admin_pages.AdminCertificatesPage();
+  Widget build(BuildContext context) =>
+      const admin_pages.AdminCertificatesPage();
 }
 
 class _AdminMaterialsProxy extends StatelessWidget {
@@ -718,12 +718,18 @@ class _CounsellorPages {
   static const Widget awareness = _CounsellorLazy(
     page: _CounsellorPage.awareness,
   );
-  static const Widget profile = _CounsellorLazy(
-    page: _CounsellorPage.profile,
-  );
+  static const Widget profile = _CounsellorLazy(page: _CounsellorPage.profile);
 }
 
-enum _CounsellorPage { dashboard, assigned, respond, schedule, chat, awareness, profile }
+enum _CounsellorPage {
+  dashboard,
+  assigned,
+  respond,
+  schedule,
+  chat,
+  awareness,
+  profile,
+}
 
 class _CounsellorLazy extends StatelessWidget {
   final _CounsellorPage page;
@@ -753,7 +759,8 @@ class _CounsellorLazy extends StatelessWidget {
 class _CounsellorProfileProxy extends StatelessWidget {
   const _CounsellorProfileProxy();
   @override
-  Widget build(BuildContext context) => const counsellor_pages.CounsellorProfilePage();
+  Widget build(BuildContext context) =>
+      const counsellor_pages.CounsellorProfilePage();
 }
 
 // counsellor pages imported at top of file
@@ -846,8 +853,6 @@ class WardenDashboard extends StatelessWidget {
   }
 }
 
-
-
 // Lightweight indirection to avoid heavy imports at top
 class _WardenDashboardPages {
   static const Widget dashboard = _WardenDashboardLazy(
@@ -868,9 +873,7 @@ class _WardenDashboardPages {
   static const Widget feedback = _WardenDashboardLazy(
     page: _WardenPage.feedback,
   );
-  static const Widget profile = _WardenDashboardLazy(
-    page: _WardenPage.profile,
-  );
+  static const Widget profile = _WardenDashboardLazy(page: _WardenPage.profile);
 }
 
 enum _WardenPage {
@@ -1027,7 +1030,10 @@ class PoliceDashboard extends StatelessWidget {
       NavigationDestinationData(icon: Icons.assignment, label: 'Complaints'),
       NavigationDestinationData(icon: Icons.verified_user, label: 'Verify'),
       NavigationDestinationData(icon: Icons.assessment, label: 'Reports'),
-      NavigationDestinationData(icon: Icons.notifications_active, label: 'Notify'),
+      NavigationDestinationData(
+        icon: Icons.notifications_active,
+        label: 'Notify',
+      ),
       NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
     ];
@@ -1134,8 +1140,7 @@ class _PoliceComplaintsProxy extends StatelessWidget {
 class _PoliceVerifyProxy extends StatelessWidget {
   const _PoliceVerifyProxy();
   @override
-  Widget build(BuildContext context) =>
-      const police_pages.PoliceVerifyPage();
+  Widget build(BuildContext context) => const police_pages.PoliceVerifyPage();
 }
 
 class _PoliceGenerateReportProxy extends StatelessWidget {
@@ -1249,8 +1254,7 @@ class _TeacherComplaintsProxy extends StatelessWidget {
 class _TeacherChatProxy extends StatelessWidget {
   const _TeacherChatProxy();
   @override
-  Widget build(BuildContext context) =>
-      const teacher_pages.TeacherChatPage();
+  Widget build(BuildContext context) => const teacher_pages.TeacherChatPage();
 }
 
 class _TeacherAwarenessProxy extends StatelessWidget {

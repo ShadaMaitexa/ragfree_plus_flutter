@@ -45,16 +45,16 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                       children: [
                         Text(
                           'Welcome back,',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Colors.grey[600],
-                          ),
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(color: Colors.grey[600]),
                         ),
                         Text(
                           user?.name ?? 'Teacher',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[800],
-                          ),
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[800],
+                              ),
                         ),
                       ],
                     ),
@@ -100,8 +100,11 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
     final department = user?.department ?? '';
 
     return StreamBuilder<List<ComplaintModel>>(
-      stream: (department.isNotEmpty) 
-          ? _complaintService.getComplaintsByDepartment(institutionNormalized, department)
+      stream: (department.isNotEmpty)
+          ? _complaintService.getComplaintsByDepartment(
+              institutionNormalized,
+              department,
+            )
           : _complaintService.getComplaintsByInstitution(institutionNormalized),
       builder: (context, snapshot) {
         final complaints = snapshot.data ?? [];
@@ -110,9 +113,26 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
         final active = total - resolved;
 
         final stats = [
-          {'label': department.isNotEmpty ? '$department Cases' : 'Case Reports', 'value': '$total', 'icon': Icons.assignment_rounded, 'color': Colors.blue},
-          {'label': 'Resolved', 'value': '$resolved', 'icon': Icons.task_alt_rounded, 'color': Colors.green},
-          {'label': 'Active Cases', 'value': '$active', 'icon': Icons.warning_amber_rounded, 'color': Colors.orange},
+          {
+            'label': department.isNotEmpty
+                ? '$department Cases'
+                : 'Case Reported',
+            'value': '$total',
+            'icon': Icons.assignment_rounded,
+            'color': Colors.blue,
+          },
+          {
+            'label': 'Resolved',
+            'value': '$resolved',
+            'icon': Icons.task_alt_rounded,
+            'color': Colors.green,
+          },
+          {
+            'label': 'Active Cases',
+            'value': '$active',
+            'icon': Icons.warning_amber_rounded,
+            'color': Colors.orange,
+          },
         ];
 
         return GridView.builder(
@@ -194,9 +214,9 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
           children: [
             Text(
               'Recent Activity',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             TextButton(
               onPressed: () {
@@ -252,11 +272,8 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: activities.length,
-                separatorBuilder: (context, index) => Divider(
-                  height: 1,
-                  color: Colors.grey[100],
-                  indent: 72,
-                ),
+                separatorBuilder: (context, index) =>
+                    Divider(height: 1, color: Colors.grey[100], indent: 72),
                 itemBuilder: (context, index) {
                   final activity = activities[index];
                   return ListTile(
@@ -264,7 +281,9 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                     leading: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: _getActivityColor(activity.type).withOpacity(0.1),
+                        color: _getActivityColor(
+                          activity.type,
+                        ).withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -284,7 +303,10 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                         const SizedBox(height: 4),
                         Text(
                           _formatDate(activity.timestamp),
-                          style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 12,
+                          ),
                         ),
                       ],
                     ),
@@ -304,9 +326,9 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
       children: [
         Text(
           'Notifications',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         // Placeholder for notifications

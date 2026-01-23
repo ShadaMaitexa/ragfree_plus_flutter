@@ -36,8 +36,16 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDark
-              ? [color.withOpacity(0.08), Colors.transparent, color.withOpacity(0.04)]
-              : [Colors.white, color.withOpacity(0.02), color.withOpacity(0.05)],
+              ? [
+                  color.withOpacity(0.08),
+                  Colors.transparent,
+                  color.withOpacity(0.04),
+                ]
+              : [
+                  Colors.white,
+                  color.withOpacity(0.02),
+                  color.withOpacity(0.05),
+                ],
         ),
       ),
       child: SafeArea(
@@ -86,9 +94,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: _emergencyAlertService.getActiveEmergencyAlerts(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data!.isEmpty) return const SizedBox.shrink();
+        if (!snapshot.hasData || snapshot.data!.isEmpty)
+          return const SizedBox.shrink();
 
-        final criticalAlerts = snapshot.data!.where((a) => a['priority'] == 'critical').toList();
+        final criticalAlerts = snapshot.data!
+            .where((a) => a['priority'] == 'critical')
+            .toList();
         if (criticalAlerts.isEmpty) return const SizedBox.shrink();
 
         return AnimatedWidgets.pulsing(
@@ -96,10 +107,16 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             margin: const EdgeInsets.only(bottom: 24),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Colors.redAccent, Colors.red]),
+              gradient: const LinearGradient(
+                colors: [Colors.redAccent, Colors.red],
+              ),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
-                BoxShadow(color: Colors.red.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 6)),
+                BoxShadow(
+                  color: Colors.red.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
               ],
             ),
             child: Column(
@@ -108,20 +125,36 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   contentPadding: EdgeInsets.zero,
                   leading: Container(
                     padding: const EdgeInsets.all(12),
-                    decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle),
-                    child: const Icon(Icons.emergency_rounded, color: Colors.white, size: 32),
+                    decoration: const BoxDecoration(
+                      color: Colors.white24,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.emergency_rounded,
+                      color: Colors.white,
+                      size: 32,
+                    ),
                   ),
                   title: Text(
                     alert['title'] ?? 'EmergencySOS',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                    ),
                   ),
                   subtitle: Text(
                     '${alert['message']}\nLocation: ${alert['location'] ?? 'Unknown'}',
                     style: const TextStyle(color: Colors.white70),
                   ),
                   trailing: IconButton(
-                    icon: const Icon(Icons.check_circle_rounded, color: Colors.white, size: 32),
-                    onPressed: () => _emergencyAlertService.deactivateAlert(alert['id']),
+                    icon: const Icon(
+                      Icons.check_circle_rounded,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                    onPressed: () =>
+                        _emergencyAlertService.deactivateAlert(alert['id']),
                   ),
                 );
               }).toList(),
@@ -154,21 +187,39 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(16)),
-                  child: const Icon(Icons.admin_panel_settings_rounded, color: Colors.white, size: 32),
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.admin_panel_settings_rounded,
+                    color: Colors.white,
+                    size: 32,
+                  ),
                 ),
                 const SizedBox(width: 24),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('System Administrator', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w500)),
+                      const Text(
+                        'System Administrator',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                       Consumer<AppState>(
                         builder: (context, appState, _) {
-                          final userName = appState.currentUser?.name ?? 'Admin';
+                          final userName =
+                              appState.currentUser?.name ?? 'Admin';
                           return Text(
                             userName,
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
                           );
                         },
                       ),
@@ -192,7 +243,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Real-time Analytics', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        const Text(
+          'Real-time Analytics',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+        ),
         const SizedBox(height: 20),
         StreamBuilder<List<ComplaintModel>>(
           stream: _complaintService.getAllComplaints(),
@@ -206,19 +260,46 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     final complaints = complaintsSnapshot.data ?? [];
                     final students = studentsSnapshot.data ?? [];
                     final counsellors = counsellorsSnapshot.data ?? [];
-                    
+
                     final stats = [
-                      {'label': 'Total Complaints', 'value': '${complaints.length}', 'icon': Icons.assignment_rounded, 'color': Colors.blue},
-                      {'label': 'Resolved', 'value': '${complaints.where((c) => c.status == 'Resolved').length}', 'icon': Icons.task_alt_rounded, 'color': Colors.green},
-                      {'label': 'Action Required', 'value': '${complaints.where((c) => c.status == 'Pending').length}', 'icon': Icons.warning_amber_rounded, 'color': Colors.orange},
-                      {'label': 'Total Students', 'value': '${students.length}', 'icon': Icons.people_alt_rounded, 'color': Colors.purple},
+                      {
+                        'label': 'Total Complaints',
+                        'value': '${complaints.length}',
+                        'icon': Icons.assignment_rounded,
+                        'color': Colors.blue,
+                      },
+                      {
+                        'label': 'Resolved',
+                        'value':
+                            '${complaints.where((c) => c.status == 'Resolved').length}',
+                        'icon': Icons.task_alt_rounded,
+                        'color': Colors.green,
+                      },
+                      {
+                        'label': 'Action Required',
+                        'value':
+                            '${complaints.where((c) => c.status == 'Pending').length}',
+                        'icon': Icons.warning_amber_rounded,
+                        'color': Colors.orange,
+                      },
+                      {
+                        'label': 'Total Students',
+                        'value': '${students.length}',
+                        'icon': Icons.people_alt_rounded,
+                        'color': Colors.purple,
+                      },
                     ];
 
                     return GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
+                        crossAxisCount: Responsive.getGridCrossAxisCount(
+                          context,
+                          mobile: 2,
+                          tablet: 4,
+                          desktop: 4,
+                        ),
                         crossAxisSpacing: 20,
                         mainAxisSpacing: 20,
                         childAspectRatio: 1.3,
@@ -226,7 +307,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       itemCount: stats.length,
                       itemBuilder: (context, index) {
                         final stat = stats[index];
-                        return _buildStatCard(context, stat['icon'] as IconData, stat['label'] as String, stat['value'] as String, stat['color'] as Color);
+                        return _buildStatCard(
+                          context,
+                          stat['icon'] as IconData,
+                          stat['label'] as String,
+                          stat['value'] as String,
+                          stat['color'] as Color,
+                        );
                       },
                     );
                   },
@@ -239,11 +326,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  Widget _buildStatCard(BuildContext context, IconData icon, String label, String value, Color color) {
+  Widget _buildStatCard(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+    Color color,
+  ) {
     return Card(
       elevation: 0,
       color: color.withOpacity(0.05),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withOpacity(0.1))),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: color.withOpacity(0.1)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -254,9 +350,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             const Spacer(),
             AnimatedWidgets.counterText(
               count: int.tryParse(value) ?? 0,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: color),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                color: color,
+              ),
             ),
-            Text(label, style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor, fontWeight: FontWeight.w600)),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).hintColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
@@ -265,22 +372,44 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   Widget _buildQuickActions(BuildContext context, Color color) {
     final actions = [
-      {'icon': Icons.people_rounded, 'title': 'Users', 'color': Colors.blue, 'onTap': () => _navigateToUsers(context)},
-      {'icon': Icons.apartment_rounded, 'title': 'Divisions', 'color': Colors.green, 'onTap': () => _navigateToDepartments(context)},
-      {'icon': Icons.broadcast_on_personal_rounded, 'title': 'Broadcast', 'color': Colors.orange, 'onTap': () => _sendAlert(context)},
-      {'icon': Icons.insights_rounded, 'title': 'Reports', 'color': Colors.purple, 'onTap': () => _navigateToAnalytics(context)},
+      {
+        'icon': Icons.people_rounded,
+        'title': 'Users',
+        'color': Colors.blue,
+        'onTap': () => _navigateToUsers(context),
+      },
+      {
+        'icon': Icons.apartment_rounded,
+        'title': 'Divisions',
+        'color': Colors.green,
+        'onTap': () => _navigateToDepartments(context),
+      },
+      {
+        'icon': Icons.broadcast_on_personal_rounded,
+        'title': 'Broadcast',
+        'color': Colors.orange,
+        'onTap': () => _sendAlert(context),
+      },
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Management Tools', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        const Text(
+          'Management Tools',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+        ),
         const SizedBox(height: 20),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
+            crossAxisCount: Responsive.getGridCrossAxisCount(
+              context,
+              mobile: 2,
+              tablet: 4,
+              desktop: 4,
+            ),
             crossAxisSpacing: 20,
             mainAxisSpacing: 20,
             childAspectRatio: 1.1,
@@ -288,14 +417,26 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           itemCount: actions.length,
           itemBuilder: (context, index) {
             final action = actions[index];
-            return _buildActionCard(context, action['icon'] as IconData, action['title'] as String, action['color'] as Color, action['onTap'] as VoidCallback);
+            return _buildActionCard(
+              context,
+              action['icon'] as IconData,
+              action['title'] as String,
+              action['color'] as Color,
+              action['onTap'] as VoidCallback,
+            );
           },
         ),
       ],
     );
   }
 
-  Widget _buildActionCard(BuildContext context, IconData icon, String title, Color color, VoidCallback onTap) {
+  Widget _buildActionCard(
+    BuildContext context,
+    IconData icon,
+    String title,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return AnimatedWidgets.scaleButton(
       onPressed: onTap,
       child: AnimatedWidgets.hoverCard(
@@ -314,11 +455,22 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.1)),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color.withOpacity(0.1),
+                ),
                 child: Icon(icon, color: color, size: 32),
               ),
               const SizedBox(height: 16),
-              Text(title, style: TextStyle(fontWeight: FontWeight.w800, color: color, fontSize: 13, letterSpacing: 0.5)),
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                  fontSize: 13,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ],
           ),
         ),
@@ -352,9 +504,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               return Card(
                 child: Padding(
                   padding: const EdgeInsets.all(24),
-                  child: Center(
-                    child: Text('Error: ${snapshot.error}'),
-                  ),
+                  child: Center(child: Text('Error: ${snapshot.error}')),
                 ),
               );
             }
@@ -379,9 +529,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         const SizedBox(height: 8),
                         Text(
                           'System activities will appear here',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withOpacity(0.7),
+                              ),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -402,7 +555,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   return Column(
                     children: [
                       _buildActivityItemFromModel(context, activity),
-                      if (index < activities.length - 1) const Divider(height: 1),
+                      if (index < activities.length - 1)
+                        const Divider(height: 1),
                     ],
                   );
                 }).toList(),
@@ -496,9 +650,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         ),
         const SizedBox(height: 16),
         StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance.collection('users').limit(1).snapshots(),
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .limit(1)
+              .snapshots(),
           builder: (context, snapshot) {
-            final isOnline = snapshot.hasData || snapshot.connectionState == ConnectionState.active;
+            final isOnline =
+                snapshot.hasData ||
+                snapshot.connectionState == ConnectionState.active;
             final statuses = [
               {
                 'service': 'Cloud Firestore',

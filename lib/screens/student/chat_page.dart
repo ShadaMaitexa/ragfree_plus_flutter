@@ -64,9 +64,7 @@ class _StudentChatPageState extends State<StudentChatPage>
             child: Column(
               children: [
                 _buildHeader(context, color),
-                Expanded(
-                  child: _buildConversationsContent(context),
-                ),
+                Expanded(child: _buildConversationsContent(context)),
               ],
             ),
           ),
@@ -112,6 +110,11 @@ class _StudentChatPageState extends State<StudentChatPage>
                   ],
                 ),
               ),
+              IconButton(
+                onPressed: () => _showStartChatDialog(context),
+                icon: Icon(Icons.add, color: color),
+                tooltip: 'Start new chat',
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -124,7 +127,10 @@ class _StudentChatPageState extends State<StudentChatPage>
                     return const SizedBox.shrink();
                   }
                   final conversations = snapshot.data!;
-                  final unreadCount = conversations.fold(0, (sum, c) => sum + c.unreadCount);
+                  final unreadCount = conversations.fold(
+                    0,
+                    (sum, c) => sum + c.unreadCount,
+                  );
                   return Row(
                     children: [
                       Expanded(
@@ -277,14 +283,20 @@ class _StudentChatPageState extends State<StudentChatPage>
         }
         final conversations = snapshot.data ?? [];
         if (conversations.isEmpty) {
-          return _buildEmptyState(context, Theme.of(context).colorScheme.primary);
+          return _buildEmptyState(
+            context,
+            Theme.of(context).colorScheme.primary,
+          );
         }
         return _buildConversationsList(context, conversations);
       },
     );
   }
 
-  Widget _buildConversationsList(BuildContext context, List<ChatConversationModel> conversations) {
+  Widget _buildConversationsList(
+    BuildContext context,
+    List<ChatConversationModel> conversations,
+  ) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       itemCount: conversations.length,
@@ -323,7 +335,9 @@ class _StudentChatPageState extends State<StudentChatPage>
                       ).colorScheme.primary.withOpacity(0.1),
                       child: Text(
                         conversation.counselorName != null
-                            ? conversation.counselorName!.substring(0, 1).toUpperCase()
+                            ? conversation.counselorName!
+                                  .substring(0, 1)
+                                  .toUpperCase()
                             : 'C',
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
@@ -351,7 +365,9 @@ class _StudentChatPageState extends State<StudentChatPage>
                           ),
                           Text(
                             conversation.lastMessageAt != null
-                                ? DateFormat('MMM dd, HH:mm').format(conversation.lastMessageAt!)
+                                ? DateFormat(
+                                    'MMM dd, HH:mm',
+                                  ).format(conversation.lastMessageAt!)
                                 : '',
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
@@ -364,11 +380,14 @@ class _StudentChatPageState extends State<StudentChatPage>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        conversation.counselorName?.toLowerCase().contains('teacher') == true 
-                            ? 'Teacher' 
-                            : conversation.counselorId != null 
-                              ? 'Staff/Support' 
-                              : 'Counselor',
+                        conversation.counselorName?.toLowerCase().contains(
+                                  'teacher',
+                                ) ==
+                                true
+                            ? 'Teacher'
+                            : conversation.counselorId != null
+                            ? 'Staff/Support'
+                            : 'Counselor',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w500,
@@ -385,7 +404,9 @@ class _StudentChatPageState extends State<StudentChatPage>
                                     color: Theme.of(
                                       context,
                                     ).colorScheme.onSurface.withOpacity(0.7),
-                                    fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.normal,
+                                    fontWeight: unread > 0
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
                                   ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -440,13 +461,13 @@ class _StudentChatPageState extends State<StudentChatPage>
   Future<void> _showStartChatDialog(BuildContext context) async {
     final appState = Provider.of<AppState>(context, listen: false);
     final user = appState.currentUser;
-    
+
     if (user == null) return;
 
     try {
       // Get available counselors
       final counselors = await _chatService.getAvailableCounselors();
-      
+
       if (counselors.isEmpty) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -463,7 +484,9 @@ class _StudentChatPageState extends State<StudentChatPage>
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             title: const Text('Start New Chat'),
             content: SizedBox(
               width: double.maxFinite,
@@ -507,10 +530,13 @@ class _StudentChatPageState extends State<StudentChatPage>
     }
   }
 
-  Future<void> _startNewChat(BuildContext context, Map<String, dynamic> counselor) async {
+  Future<void> _startNewChat(
+    BuildContext context,
+    Map<String, dynamic> counselor,
+  ) async {
     final appState = Provider.of<AppState>(context, listen: false);
     final user = appState.currentUser;
-    
+
     if (user == null) return;
 
     try {
@@ -581,7 +607,9 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
               ).colorScheme.primary.withOpacity(0.1),
               child: Text(
                 widget.conversation.counselorName != null
-                    ? widget.conversation.counselorName!.substring(0, 1).toUpperCase()
+                    ? widget.conversation.counselorName!
+                          .substring(0, 1)
+                          .toUpperCase()
                     : 'C',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
@@ -641,7 +669,9 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                     child: Text(
                       'No messages yet. Start the conversation!',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
                   );
@@ -664,10 +694,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
     );
   }
 
-  Widget _buildMessageBubble(
-    BuildContext context,
-    ChatMessageModel message,
-  ) {
+  Widget _buildMessageBubble(BuildContext context, ChatMessageModel message) {
     final appState = Provider.of<AppState>(context, listen: false);
     final user = appState.currentUser;
     final isMe = message.senderId == user?.uid;
@@ -803,7 +830,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
 
     final appState = Provider.of<AppState>(context, listen: false);
     final user = appState.currentUser;
-    
+
     if (user == null) return;
 
     final messageText = _messageController.text.trim();
@@ -817,7 +844,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
         senderRole: user.role,
         message: messageText,
       );
-      
+
       // Scroll to bottom after sending
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -970,7 +997,9 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear Chat'),
-        content: const Text('Are you sure you want to clear all messages in this chat? This cannot be undone.'),
+        content: const Text(
+          'Are you sure you want to clear all messages in this chat? This cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -982,14 +1011,17 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                 await widget.chatService.clearChat(widget.conversation.id);
                 if (context.mounted) {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Chat cleared')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Chat cleared')));
                 }
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: Colors.red,
+                    ),
                   );
                 }
               }

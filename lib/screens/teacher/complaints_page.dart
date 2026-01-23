@@ -36,7 +36,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
     );
 
     _animationController.forward();
-    
+
     // Set default filter to 'My Department' if teacher has a department
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = Provider.of<AppState>(context, listen: false).currentUser;
@@ -79,9 +79,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
                 children: [
                   _buildHeader(context, color),
                   _buildFilterChips(context),
-                  Expanded(
-                    child: _buildComplaintsList(context),
-                  ),
+                  Expanded(child: _buildComplaintsList(context)),
                 ],
               ),
             ),
@@ -111,9 +109,9 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
               children: [
                 Text(
                   'Student Complaints',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 Text(
                   'Monitor and respond to student safety complaints',
@@ -129,8 +127,9 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
 
   Widget _buildFilterChips(BuildContext context) {
     final user = Provider.of<AppState>(context).currentUser;
-    final hasDepartment = user?.department != null && user!.department!.isNotEmpty;
-    
+    final hasDepartment =
+        user?.department != null && user!.department!.isNotEmpty;
+
     final filters = [
       'All',
       if (hasDepartment) 'My Department',
@@ -138,7 +137,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
       'Verified',
       'Accepted',
       'In Progress',
-      'Resolved'
+      'Resolved',
     ];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -171,7 +170,10 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
 
     return StreamBuilder<List<ComplaintModel>>(
       stream: _selectedFilter == 'My Department'
-          ? _complaintService.getComplaintsByDepartment(institutionNormalized, department)
+          ? _complaintService.getComplaintsByDepartment(
+              institutionNormalized,
+              department,
+            )
           : _complaintService.getComplaintsByInstitution(institutionNormalized),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -181,7 +183,8 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
           return Center(child: Text('Error: ${snapshot.error}'));
         }
         final complaints = snapshot.data ?? [];
-        final filteredComplaints = (_selectedFilter == 'All' || _selectedFilter == 'My Department')
+        final filteredComplaints =
+            (_selectedFilter == 'All' || _selectedFilter == 'My Department')
             ? complaints
             : complaints.where((c) {
                 return c.status == _selectedFilter;
@@ -195,15 +198,15 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
                 Icon(Icons.assignment_outlined, size: 64, color: Colors.grey),
                 const SizedBox(height: 16),
                 Text(
-                  _selectedFilter == 'My Department' 
-                      ? 'No Department Complaints' 
+                  _selectedFilter == 'My Department'
+                      ? 'No Department Complaints'
                       : 'No Complaints',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   _selectedFilter == 'My Department'
-                      ? 'Try switching to "All" to see institution-wide reports'
+                      ? 'Try switching to "All" to see institution-wide complaints'
                       : 'No complaints found for the selected filter',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
@@ -292,9 +295,9 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
               children: [
                 Text(
                   'Description:',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 Text(complaint.description),
@@ -303,8 +306,8 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
                   Text(
                     'Media Attachments:',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
@@ -344,7 +347,8 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
                       ),
                       const SizedBox(width: 12),
                       OutlinedButton.icon(
-                        onPressed: () => _handleComplaintChat(context, complaint),
+                        onPressed: () =>
+                            _handleComplaintChat(context, complaint),
                         icon: const Icon(Icons.chat),
                         label: const Text('Chat'),
                         style: OutlinedButton.styleFrom(
@@ -355,7 +359,8 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
                       const SizedBox(width: 12),
                       if (complaint.status == 'Pending')
                         FilledButton.icon(
-                          onPressed: () => _showVerifyDialog(context, complaint),
+                          onPressed: () =>
+                              _showVerifyDialog(context, complaint),
                           icon: const Icon(Icons.verified),
                           label: const Text('Verify'),
                           style: FilledButton.styleFrom(
@@ -364,9 +369,11 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
                         ),
                       if (complaint.status == 'Verified')
                         const SizedBox(width: 12),
-                      if (complaint.status == 'Verified' || complaint.status == 'Pending')
+                      if (complaint.status == 'Verified' ||
+                          complaint.status == 'Pending')
                         FilledButton.icon(
-                          onPressed: () => _showAcceptDialog(context, complaint),
+                          onPressed: () =>
+                              _showAcceptDialog(context, complaint),
                           icon: const Icon(Icons.check_circle),
                           label: const Text('Accept'),
                           style: FilledButton.styleFrom(
@@ -384,7 +391,10 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
     );
   }
 
-  Future<void> _handleComplaintChat(BuildContext context, ComplaintModel complaint) async {
+  Future<void> _handleComplaintChat(
+    BuildContext context,
+    ComplaintModel complaint,
+  ) async {
     try {
       if (complaint.studentId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -422,17 +432,16 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => TeacherChatPage(
-              initialConversation: conversation,
-            ),
+            builder: (context) =>
+                TeacherChatPage(initialConversation: conversation),
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -550,7 +559,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
   void _showForwardDialog(BuildContext context, ComplaintModel complaint) {
     String selectedRole = 'police';
     final descriptionController = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -569,10 +578,15 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
                 ),
                 items: const [
                   DropdownMenuItem(value: 'police', child: Text('Police')),
-                  DropdownMenuItem(value: 'admin', child: Text('College Admin')),
+                  DropdownMenuItem(
+                    value: 'admin',
+                    child: Text('College Admin'),
+                  ),
                   DropdownMenuItem(value: 'warden', child: Text('Warden')),
                   DropdownMenuItem(
-                      value: 'counsellor', child: Text('Counsellor')),
+                    value: 'counsellor',
+                    child: Text('Counsellor'),
+                  ),
                 ],
                 onChanged: (val) => setDialogState(() => selectedRole = val!),
               ),
@@ -596,8 +610,10 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
             FilledButton(
               onPressed: () async {
                 try {
-                  final appState =
-                      Provider.of<AppState>(context, listen: false);
+                  final appState = Provider.of<AppState>(
+                    context,
+                    listen: false,
+                  );
                   final user = appState.currentUser;
                   if (user == null) throw Exception('User not logged in');
 
