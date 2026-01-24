@@ -380,11 +380,12 @@ class _StudentChatPageState extends State<StudentChatPage>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        conversation.counselorRole == 'teacher'
-                            ? 'Teacher'
-                            : conversation.counselorRole == 'counsellor'
-                                ? 'Counselor'
-                                : 'Staff/Support',
+                        conversation.counselorRole != null
+                            ? conversation.counselorRole!
+                                      .substring(0, 1)
+                                      .toUpperCase() +
+                                  conversation.counselorRole!.substring(1)
+                            : 'Staff',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w500,
@@ -463,7 +464,9 @@ class _StudentChatPageState extends State<StudentChatPage>
 
     try {
       // Get available counselors and teachers
-      final recipients = await _chatService.getAvailableChatRecipients(user.department);
+      final recipients = await _chatService.getAvailableChatRecipients(
+        user.department,
+      );
 
       if (recipients.isEmpty) {
         if (context.mounted) {
@@ -493,14 +496,14 @@ class _StudentChatPageState extends State<StudentChatPage>
                 itemBuilder: (context, index) {
                   final recipient = recipients[index];
                   final isTeacher = recipient['role'] == 'teacher';
-                  final subtitle = isTeacher 
-                      ? 'Teacher • ${recipient['department']}' 
+                  final subtitle = isTeacher
+                      ? 'Teacher • ${recipient['department']}'
                       : 'Counselor';
-                      
+
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: isTeacher 
-                          ? Colors.orange.withOpacity(0.2) 
+                      backgroundColor: isTeacher
+                          ? Colors.orange.withOpacity(0.2)
                           : Colors.blue.withOpacity(0.2),
                       child: Text(
                         recipient['name'].substring(0, 1).toUpperCase(),
@@ -649,8 +652,8 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                     ),
                   ),
                   Text(
-                    widget.conversation.counselorRole == 'teacher' 
-                        ? 'Teacher' 
+                    widget.conversation.counselorRole == 'teacher'
+                        ? 'Teacher'
                         : 'Counselor',
                     style: TextStyle(
                       fontSize: 12,
