@@ -355,26 +355,6 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                     maxLines: 3,
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: selectedPriority,
-                    decoration: const InputDecoration(
-                      labelText: 'Priority',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.priority_high),
-                    ),
-                    items: priorities.map((priority) {
-                      return DropdownMenuItem(
-                        value: priority['value'],
-                        child: Text(priority['label']!),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedPriority = value ?? 'medium';
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
                   const Text(
                     'Recipients',
                     style: TextStyle(fontWeight: FontWeight.bold),
