@@ -164,7 +164,7 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
   }
 
   Widget _buildInProgressTab(BuildContext context) {
-    return _buildComplaintsList(context, 'In Progress');
+    return _buildInProgressComplaintsList(context);
   }
 
   Widget _buildResolvedTab(BuildContext context) {
@@ -234,6 +234,71 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
     );
   }
 
+  Widget _buildInProgressComplaintsList(BuildContext context) {
+    return StreamBuilder<List<ComplaintModel>>(
+      stream: _complaintService.getAllComplaints(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                Text('Error: ${snapshot.error}'),
+              ],
+            ),
+          );
+        }
+        
+        // Filter to show both "In Progress" and "Verified" complaints
+        final allComplaints = snapshot.data ?? [];
+        final complaints = allComplaints
+            .where((c) => c.status == 'In Progress' || c.status == 'Verified')
+            .toList();
+            
+        if (complaints.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.assignment_outlined, size: 64, color: Colors.grey),
+                const SizedBox(height: 16),
+                Text(
+                  'No Complaints',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'No in progress or verified complaints',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return ListView.builder(
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.getHorizontalPadding(context),
+              ),
+              itemCount: complaints.length,
+              itemBuilder: (context, index) {
+                return _buildComplaintCard(context, complaints[index], index);
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildComplaintCard(
     BuildContext context,
     ComplaintModel complaint,
@@ -249,6 +314,9 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
         break;
       case 'In Progress':
         statusColor = Colors.blue;
+        break;
+      case 'Verified':
+        statusColor = Colors.purple;
         break;
       case 'Pending':
         statusColor = Colors.orange;
@@ -501,7 +569,7 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
               onPressed: () => _showAssignDialog(context, complaint),
               child: const Text('Assign'),
             ),
-          if (complaint.status == 'In Progress')
+          if (complaint.status == 'In Progress' || complaint.status == 'Verified')
             FilledButton(
               onPressed: () => _showResolveDialog(context, complaint),
               child: const Text('Resolve'),

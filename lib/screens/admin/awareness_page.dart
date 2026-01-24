@@ -100,10 +100,6 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
     Color color,
     List<AwarenessModel> items,
   ) {
-    final totalViews =
-        items.fold<int>(0, (sum, item) => sum + (item.views));
-    final totalLikes =
-        items.fold<int>(0, (sum, item) => sum + (item.likes));
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -149,38 +145,12 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
             ],
           ),
           const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  context,
-                  'Total Content',
-                  '${items.length}',
-                  Icons.library_books,
-                  Colors.blue,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  context,
-                  'Total Views',
-                  '$totalViews',
-                  Icons.visibility,
-                  Colors.green,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  context,
-                  'Total Likes',
-                  '$totalLikes',
-                  Icons.favorite,
-                  Colors.red,
-                ),
-              ),
-            ],
+          _buildStatCard(
+            context,
+            'Total Content',
+            '${items.length}',
+            Icons.library_books,
+            Colors.blue,
           ),
         ],
       ),
@@ -371,35 +341,11 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
                       ),
                     ),
                     SizedBox(height: constraints.maxWidth > 600 ? 12 : 8),
-                    Row(
-                      children: [
-                        Flexible(
-                          child: _buildStatItem(
-                            context,
-                            'Views',
-                            item.views.toString(),
-                            Icons.visibility,
-                          ),
-                        ),
-                        SizedBox(width: constraints.maxWidth > 600 ? 12 : 8),
-                        Flexible(
-                          child: _buildStatItem(
-                            context,
-                            'Likes',
-                            item.likes.toString(),
-                            Icons.favorite,
-                          ),
-                        ),
-                        SizedBox(width: constraints.maxWidth > 600 ? 12 : 8),
-                        Flexible(
-                          child: _buildStatItem(
-                            context,
-                            'Category',
-                            item.category ?? 'General',
-                            Icons.category,
-                          ),
-                        ),
-                      ],
+                    _buildStatItem(
+                      context,
+                      'Category',
+                      item.category ?? 'General',
+                      Icons.category,
                     ),
                     SizedBox(height: constraints.maxWidth > 600 ? 12 : 8),
                     Row(
@@ -541,7 +487,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
-          subtitle: Text('${item.views} views • ${item.likes} likes'),
+          subtitle: Text(item.subtitle),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

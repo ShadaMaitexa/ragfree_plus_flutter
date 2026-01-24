@@ -65,8 +65,8 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
                 controller: _tabController,
                 children: [
                   _buildUserListStream(
-                    _authService.getPendingApprovals(),
-                    'No pending approvals',
+                    _authService.getAllUsers(),
+                    'No users found',
                   ),
                   _buildUserListStream(
                     _authService.getUsersByRole('student'),
@@ -164,7 +164,7 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
         tabs: const [
-          Tab(text: 'Pending'),
+          Tab(text: 'All'),
           Tab(text: 'Students'),
           Tab(text: 'Parents'),
           Tab(text: 'Teachers'),

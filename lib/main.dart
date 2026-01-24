@@ -486,7 +486,7 @@ class AdminDashboard extends StatelessWidget {
       NavigationDestinationData(icon: Icons.assignment, label: 'Complaints'),
       NavigationDestinationData(icon: Icons.apartment, label: 'Depts'),
       NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
-      NavigationDestinationData(icon: Icons.notifications, label: 'Alerts'),
+      NavigationDestinationData(icon: Icons.notifications, label: 'Notifications'),
       NavigationDestinationData(icon: Icons.receipt_long, label: 'Reports'),
       NavigationDestinationData(icon: Icons.analytics, label: 'Analytics'),
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
