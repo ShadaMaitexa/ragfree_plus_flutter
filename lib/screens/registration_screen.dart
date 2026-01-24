@@ -392,7 +392,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         ),
                       ),
                     ],
-                    if (['student', 'teacher', 'counsellor', 'warden', 'police'].contains(_selectedRole)) ...[
+                    if (['student', 'teacher', 'counsellor', 'warden'].contains(_selectedRole)) ...[
                       const SizedBox(height: 16),
                       AnimatedWidgets.slideIn(
                         beginOffset: const Offset(0, 0.1),
