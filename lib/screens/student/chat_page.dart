@@ -465,14 +465,14 @@ class _StudentChatPageState extends State<StudentChatPage>
     if (user == null) return;
 
     try {
-      // Get available counselors
-      final counselors = await _chatService.getAvailableCounselors();
+      // Get available counselors and teachers
+      final recipients = await _chatService.getAvailableChatRecipients(user.department);
 
-      if (counselors.isEmpty) {
+      if (recipients.isEmpty) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('No counselors available at the moment'),
+              content: Text('No support staff available at the moment'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -492,18 +492,37 @@ class _StudentChatPageState extends State<StudentChatPage>
               width: double.maxFinite,
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: counselors.length,
+                itemCount: recipients.length,
                 itemBuilder: (context, index) {
-                  final counselor = counselors[index];
+                  final recipient = recipients[index];
+                  final isTeacher = recipient['role'] == 'teacher';
+                  final subtitle = isTeacher 
+                      ? 'Teacher • ${recipient['department']}' 
+                      : 'Counselor';
+                      
                   return ListTile(
                     leading: CircleAvatar(
-                      child: Text(counselor['name'].substring(0, 1)),
+                      backgroundColor: isTeacher 
+                          ? Colors.orange.withOpacity(0.2) 
+                          : Colors.blue.withOpacity(0.2),
+                      child: Text(
+                        recipient['name'].substring(0, 1).toUpperCase(),
+                        style: TextStyle(
+                          color: isTeacher ? Colors.orange : Colors.blue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                    title: Text(counselor['name']),
-                    subtitle: Text(counselor['department'] ?? 'Counselor'),
+                    title: Text(recipient['name']),
+                    subtitle: Text(subtitle),
+                    trailing: Icon(
+                      Icons.chat_bubble_outline,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     onTap: () async {
                       Navigator.pop(context);
-                      await _startNewChat(context, counselor);
+                      await _startNewChat(context, recipient);
                     },
                   );
                 },

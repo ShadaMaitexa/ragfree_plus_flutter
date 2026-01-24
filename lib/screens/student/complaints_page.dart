@@ -570,19 +570,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                 ],
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  Text(
-                    'Priority: ',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  Text(
-                    complaint.priority,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
+
               Row(
                 children: [
                   Text('Date: ', style: Theme.of(context).textTheme.titleSmall),

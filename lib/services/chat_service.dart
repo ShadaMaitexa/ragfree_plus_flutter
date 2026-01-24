@@ -200,10 +200,61 @@ class ChatService {
           'name': data['name'] ?? 'Counselor',
           'department': data['department'],
           'email': data['email'],
+          'role': 'counsellor',
         };
       }).toList();
     } catch (e) {
       throw Exception('Failed to get counselors: ${e.toString()}');
+    }
+  }
+
+  // Get available chat recipients (Counselors + Teachers in student's department)
+  Future<List<Map<String, dynamic>>> getAvailableChatRecipients(String? department) async {
+    try {
+      // 1. Get all Counselors (independent of department)
+      final counselorsQuery = await _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'counsellor')
+          .where('isApproved', isEqualTo: true)
+          .get();
+
+      final counselors = counselorsQuery.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'id': doc.id,
+          'name': data['name'] ?? 'Counselor',
+          'department': data['department'],
+          'email': data['email'],
+          'role': 'counsellor',
+        };
+      }).toList();
+
+      // 2. Get Teachers in the same department
+      List<Map<String, dynamic>> teachers = [];
+      if (department != null && department.isNotEmpty) {
+        final teachersQuery = await _firestore
+            .collection('users')
+            .where('role', isEqualTo: 'teacher')
+            .where('department', isEqualTo: department)
+            .where('isApproved', isEqualTo: true)
+            .get();
+
+        teachers = teachersQuery.docs.map((doc) {
+          final data = doc.data();
+          return {
+            'id': doc.id,
+            'name': data['name'] ?? 'Teacher',
+            'department': data['department'],
+            'email': data['email'],
+            'role': 'teacher',
+          };
+        }).toList();
+      }
+
+      // Combine lists
+      return [...counselors, ...teachers];
+    } catch (e) {
+      throw Exception('Failed to get chat recipients: ${e.toString()}');
     }
   }
   // Clear chat messages
