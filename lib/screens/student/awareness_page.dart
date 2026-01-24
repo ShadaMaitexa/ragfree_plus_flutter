@@ -62,7 +62,7 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
             ),
             child: Column(
               children: [
-                _buildHeader(context, color),
+                
                 Expanded(child: _buildAwarenessContent(context)),
               ],
             ),
