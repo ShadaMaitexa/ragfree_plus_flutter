@@ -360,7 +360,7 @@ class ComplaintService {
   }) async {
     try {
       await _firestore.collection('complaints').doc(complaintId).update({
-        'status': 'Verified',
+        'status': 'In Progress',
         'metadata.verifiedBy': verifierId,
         'metadata.verifiedByName': verifierName,
         'metadata.verifiedByRole': verifierRole,

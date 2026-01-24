@@ -134,8 +134,6 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
       'All',
       if (hasDepartment) 'My Department',
       'Pending',
-      'Verified',
-      'Accepted',
       'In Progress',
       'Resolved',
     ];
@@ -187,6 +185,9 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
             (_selectedFilter == 'All' || _selectedFilter == 'My Department')
             ? complaints
             : complaints.where((c) {
+                if (_selectedFilter == 'In Progress') {
+                  return c.status == 'In Progress' || c.status == 'Verified' || c.status == 'Accepted';
+                }
                 return c.status == _selectedFilter;
               }).toList();
 
@@ -367,19 +368,6 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
                             backgroundColor: Colors.orange,
                           ),
                         ),
-                      if (complaint.status == 'Verified')
-                        const SizedBox(width: 12),
-                      if (complaint.status == 'Verified' ||
-                          complaint.status == 'Pending')
-                        FilledButton.icon(
-                          onPressed: () =>
-                              _showAcceptDialog(context, complaint),
-                          icon: const Icon(Icons.check_circle),
-                          label: const Text('Accept'),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: Colors.purple,
-                          ),
-                        ),
                     ],
                   ),
                 ),
@@ -446,60 +434,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
     }
   }
 
-  void _showAcceptDialog(BuildContext context, ComplaintModel complaint) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Accept Complaint'),
-        content: const Text(
-          'Do you want to accept this complaint and take responsibility for its resolution?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              try {
-                final appState = Provider.of<AppState>(context, listen: false);
-                final user = appState.currentUser;
-                if (user == null) throw Exception('User not logged in');
 
-                await _complaintService.acceptComplaint(
-                  complaintId: complaint.id,
-                  acceptorId: user.uid,
-                  acceptorName: user.name,
-                  acceptorRole: user.role,
-                );
-
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Complaint accepted successfully'),
-                      backgroundColor: Colors.purple,
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: ${e.toString()}'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
-            style: FilledButton.styleFrom(backgroundColor: Colors.purple),
-            child: const Text('Accept'),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showVerifyDialog(BuildContext context, ComplaintModel complaint) {
     showDialog(
