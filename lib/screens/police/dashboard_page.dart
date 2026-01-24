@@ -180,7 +180,7 @@ class _PoliceDashboardPageState extends State<PoliceDashboardPage> {
     final actions = [
       {'icon': Icons.assignment_rounded, 'title': 'All Cases', 'color': Colors.blue, 'target': 1},
       {'icon': Icons.verified_user_rounded, 'title': 'Verifications', 'color': Colors.green, 'target': 2},
-      {'icon': Icons.picture_as_pdf_rounded, 'title': 'Reports', 'color': Colors.purple, 'target': 3},
+      {'icon': Icons.picture_as_pdf_rounded, 'title': 'Complaints', 'color': Colors.purple, 'target': 3},
       {'icon': Icons.notification_important_rounded, 'title': 'Alerts', 'color': Colors.orange, 'target': 4},
     ];
 

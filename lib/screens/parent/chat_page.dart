@@ -361,7 +361,17 @@ class _ParentChatPageState extends State<ParentChatPage>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Counselor',
+                        conversation.counselorRole != null &&
+                                    conversation.counselorRole!.isNotEmpty
+                                ? (conversation.counselorRole!.toLowerCase() ==
+                                        'counsellor'
+                                    ? 'Counselor'
+                                    : conversation.counselorRole!
+                                            .substring(0, 1)
+                                            .toUpperCase() +
+                                        conversation.counselorRole!
+                                            .substring(1))
+                                : 'Counselor',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w500,
@@ -597,7 +607,17 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                     ),
                   ),
                   Text(
-                    'Counselor',
+                    widget.conversation.counselorRole != null &&
+                            widget.conversation.counselorRole!.isNotEmpty
+                        ? (widget.conversation.counselorRole!.toLowerCase() ==
+                                'counsellor'
+                            ? 'Counselor'
+                            : widget.conversation.counselorRole!
+                                    .substring(0, 1)
+                                    .toUpperCase() +
+                                widget.conversation.counselorRole!
+                                    .substring(1))
+                        : 'Counselor',
                     style: TextStyle(
                       fontSize: 12,
                       color: Theme.of(

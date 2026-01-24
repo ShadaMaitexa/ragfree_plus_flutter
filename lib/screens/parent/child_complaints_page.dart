@@ -81,7 +81,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddComplaintDialog(context),
         icon: const Icon(Icons.add),
-        label: const Text('New Report'),
+        label: const Text('New Complaint'),
         backgroundColor: color,
         foregroundColor: Colors.white,
       ),
@@ -129,7 +129,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
               FilledButton.icon(
                 onPressed: () => _showAddComplaintDialog(context),
                 icon: const Icon(Icons.add),
-                label: const Text('Add Report'),
+                label: const Text('Add Complaint'),
                 style: FilledButton.styleFrom(
                   backgroundColor: color,
                   shape: RoundedRectangleBorder(
