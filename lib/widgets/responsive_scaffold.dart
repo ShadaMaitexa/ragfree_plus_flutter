@@ -96,10 +96,10 @@ class ResponsiveScaffold extends StatelessWidget {
         onDestinationSelected: onDestinationSelected,
         backgroundColor: Colors.transparent,
         indicatorColor: colorScheme.primaryContainer,
-        selectedIconTheme: IconThemeData(color: colorScheme.primary),
+        selectedIconTheme: IconThemeData(color: colorScheme.onPrimaryContainer),
         unselectedIconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
         selectedLabelTextStyle: TextStyle(
-          color: colorScheme.primary,
+          color: colorScheme.onSurface,
           fontWeight: FontWeight.bold,
         ),
         unselectedLabelTextStyle: TextStyle(

@@ -95,6 +95,25 @@ class EmergencyAlertService {
 
       // Notify target users
       await _notifyTargetUsers(title, message, priority, targetRoles);
+
+      // Also create a notification for the sender (Admin) so they can view the message they sent/got
+      // Check if admin is already covered by targetRoles (e.g. 'all' includes admin)
+      // Usually admin role is 'admin'. If targetRoles doesn't include 'admin' or 'all', they won't get it.
+      // So we force one.
+      final bool alreadyIncluded = targetRoles.contains('all') || targetRoles.contains('admin');
+      if (!alreadyIncluded) {
+        final notificationRef = _firestore.collection('notifications').doc();
+        await notificationRef.set({
+          'id': notificationRef.id,
+          'userId': createdBy,
+          'title': 'Global Notification Sent: $title',
+          'message': message,
+          'type': 'success',
+          'createdAt': Timestamp.now(),
+          'isRead': false,
+          'relatedType': 'global_alert_sent',
+        });
+      }
     } catch (e) {
       throw Exception('Failed to create global alert: ${e.toString()}');
     }
