@@ -1033,7 +1033,6 @@ class PoliceDashboard extends StatelessWidget {
         icon: Icons.notifications_active,
         label: 'Notify',
       ),
-      NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
     ];
 
@@ -1043,7 +1042,6 @@ class PoliceDashboard extends StatelessWidget {
       _PolicePages.verify,
       _PolicePages.generateReport,
       _PolicePages.sendNotification,
-      _PolicePages.awareness,
       _PolicePages.profile,
     ];
 

@@ -26,69 +26,102 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
     final user = Provider.of<AppState>(context).currentUser;
     final color = Theme.of(context).primaryColor;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.isMobile(context) ? 16 : 32,
-            vertical: 24,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [color.withOpacity(0.08), Colors.transparent, color.withOpacity(0.04)]
+                : [Colors.white, color.withOpacity(0.02), color.withOpacity(0.05)],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AnimatedWidgets.fadeDown(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Welcome back,',
-                          style: Theme.of(context).textTheme.bodyLarge
-                              ?.copyWith(color: Colors.grey[600]),
-                        ),
-                        Text(
-                          user?.name ?? 'Teacher',
-                          style: Theme.of(context).textTheme.headlineMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey[800],
-                              ),
-                        ),
-                      ],
-                    ),
-                    CircleAvatar(
-                      radius: 25,
-                      backgroundColor: color.withOpacity(0.1),
-                      child: Text(
-                        (user?.name ?? 'T').substring(0, 1).toUpperCase(),
-                        style: TextStyle(
-                          color: color,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.isMobile(context) ? 16 : 32,
+              vertical: 24,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AnimatedWidgets.fadeDown(
+                  child: _buildWelcomeCard(context, user, color),
                 ),
-              ),
-              const SizedBox(height: 32),
-              AnimatedWidgets.fadeUp(
-                delay: const Duration(milliseconds: 200),
-                child: _buildStatsGrid(context, color),
-              ),
-              const SizedBox(height: 32),
-              AnimatedWidgets.fadeUp(
-                delay: const Duration(milliseconds: 400),
-                child: _buildRecentActivity(context, user?.uid ?? ''),
-              ),
-              const SizedBox(height: 32),
-              AnimatedWidgets.fadeUp(
-                delay: const Duration(milliseconds: 600),
-                child: _buildNotifications(context, user?.uid ?? ''),
-              ),
-            ],
+                const SizedBox(height: 32),
+                AnimatedWidgets.fadeUp(
+                  delay: const Duration(milliseconds: 200),
+                  child: _buildStatsGrid(context, color),
+                ),
+                const SizedBox(height: 32),
+                AnimatedWidgets.fadeUp(
+                  delay: const Duration(milliseconds: 400),
+                  child: _buildRecentActivity(context, user?.uid ?? ''),
+                ),
+                const SizedBox(height: 32),
+                AnimatedWidgets.fadeUp(
+                  delay: const Duration(milliseconds: 600),
+                  child: _buildNotifications(context, user?.uid ?? ''),
+                ),
+              ],
+            ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWelcomeCard(BuildContext context, dynamic user, Color color) {
+    return AnimatedWidgets.hoverCard(
+      elevation: 8,
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [color, color.withOpacity(0.85)],
+          ),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(16)),
+                  child: const Icon(Icons.school, color: Colors.white, size: 32),
+                ),
+                const SizedBox(width: 24),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Welcome back,', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w500)),
+                      Text(
+                        user?.name ?? 'Teacher',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Text(
+              user?.department != null 
+                ? 'Department of ${user.department}'
+                : 'Manage your students and assigned complaints',
+              style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
+            ),
+          ],
         ),
       ),
     );
@@ -147,56 +180,58 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
           itemCount: stats.length,
           itemBuilder: (context, index) {
             final stat = stats[index];
-            return Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: (stat['color'] as Color).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(15),
+            final statColor = stat['color'] as Color;
+            
+            return AnimatedWidgets.hoverCard(
+              elevation: 0,
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: statColor.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: statColor.withOpacity(0.1)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: statColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Icon(
+                        stat['icon'] as IconData,
+                        color: statColor,
+                      ),
                     ),
-                    child: Icon(
-                      stat['icon'] as IconData,
-                      color: stat['color'] as Color,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          stat['label'] as String,
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            stat['label'] as String,
+                            style: TextStyle(
+                              color: Theme.of(context).hintColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                        Text(
-                          stat['value'] as String,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                          Text(
+                            stat['value'] as String,
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: statColor,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             );
           },
@@ -240,16 +275,16 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                 padding: const EdgeInsets.all(32),
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
                   children: [
-                    Icon(Icons.history, color: Colors.grey[300], size: 48),
+                    Icon(Icons.history, color: Theme.of(context).disabledColor, size: 48),
                     const SizedBox(height: 16),
                     Text(
                       'No recent activity',
-                      style: TextStyle(color: Colors.grey[500]),
+                      style: TextStyle(color: Theme.of(context).hintColor),
                     ),
                   ],
                 ),
@@ -258,22 +293,16 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
 
             return Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor.withOpacity(0.6),
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
+                border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
               ),
               child: ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: activities.length,
                 separatorBuilder: (context, index) =>
-                    Divider(height: 1, color: Colors.grey[100], indent: 72),
+                    Divider(height: 1, color: Theme.of(context).dividerColor.withOpacity(0.2), indent: 72),
                 itemBuilder: (context, index) {
                   final activity = activities[index];
                   return ListTile(
@@ -299,12 +328,15 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(activity.description),
+                        Text(
+                          activity.description,
+                          style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8)),
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           _formatDate(activity.timestamp),
                           style: TextStyle(
-                            color: Colors.grey[500],
+                            color: Theme.of(context).hintColor,
                             fontSize: 12,
                           ),
                         ),
@@ -373,27 +405,20 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                 padding: const EdgeInsets.all(32),
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
                 ),
                 child: Column(
                   children: [
                     Icon(
                       Icons.notifications_none,
-                      color: Colors.grey[300],
+                      color: Theme.of(context).disabledColor,
                       size: 48,
                     ),
                     const SizedBox(height: 16),
                     Text(
                       'No new notifications',
-                      style: TextStyle(color: Colors.grey[500]),
+                      style: TextStyle(color: Theme.of(context).hintColor),
                     ),
                   ],
                 ),
@@ -402,22 +427,16 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
 
             return Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor.withOpacity(0.6),
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
+                border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
               ),
               child: ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: notifications.length,
                 separatorBuilder: (context, index) =>
-                    Divider(height: 1, color: Colors.grey[100], indent: 72),
+                    Divider(height: 1, color: Theme.of(context).dividerColor.withOpacity(0.2), indent: 72),
                 itemBuilder: (context, index) {
                   final notification = notifications[index];
                   // If passing dynamic, we need to access fields carefully or cast
@@ -447,12 +466,15 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(notification.message),
+                        Text(
+                          notification.message,
+                          style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8)),
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           _formatDate(notification.createdAt.toDate()),
                           style: TextStyle(
-                            color: Colors.grey[500],
+                            color: Theme.of(context).hintColor,
                             fontSize: 12,
                           ),
                         ),
