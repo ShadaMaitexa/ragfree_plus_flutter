@@ -34,6 +34,25 @@ class AwarenessService {
         );
   }
 
+  Stream<List<AwarenessModel>> getAwarenessByAuthor(String authorId) {
+    return _firestore
+        .collection('awareness')
+        .where('authorId', isEqualTo: authorId)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => AwarenessModel.fromMap(
+                  {
+                    ...doc.data() as Map<String, dynamic>,
+                    'id': doc.id,
+                  },
+                ),
+              )
+              .toList(),
+        );
+  }
+
   Future<void> addAwareness(AwarenessModel model) async {
     final docRef = _firestore.collection('awareness').doc();
     final updatedModel = model.copyWith(id: docRef.id);

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../services/awareness_service.dart';
 import '../../models/awareness_model.dart';
+import 'package:provider/provider.dart';
+import '../../services/app_state.dart';
 
 class AdminAwarenessPage extends StatefulWidget {
   const AdminAwarenessPage({super.key});
@@ -137,7 +139,12 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
                 ),
               ),
               FilledButton.icon(
-                onPressed: () => _showAddContentDialog(context),
+                onPressed: () {
+                  final user = context.read<AppState>().currentUser;
+                  if (user != null) {
+                    _showAddContentDialog(context, user.uid, user.role);
+                  }
+                },
                 icon: const Icon(Icons.add),
                 label: const Text('Add Content'),
                 style: FilledButton.styleFrom(backgroundColor: color),
@@ -506,7 +513,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
     );
   }
 
-  void _showAddContentDialog(BuildContext context) {
+  void _showAddContentDialog(BuildContext context, String authorId, String authorRole) {
     final titleController = TextEditingController();
     final subtitleController = TextEditingController();
     final contentController = TextEditingController();
@@ -568,6 +575,8 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
                 subtitle: subtitleController.text.trim(),
                 content: contentController.text.trim(),
                 role: 'public',
+                authorId: authorId,
+                authorRole: authorRole,
                 category: categoryController.text.trim().isEmpty
                     ? null
                     : categoryController.text.trim(),

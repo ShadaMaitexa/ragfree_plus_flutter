@@ -6,6 +6,8 @@ class AwarenessModel {
   final String subtitle;
   final String content;
   final String role; // student, parent, teacher, admin, police, counsellor, warden, all
+  final String? authorId;
+  final String? authorRole;
   final String? category;
   final int views;
   final int likes;
@@ -17,6 +19,8 @@ class AwarenessModel {
     required this.subtitle,
     required this.content,
     required this.role,
+    this.authorId,
+    this.authorRole,
     this.category,
     this.views = 0,
     this.likes = 0,
@@ -30,6 +34,8 @@ class AwarenessModel {
       subtitle: map['subtitle'] as String? ?? '',
       content: map['content'] as String? ?? '',
       role: map['role'] as String? ?? 'all',
+      authorId: map['authorId'] as String?,
+      authorRole: map['authorRole'] as String?,
       category: map['category'] as String?,
       views: (map['views'] as num?)?.toInt() ?? 0,
       likes: (map['likes'] as num?)?.toInt() ?? 0,
@@ -47,6 +53,8 @@ class AwarenessModel {
       'subtitle': subtitle,
       'content': content,
       'role': role,
+      'authorId': authorId,
+      'authorRole': authorRole,
       'category': category,
       'views': views,
       'likes': likes,
@@ -60,6 +68,8 @@ class AwarenessModel {
     String? subtitle,
     String? content,
     String? role,
+    String? authorId,
+    String? authorRole,
     String? category,
     int? views,
     int? likes,
@@ -71,6 +81,8 @@ class AwarenessModel {
       subtitle: subtitle ?? this.subtitle,
       content: content ?? this.content,
       role: role ?? this.role,
+      authorId: authorId ?? this.authorId,
+      authorRole: authorRole ?? this.authorRole,
       category: category ?? this.category,
       views: views ?? this.views,
       likes: likes ?? this.likes,
@@ -78,5 +90,3 @@ class AwarenessModel {
     );
   }
 }
-
-

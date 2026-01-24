@@ -133,14 +133,17 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
     final department = user?.department ?? '';
 
     return StreamBuilder<List<ComplaintModel>>(
-      stream: (department.isNotEmpty)
-          ? _complaintService.getComplaintsByDepartment(
-              institutionNormalized,
-              department,
-            )
-          : _complaintService.getComplaintsByInstitution(institutionNormalized),
+      stream: _complaintService.getComplaintsByInstitution(institutionNormalized),
       builder: (context, snapshot) {
-        final complaints = snapshot.data ?? [];
+        final allComplaints = snapshot.data ?? [];
+        
+        // Filter complaints by department client-side for consistency
+        final complaints = department.isEmpty 
+          ? allComplaints 
+          : allComplaints.where((c) => 
+              (c.studentDepartment ?? '').trim().toLowerCase() == department.trim().toLowerCase()
+            ).toList();
+
         final total = complaints.length;
         final resolved = complaints.where((x) => x.status == 'Resolved').length;
         final active = total - resolved;

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../services/awareness_service.dart';
 import '../../models/awareness_model.dart';
+import 'package:provider/provider.dart';
+import '../../services/app_state.dart';
 
 
 class CounsellorAwarenessPage extends StatefulWidget {
@@ -46,6 +48,11 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme.primary;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final user = context.watch<AppState>().currentUser;
+
+    if (user == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     return AnimatedBuilder(
       animation: _animationController,
@@ -64,8 +71,8 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
             ),
             child: SingleChildScrollView(
               child: StreamBuilder<List<AwarenessModel>>(
-                // Fetch 'public' content so Counselors can manage what Students/Parents/Teachers see
-                stream: _awarenessService.getAwarenessForRole('public'),
+                // Fetch only content created BY this counsellor
+                stream: _awarenessService.getAwarenessByAuthor(user.uid),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Padding(
@@ -85,7 +92,7 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
                   final items = snapshot.data ?? [];
                   return Column(
                     children: [
-                      _buildHeader(context, color, items),
+                      _buildHeader(context, color, items, user.uid, user.role),
                       _buildContent(context, items),
                     ],
                   );
@@ -102,6 +109,8 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
     BuildContext context,
     Color color,
     List<AwarenessModel> items,
+    String authorId,
+    String authorRole,
   ) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -140,7 +149,7 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
                 ),
               ),
               FilledButton.icon(
-                onPressed: () => _showAddContentDialog(context),
+                onPressed: () => _showAddContentDialog(context, authorId, authorRole),
                 icon: const Icon(Icons.add),
                 label: const Text('Add Content'),
                 style: FilledButton.styleFrom(backgroundColor: color),
@@ -526,7 +535,7 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
     );
   }
 
-  void _showAddContentDialog(BuildContext context) {
+  void _showAddContentDialog(BuildContext context, String authorId, String authorRole) {
     final titleController = TextEditingController();
     final subtitleController = TextEditingController();
     final contentController = TextEditingController();
@@ -588,6 +597,8 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
                 subtitle: subtitleController.text.trim(),
                 content: contentController.text.trim(),
                 role: 'public', // Counselors create public content
+                authorId: authorId,
+                authorRole: authorRole,
                 category: categoryController.text.trim().isEmpty
                     ? null
                     : categoryController.text.trim(),

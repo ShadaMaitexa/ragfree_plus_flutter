@@ -167,12 +167,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
     final department = user?.department ?? '';
 
     return StreamBuilder<List<ComplaintModel>>(
-      stream: _selectedFilter == 'My Department'
-          ? _complaintService.getComplaintsByDepartment(
-              institutionNormalized,
-              department,
-            )
-          : _complaintService.getComplaintsByInstitution(institutionNormalized),
+      stream: _complaintService.getComplaintsByInstitution(institutionNormalized),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -180,16 +175,28 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
         if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         }
+        
         final complaints = snapshot.data ?? [];
-        final filteredComplaints =
-            (_selectedFilter == 'All' || _selectedFilter == 'My Department')
-            ? complaints
-            : complaints.where((c) {
-                if (_selectedFilter == 'In Progress') {
-                  return c.status == 'In Progress' || c.status == 'Verified' || c.status == 'Accepted';
-                }
-                return c.status == _selectedFilter;
-              }).toList();
+        
+        // Filter complaints based on selected filter
+        final filteredComplaints = complaints.where((c) {
+          // 1. Handle Department filtering
+          if (_selectedFilter == 'My Department') {
+            if (department.isEmpty) return false;
+            // Case-insensitive and trimmed comparison for robustness
+            return (c.studentDepartment ?? '').trim().toLowerCase() == department.trim().toLowerCase();
+          }
+          
+          // 2. Handle Status filters
+          if (_selectedFilter == 'Pending') return c.status == 'Pending';
+          if (_selectedFilter == 'In Progress') {
+            return c.status == 'In Progress' || c.status == 'Verified' || c.status == 'Accepted';
+          }
+          if (_selectedFilter == 'Resolved') return c.status == 'Resolved';
+          
+          // 3. 'All' filter returns everything
+          return true;
+        }).toList();
 
         if (filteredComplaints.isEmpty) {
           return Center(
