@@ -61,6 +61,7 @@ import 'services/emailjs_service.dart';
 import 'services/cloudinary_service.dart';
 import 'widgets/responsive_scaffold.dart';
 import 'utils/responsive.dart';
+import 'models/user_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -197,19 +198,21 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkAuthAndNavigate() async {
-    await Future.delayed(const Duration(seconds: 2)); // Reduced delay for better UX
+    await Future.delayed(
+      const Duration(seconds: 2),
+    ); // Reduced delay for better UX
     if (!mounted) return;
 
     final authService = AuthService();
-    
+
     // 1. Try to get user from local session (SharedPreferences)
     final sessionUser = await authService.getUserFromSession();
-    
+
     if (sessionUser != null) {
       _navigateBasedOnUser(sessionUser);
       return;
     }
-    
+
     // 2. Fallback to Firebase Auth persistence
     final user = await authService.authStateChanges.first;
 
@@ -503,7 +506,10 @@ class AdminDashboard extends StatelessWidget {
       NavigationDestinationData(icon: Icons.assignment, label: 'Complaints'),
       NavigationDestinationData(icon: Icons.apartment, label: 'Depts'),
       NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
-      NavigationDestinationData(icon: Icons.notifications, label: 'Notifications'),
+      NavigationDestinationData(
+        icon: Icons.notifications,
+        label: 'Notifications',
+      ),
       NavigationDestinationData(icon: Icons.receipt_long, label: 'Reports'),
       NavigationDestinationData(icon: Icons.analytics, label: 'Analytics'),
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
@@ -645,8 +651,6 @@ class _AdminAnalyticsProxy extends StatelessWidget {
   @override
   Widget build(BuildContext context) => const admin_pages.AdminAnalyticsPage();
 }
-
-
 
 class _AdminProfileProxy extends StatelessWidget {
   const _AdminProfileProxy();
