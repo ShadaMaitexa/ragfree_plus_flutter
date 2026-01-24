@@ -48,22 +48,32 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AnimatedWidgets.fadeDown(
+                AnimatedWidgets.slideIn(
+                  beginOffset: const Offset(0, 0.2),
                   child: _buildWelcomeCard(context, user, color),
                 ),
                 const SizedBox(height: 32),
-                AnimatedWidgets.fadeUp(
-                  delay: const Duration(milliseconds: 200),
+                AnimatedWidgets.slideIn(
+                  beginOffset: const Offset(0, 0.2),
+                  delay: const Duration(milliseconds: 100),
                   child: _buildStatsGrid(context, color),
                 ),
                 const SizedBox(height: 32),
-                AnimatedWidgets.fadeUp(
-                  delay: const Duration(milliseconds: 400),
+                AnimatedWidgets.slideIn(
+                  beginOffset: const Offset(0, 0.2),
+                  delay: const Duration(milliseconds: 200),
+                  child: _buildQuickActions(context, color),
+                ),
+                const SizedBox(height: 32),
+                AnimatedWidgets.slideIn(
+                  beginOffset: const Offset(0, 0.2),
+                  delay: const Duration(milliseconds: 300),
                   child: _buildRecentActivity(context, user?.uid ?? ''),
                 ),
                 const SizedBox(height: 32),
-                AnimatedWidgets.fadeUp(
-                  delay: const Duration(milliseconds: 600),
+                AnimatedWidgets.slideIn(
+                  beginOffset: const Offset(0, 0.2),
+                  delay: const Duration(milliseconds: 400),
                   child: _buildNotifications(context, user?.uid ?? ''),
                 ),
               ],
@@ -137,7 +147,6 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
       builder: (context, snapshot) {
         final allComplaints = snapshot.data ?? [];
         
-        // Filter complaints by department client-side for consistency
         final complaints = department.isEmpty 
           ? allComplaints 
           : allComplaints.where((c) => 
@@ -150,23 +159,21 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
 
         final stats = [
           {
-            'label': department.isNotEmpty
-                ? '$department Cases'
-                : 'Case Reported',
+            'label': 'Total Cases',
             'value': '$total',
-            'icon': Icons.assignment_rounded,
+            'icon': Icons.folder_open_rounded,
             'color': Colors.blue,
           },
           {
             'label': 'Resolved',
             'value': '$resolved',
-            'icon': Icons.task_alt_rounded,
+            'icon': Icons.verified_rounded,
             'color': Colors.green,
           },
           {
-            'label': 'Active Cases',
+            'label': 'Active',
             'value': '$active',
-            'icon': Icons.warning_amber_rounded,
+            'icon': Icons.pending_actions_rounded,
             'color': Colors.orange,
           },
         ];
@@ -175,71 +182,156 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: Responsive.isMobile(context) ? 1 : 3,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: Responsive.isMobile(context) ? 4 : 1.5,
+            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 1, tablet: 3, desktop: 3),
+            crossAxisSpacing: 20,
+            mainAxisSpacing: 20,
+            childAspectRatio: Responsive.isMobile(context) ? 4 : 1.3,
           ),
           itemCount: stats.length,
           itemBuilder: (context, index) {
             final stat = stats[index];
             final statColor = stat['color'] as Color;
             
-            return AnimatedWidgets.hoverCard(
-              elevation: 0,
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: statColor.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: statColor.withOpacity(0.1)),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: statColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Icon(
-                        stat['icon'] as IconData,
-                        color: statColor,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            stat['label'] as String,
-                            style: TextStyle(
-                              color: Theme.of(context).hintColor,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            stat['value'] as String,
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: statColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
+            if (Responsive.isMobile(context)) {
+              return _buildMobileStatCard(context, stat['icon'] as IconData, stat['label'] as String, stat['value'] as String, statColor);
+            }
+            return _buildStatCard(context, stat['icon'] as IconData, stat['label'] as String, stat['value'] as String, statColor);
           },
         );
       },
+    );
+  }
+
+  Widget _buildStatCard(BuildContext context, IconData icon, String label, String value, Color color) {
+    return Card(
+      elevation: 0,
+      color: color.withOpacity(0.05),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withOpacity(0.1))),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 28),
+            const Spacer(),
+            AnimatedWidgets.counterText(
+              count: int.tryParse(value) ?? 0,
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: color),
+            ),
+            Text(label, style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor, fontWeight: FontWeight.w600)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileStatCard(BuildContext context, IconData icon, String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.1)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Icon(icon, color: color),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(color: Theme.of(context).hintColor, fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  value,
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActions(BuildContext context, Color color) {
+    final actions = [
+      {'icon': Icons.assignment_rounded, 'title': 'Complaints', 'color': Colors.blue, 'target': 1},
+      {'icon': Icons.chat_rounded, 'title': 'Chat Hub', 'color': Colors.green, 'target': 2},
+      {'icon': Icons.menu_book_rounded, 'title': 'Awareness', 'color': Colors.purple, 'target': 3},
+      {'icon': Icons.person_rounded, 'title': 'My Profile', 'color': Colors.orange, 'target': 4},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('System Shortcuts', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 20),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
+            crossAxisSpacing: 20,
+            mainAxisSpacing: 20,
+            childAspectRatio: 1.1,
+          ),
+          itemCount: actions.length,
+          itemBuilder: (context, index) {
+            final action = actions[index];
+            return _buildActionCard(
+              context,
+              action['icon'] as IconData,
+              action['title'] as String,
+              action['color'] as Color,
+              action['target'] as int,
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionCard(BuildContext context, IconData icon, String title, Color color, int targetIndex) {
+    return AnimatedWidgets.scaleButton(
+      onPressed: () => Provider.of<AppState>(context, listen: false).setNavIndex(targetIndex),
+      child: AnimatedWidgets.hoverCard(
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.1)),
+                child: Icon(icon, color: color, size: 32),
+              ),
+              const SizedBox(height: 16),
+              Text(title, style: TextStyle(fontWeight: FontWeight.w800, color: color, fontSize: 13, letterSpacing: 0.5)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
