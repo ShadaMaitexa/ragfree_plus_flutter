@@ -64,10 +64,7 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildUserListStream(
-                    _authService.getAllUsers(),
-                    'No users found',
-                  ),
+                  _buildAllUsersTab(),
                   _buildUserListStream(
                     _authService.getUsersByRole('student'),
                     'No students found',
@@ -173,6 +170,37 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
           Tab(text: 'Police'),
         ],
       ),
+    );
+  }
+
+  Widget _buildAllUsersTab() {
+    return StreamBuilder<List<UserModel>>(
+      stream: _authService.getAllUsers(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return const Center(child: CircularProgressIndicator());
+        
+        // Filter out administrators
+        final allUsers = snapshot.data ?? [];
+        final users = allUsers.where((user) => user.role != 'admin').toList();
+        
+        if (users.isEmpty)
+          return _buildEmptyState(
+            context,
+            Icons.person_search_rounded,
+            'No users found',
+          );
+
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          itemCount: users.length,
+          itemBuilder: (context, index) => AnimatedWidgets.slideIn(
+            beginOffset: const Offset(0, 0.1),
+            delay: Duration(milliseconds: index * 50),
+            child: _buildUserCard(context, users[index]),
+          ),
+        );
+      },
     );
   }
 
