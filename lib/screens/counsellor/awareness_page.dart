@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/awareness_service.dart';
 import '../../models/awareness_model.dart';
-import '../../widgets/awareness_card.dart'; // Assuming this exists or I'll inline it like AdminPage
+
 
 class CounsellorAwarenessPage extends StatefulWidget {
   const CounsellorAwarenessPage({super.key});
