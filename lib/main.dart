@@ -201,7 +201,7 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     final authService = AuthService();
-    final user = authService.currentUser;
+    final user = await authService.authStateChanges.first;
 
     if (user != null) {
       final userData = await authService.getUserData(user.uid);

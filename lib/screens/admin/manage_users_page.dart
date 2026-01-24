@@ -134,29 +134,7 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
               ],
             ),
           ),
-          AnimatedWidgets.scaleButton(
-            onPressed: () => _showAddUserDialog(context),
-            child: Directionality(
-              textDirection: TextDirection.rtl,
-              child: FilledButton.icon(
-                onPressed: () => _showAddUserDialog(context),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                icon: const Icon(Icons.add_rounded),
-                label: const Text(
-                  'New User',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          ),
+// Button removed as per requirement
         ],
       ),
     );
@@ -441,34 +419,7 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
     }
   }
 
-  void _showAddUserDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: const Text(
-          'Onboard New User',
-          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.5),
-        ),
-        content: const Text(
-          'To maintain security, new users should register via the official app registration screen.\n\nOnce they submit their details and ID proof, their account will appear here for your verification and approval.',
-          style: TextStyle(height: 1.5),
-        ),
-        actionsPadding: const EdgeInsets.all(24),
-        actions: [
-          FilledButton(
-            style: FilledButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () => Navigator.pop(context),
-            child: const Text('I Understand'),
-          ),
-        ],
-      ),
-    );
-  }
+
 }
 
 class _UserDetailSheet extends StatelessWidget {

@@ -146,7 +146,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
       String category = '';
 
       if (type == 'users') {
-        final query = await _firestore.collection('users').limit(50).get();
+        final query = await _firestore.collection('users').limit(100).get();
         data = query.docs.map((doc) => {
           'Name': doc.data()['name'] ?? 'N/A',
           'Email': doc.data()['email'] ?? 'N/A',
@@ -154,7 +154,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
         }).toList();
         category = 'User Management';
       } else if (type == 'complaints' || type == 'analytics') {
-        final query = await _firestore.collection('complaints').limit(50).get();
+        final query = await _firestore.collection('complaints').limit(100).get();
         data = query.docs.map((doc) => {
           'Title': doc.data()['title'] ?? 'N/A',
           'Student': doc.data()['studentName'] ?? 'Anonymous',
@@ -163,13 +163,47 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
         }).toList();
         category = 'safety & Complaints';
       } else {
-        // Mock incidents for hotspots
-        data = [
-          {'Area': 'Hostel A', 'Total Incidents': '5', 'Status': 'High Alert'},
-          {'Area': 'Cafeteria', 'Total Incidents': '2', 'Status': 'Normal'},
-          {'Area': 'Library', 'Total Incidents': '0', 'Status': 'Safe'},
-        ];
-        category = 'Safety Hotspots';
+        // Fetch real data for hotspots analysis
+        final query = await _firestore.collection('complaints').limit(100).get();
+        final Map<String, int> locationCounts = {};
+        
+        for (var doc in query.docs) {
+          final data = doc.data();
+          // Use location if available, otherwise fall back to incidentType
+          String area = data['location']?.toString() ?? '';
+          if (area.trim().isEmpty) {
+            area = data['incidentType']?.toString() ?? 'Unknown';
+          }
+          
+          // Normalize area name
+          area = area.trim();
+          if (area.isEmpty) area = 'Unknown Area';
+          
+          locationCounts[area] = (locationCounts[area] ?? 0) + 1;
+        }
+        
+        data = locationCounts.entries.map((entry) {
+          int count = entry.value;
+          String status = 'Safe';
+          if (count >= 5) {
+            status = 'High Alert';
+          } else if (count >= 2) {
+            status = 'Validation Required';
+          }
+          
+          return {
+            'Area': entry.key,
+            'Total Incidents': count.toString(),
+            'Status': status,
+          };
+        }).toList();
+        
+        // Sort by incident count descending
+        data.sort((a, b) => 
+          int.parse(b['Total Incidents']).compareTo(int.parse(a['Total Incidents']))
+        );
+        
+        category = 'Safety Hotspots Analysis';
       }
 
       if (data.isEmpty) {
