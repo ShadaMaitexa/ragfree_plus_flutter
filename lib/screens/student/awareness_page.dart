@@ -174,7 +174,7 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
               child: PageView.builder(
                 controller: _pageController,
                 onPageChanged: (index) {
-                  setState(() {
+                  setState(() { 
                     _currentPage = index;
                   });
                 },
