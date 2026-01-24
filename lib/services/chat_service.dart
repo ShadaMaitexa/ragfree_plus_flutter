@@ -10,6 +10,7 @@ class ChatService {
     required String studentName,
     String? counselorId,
     String? counselorName,
+    String? counselorRole,
     String? complaintId,
     String? complaintTitle,
   }) async {
@@ -58,6 +59,7 @@ class ChatService {
         studentName: studentName,
         counselorId: counselorId,
         counselorName: counselorName,
+        counselorRole: counselorRole,
         complaintId: complaintId,
         complaintTitle: complaintTitle,
         createdAt: DateTime.now(),

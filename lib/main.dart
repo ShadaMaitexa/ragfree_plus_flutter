@@ -197,56 +197,73 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkAuthAndNavigate() async {
-    await Future.delayed(const Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds: 2)); // Reduced delay for better UX
     if (!mounted) return;
 
     final authService = AuthService();
+    
+    // 1. Try to get user from local session (SharedPreferences)
+    final sessionUser = await authService.getUserFromSession();
+    
+    if (sessionUser != null) {
+      _navigateBasedOnUser(sessionUser);
+      return;
+    }
+    
+    // 2. Fallback to Firebase Auth persistence
     final user = await authService.authStateChanges.first;
 
     if (user != null) {
       final userData = await authService.getUserData(user.uid);
       if (userData != null) {
-        final appState = Provider.of<AppState>(context, listen: false);
-        appState.setUser(userData);
-
-        if ((userData.role == 'police' ||
-                userData.role == 'counsellor' ||
-                userData.role == 'warden' ||
-                userData.role == 'teacher') &&
-            !userData.isApproved) {
-          Navigator.of(context).pushReplacementNamed(Routes.approvalPending);
-        } else {
-          switch (userData.role) {
-            case 'student':
-              Navigator.of(context).pushReplacementNamed(Routes.student);
-              break;
-            case 'parent':
-              Navigator.of(context).pushReplacementNamed(Routes.parent);
-              break;
-            case 'admin':
-              Navigator.of(context).pushReplacementNamed(Routes.admin);
-              break;
-            case 'counsellor':
-              Navigator.of(context).pushReplacementNamed(Routes.counsellor);
-              break;
-            case 'warden':
-              Navigator.of(context).pushReplacementNamed(Routes.warden);
-              break;
-            case 'police':
-              Navigator.of(context).pushReplacementNamed(Routes.police);
-              break;
-            case 'teacher':
-              Navigator.of(context).pushReplacementNamed(Routes.teacher);
-              break;
-            default:
-              Navigator.of(context).pushReplacementNamed(Routes.login);
-          }
-        }
+        // Update session for next time
+        await authService.saveUserSession(userData);
+        if (mounted) _navigateBasedOnUser(userData);
       } else {
-        Navigator.of(context).pushReplacementNamed(Routes.login);
+        if (mounted) Navigator.of(context).pushReplacementNamed(Routes.login);
       }
     } else {
-      Navigator.of(context).pushReplacementNamed(Routes.login);
+      if (mounted) Navigator.of(context).pushReplacementNamed(Routes.login);
+    }
+  }
+
+  void _navigateBasedOnUser(UserModel userData) {
+    final appState = Provider.of<AppState>(context, listen: false);
+    appState.setUser(userData);
+
+    if ((userData.role == 'police' ||
+            userData.role == 'counsellor' ||
+            userData.role == 'warden' ||
+            userData.role == 'teacher') &&
+        !userData.isApproved) {
+      Navigator.of(context).pushReplacementNamed(Routes.approvalPending);
+      return;
+    }
+
+    switch (userData.role) {
+      case 'student':
+        Navigator.of(context).pushReplacementNamed(Routes.student);
+        break;
+      case 'parent':
+        Navigator.of(context).pushReplacementNamed(Routes.parent);
+        break;
+      case 'admin':
+        Navigator.of(context).pushReplacementNamed(Routes.admin);
+        break;
+      case 'counsellor':
+        Navigator.of(context).pushReplacementNamed(Routes.counsellor);
+        break;
+      case 'warden':
+        Navigator.of(context).pushReplacementNamed(Routes.warden);
+        break;
+      case 'police':
+        Navigator.of(context).pushReplacementNamed(Routes.police);
+        break;
+      case 'teacher':
+        Navigator.of(context).pushReplacementNamed(Routes.teacher);
+        break;
+      default:
+        Navigator.of(context).pushReplacementNamed(Routes.login);
     }
   }
 

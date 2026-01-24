@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 import 'emailjs_service.dart';
 
@@ -12,6 +13,58 @@ class AuthService {
   User? get currentUser => _auth.currentUser;
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
+
+  // Save session to SharedPreferences
+  Future<void> saveUserSession(UserModel user) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', true);
+    await prefs.setString('userUid', user.uid);
+    await prefs.setString('userRole', user.role);
+    await prefs.setString('userName', user.name);
+    await prefs.setString('userEmail', user.email);
+    await prefs.setBool('isApproved', user.isApproved);
+    if (user.department != null) await prefs.setString('userDepartment', user.department!);
+    if (user.institution != null) await prefs.setString('userInstitution', user.institution!);
+  }
+
+  // Get user from session
+  Future<UserModel?> getUserFromSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('isLoggedIn') != true) return null;
+
+    final uid = prefs.getString('userUid');
+    final role = prefs.getString('userRole');
+    final name = prefs.getString('userName');
+    final email = prefs.getString('userEmail');
+    final isApproved = prefs.getBool('isApproved') ?? false;
+    final department = prefs.getString('userDepartment');
+    final institution = prefs.getString('userInstitution');
+
+    if (uid == null || role == null || name == null || email == null) return null;
+
+    return UserModel(
+      uid: uid,
+      email: email,
+      name: name,
+      role: role,
+      isApproved: isApproved,
+      department: department,
+      institution: institution,
+      createdAt: DateTime.now(), // Fallback
+    );
+  }
+
+  // Clear session from SharedPreferences
+  Future<void> clearUserSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
+
+  // Check if session exists (simple check)
+  Future<bool> hasUserSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('isLoggedIn') ?? false;
+  }
 
   Future<UserModel?> registerWithEmailAndPassword({
     required String email,
@@ -59,6 +112,9 @@ class AuthService {
           .doc(userCredential.user!.uid)
           .set(userModel.toMap());
 
+      // Save session
+      await saveUserSession(userModel);
+
       // Send registration confirmation email
       try {
         if (needsApproval) {
@@ -102,7 +158,12 @@ class AuthService {
         throw Exception('User data not found');
       }
 
-      return UserModel.fromMap(doc.data() as Map<String, dynamic>);
+      final userModel = UserModel.fromMap(doc.data() as Map<String, dynamic>);
+      
+      // Save session
+      await saveUserSession(userModel);
+      
+      return userModel;
     } catch (e) {
       throw Exception('Login failed: ${e.toString()}');
     }
@@ -154,6 +215,9 @@ class AuthService {
         adminModel = UserModel.fromMap(doc.data() as Map<String, dynamic>);
       }
 
+      // Save session
+      await saveUserSession(adminModel);
+
       return adminModel;
     } catch (e) {
       // If admin doesn't exist or credentials are invalid, create the account first
@@ -187,6 +251,9 @@ class AuthService {
               .collection('users')
               .doc(userCredential.user!.uid)
               .set(adminModel.toMap());
+
+          // Save session
+          await saveUserSession(adminModel);
 
           return adminModel;
         } catch (createError) {
@@ -224,6 +291,9 @@ class AuthService {
                 adminModel = UserModel.fromMap(doc.data() as Map<String, dynamic>);
               }
 
+              // Save session
+              await saveUserSession(adminModel);
+
               return adminModel;
             } catch (signInError) {
               throw Exception('Admin login failed: ${signInError.toString()}');
@@ -251,6 +321,7 @@ class AuthService {
           'name': data['name'] ?? 'Counselor',
           'department': data['department'],
           'email': data['email'],
+          'role': 'counsellor',
         };
       }).toList();
     } catch (e) {
@@ -373,6 +444,7 @@ class AuthService {
   }
 
   Future<void> signOut() async {
+    await clearUserSession();
     await _auth.signOut();
   }
 
@@ -407,6 +479,9 @@ class AuthService {
     try {
       // Delete from Firestore first
       await _firestore.collection('users').doc(user.uid).delete();
+      
+      // Clear session
+      await clearUserSession();
       
       // Delete from Auth
       await user.delete();

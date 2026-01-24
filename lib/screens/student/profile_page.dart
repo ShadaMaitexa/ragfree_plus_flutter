@@ -162,8 +162,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
                         const SizedBox(height: 24),
                         _buildEmergencyInfo(context),
                         const SizedBox(height: 24),
-                        _buildPreferences(context),
-                        const SizedBox(height: 24),
+
                         _buildRecentChats(context),
                         const SizedBox(height: 24),
                         _buildActions(context, color),
@@ -346,15 +345,8 @@ class _StudentProfilePageState extends State<StudentProfilePage>
         Icons.calendar_today,
         enabled: _isEditing,
       ),
-      _buildInfoCard(context, 'GPA', '3.8', Icons.grade, Colors.green),
-      _buildInfoCard(
-        context,
-        'Credits Completed',
-        '45',
-        Icons.credit_card,
-        Colors.blue,
-      ),
     ]);
+
   }
 
   Widget _buildEmergencyInfo(BuildContext context) {
@@ -393,38 +385,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
     ]);
   }
 
-  Widget _buildPreferences(BuildContext context) {
-    return _buildSection(context, 'Preferences', Icons.settings, [
-      _buildSwitchTile(
-        context,
-        'Email Notifications',
-        'Receive updates about your reports',
-        true,
-        Icons.email,
-      ),
-      _buildSwitchTile(
-        context,
-        'SMS Alerts',
-        'Get emergency alerts via SMS',
-        true,
-        Icons.sms,
-      ),
-      _buildSwitchTile(
-        context,
-        'Push Notifications',
-        'Receive app notifications',
-        false,
-        Icons.notifications,
-      ),
-      _buildSwitchTile(
-        context,
-        'Location Services',
-        'Allow location tracking for safety',
-        true,
-        Icons.location_on,
-      ),
-    ]);
-  }
+
 
   Widget _buildActions(BuildContext context, Color color) {
     return Column(
@@ -619,72 +580,6 @@ class _StudentProfilePageState extends State<StudentProfilePage>
         }).toList(),
         onChanged: enabled ? onChanged : null,
       ),
-    );
-  }
-
-  Widget _buildInfoCard(
-    BuildContext context,
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withOpacity(0.7),
-                  ),
-                ),
-                Text(
-                  value,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: color,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSwitchTile(
-    BuildContext context,
-    String title,
-    String subtitle,
-    bool value,
-    IconData icon,
-  ) {
-    return SwitchListTile(
-      title: Text(title),
-      subtitle: Text(subtitle),
-      secondary: Icon(icon),
-      value: value,
-      onChanged: _isEditing
-          ? (newValue) {
-              // Handle switch change
-            }
-          : null,
     );
   }
 

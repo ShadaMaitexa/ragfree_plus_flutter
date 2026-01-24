@@ -192,7 +192,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
   Widget _buildQuickActions(BuildContext context, Color color) {
     final actions = [
       {'icon': Icons.calendar_month_rounded, 'title': 'Counseling', 'color': Colors.indigo, 'onTap': () => _navigateToBooking(context)},
-      {'icon': Icons.gavel_rounded, 'title': 'Report', 'color': Colors.deepOrange, 'onTap': () => _navigateToComplaints(context)},
+      {'icon': Icons.gavel_rounded, 'title': 'Complaints', 'color': Colors.deepOrange, 'onTap': () => _navigateToComplaints(context)},
       {'icon': Icons.forum_rounded, 'title': 'Live Support', 'color': Colors.blue, 'onTap': () => _navigateToChat(context)},
       {'icon': Icons.school_rounded, 'title': 'Awareness', 'color': Colors.green, 'onTap': () => _navigateToAwareness(context)},
     ];

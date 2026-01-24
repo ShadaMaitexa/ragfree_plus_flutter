@@ -380,14 +380,11 @@ class _StudentChatPageState extends State<StudentChatPage>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        conversation.counselorName?.toLowerCase().contains(
-                                  'teacher',
-                                ) ==
-                                true
+                        conversation.counselorRole == 'teacher'
                             ? 'Teacher'
-                            : conversation.counselorId != null
-                            ? 'Staff/Support'
-                            : 'Counselor',
+                            : conversation.counselorRole == 'counsellor'
+                                ? 'Counselor'
+                                : 'Staff/Support',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w500,
@@ -564,6 +561,7 @@ class _StudentChatPageState extends State<StudentChatPage>
         studentName: user.name,
         counselorId: counselor['id'],
         counselorName: counselor['name'],
+        counselorRole: counselor['role'],
       );
 
       if (context.mounted) {
@@ -573,6 +571,7 @@ class _StudentChatPageState extends State<StudentChatPage>
           studentName: user.name,
           counselorId: counselor['id'],
           counselorName: counselor['name'],
+          counselorRole: counselor['role'],
           createdAt: DateTime.now(),
         );
         _openChat(context, conversation);
@@ -650,7 +649,9 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                     ),
                   ),
                   Text(
-                    'Counselor',
+                    widget.conversation.counselorRole == 'teacher' 
+                        ? 'Teacher' 
+                        : 'Counselor',
                     style: TextStyle(
                       fontSize: 12,
                       color: Theme.of(

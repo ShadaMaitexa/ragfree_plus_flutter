@@ -82,6 +82,7 @@ class ChatConversationModel {
   final String studentName;
   final String? counselorId;
   final String? counselorName;
+  final String? counselorRole;
   final String? complaintId;
   final String? complaintTitle;
   final DateTime createdAt;
@@ -95,6 +96,7 @@ class ChatConversationModel {
     required this.studentName,
     this.counselorId,
     this.counselorName,
+    this.counselorRole,
     this.complaintId,
     this.complaintTitle,
     required this.createdAt,
@@ -110,6 +112,7 @@ class ChatConversationModel {
       studentName: data['studentName'] ?? '',
       counselorId: data['counselorId'],
       counselorName: data['counselorName'],
+      counselorRole: data['counselorRole'],
       complaintId: data['complaintId'],
       complaintTitle: data['complaintTitle'],
       createdAt: (data['createdAt'] as Timestamp).toDate(),
@@ -128,6 +131,7 @@ class ChatConversationModel {
       'studentName': studentName,
       'counselorId': counselorId,
       'counselorName': counselorName,
+      'counselorRole': counselorRole,
       'complaintId': complaintId,
       'complaintTitle': complaintTitle,
       'createdAt': Timestamp.fromDate(createdAt),
@@ -144,6 +148,7 @@ class ChatConversationModel {
     String? studentName,
     String? counselorId,
     String? counselorName,
+    String? counselorRole,
     String? complaintId,
     String? complaintTitle,
     DateTime? createdAt,
@@ -157,6 +162,7 @@ class ChatConversationModel {
       studentName: studentName ?? this.studentName,
       counselorId: counselorId ?? this.counselorId,
       counselorName: counselorName ?? this.counselorName,
+      counselorRole: counselorRole ?? this.counselorRole,
       complaintId: complaintId ?? this.complaintId,
       complaintTitle: complaintTitle ?? this.complaintTitle,
       createdAt: createdAt ?? this.createdAt,
