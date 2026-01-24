@@ -567,7 +567,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
                 title: titleController.text.trim(),
                 subtitle: subtitleController.text.trim(),
                 content: contentController.text.trim(),
-                role: 'all',
+                role: 'public',
                 category: categoryController.text.trim().isEmpty
                     ? null
                     : categoryController.text.trim(),

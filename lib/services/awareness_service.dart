@@ -10,7 +10,14 @@ class AwarenessService {
     Query collection = _firestore.collection('awareness');
 
     if (role != 'all') {
-      collection = collection.where('role', whereIn: [role, 'all']);
+      List<String> targetRoles = [role, 'all'];
+      if (['student', 'parent', 'teacher', 'admin'].contains(role)) {
+        targetRoles.add('public');
+      }
+      if (role == 'public') {
+        targetRoles = ['public', 'all'];
+      }
+      collection = collection.where('role', whereIn: targetRoles);
     }
 
     return collection.snapshots().map(
