@@ -5,10 +5,10 @@ class EmergencyAlertService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final ActivityService _activityService = ActivityService();
 
-  // Get all active emergency alerts
-  Stream<List<Map<String, dynamic>>> getActiveEmergencyAlerts() {
+  // Get all active global alerts
+  Stream<List<Map<String, dynamic>>> getActiveGlobalAlerts() {
     return _firestore
-        .collection('emergency_alerts')
+        .collection('global_alerts')
         .where('isActive', isEqualTo: true)
         .limit(10)
         .snapshots()
@@ -20,10 +20,10 @@ class EmergencyAlertService {
             .toList());
   }
 
-  // Get recent emergency alerts (including inactive ones)
-  Stream<List<Map<String, dynamic>>> getRecentEmergencyAlerts({int limit = 5}) {
+  // Get recent global alerts (including inactive ones)
+  Stream<List<Map<String, dynamic>>> getRecentGlobalAlerts({int limit = 5}) {
     return _firestore
-        .collection('emergency_alerts')
+        .collection('global_alerts')
         .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
@@ -35,10 +35,10 @@ class EmergencyAlertService {
   }
 
   // Get current emergency status
-  Future<String> getCurrentEmergencyStatus() async {
+  Future<String> getCurrentAlertStatus() async {
     try {
       final activeAlerts = await _firestore
-          .collection('emergency_alerts')
+          .collection('global_alerts')
           .where('isActive', isEqualTo: true)
           .where('priority', isEqualTo: 'critical')
           .limit(1)
@@ -49,7 +49,7 @@ class EmergencyAlertService {
       }
 
       final recentAlerts = await _firestore
-          .collection('emergency_alerts')
+          .collection('global_alerts')
           .limit(1)
           .get();
 
@@ -70,8 +70,8 @@ class EmergencyAlertService {
     }
   }
 
-  // Create emergency alert (for admin/police)
-  Future<void> createEmergencyAlert({
+  // Create global alert/notification (for admin/police)
+  Future<void> createGlobalAlert({
     required String title,
     required String message,
     required String priority, // 'low', 'medium', 'high', 'critical'
@@ -80,7 +80,7 @@ class EmergencyAlertService {
   }) async {
     try {
       // Create alert
-      await _firestore.collection('emergency_alerts').add({
+      await _firestore.collection('global_alerts').add({
         'title': title,
         'message': message,
         'priority': priority,
@@ -94,11 +94,11 @@ class EmergencyAlertService {
       // Notify all users (students, parents, staff)
       await _notifyAllUsers(title, message, priority);
     } catch (e) {
-      throw Exception('Failed to create emergency alert: ${e.toString()}');
+      throw Exception('Failed to create global alert: ${e.toString()}');
     }
   }
 
-  // Notify all users about emergency alert
+  // Notify all users about global alert
   Future<void> _notifyAllUsers(
     String title,
     String message,
@@ -114,13 +114,14 @@ class EmergencyAlertService {
       for (var userDoc in users.docs) {
         final notificationRef = _firestore.collection('notifications').doc();
         batch.set(notificationRef, {
+          'id': notificationRef.id,
           'userId': userDoc.id,
           'title': title,
           'message': message,
-          'type': priority == 'critical' ? 'error' : 'warning',
+          'type': priority == 'critical' ? 'error' : 'info',
           'createdAt': timestamp,
           'isRead': false,
-          'relatedType': 'emergency_alert',
+          'relatedType': 'global_alert',
         });
       }
 
@@ -130,10 +131,10 @@ class EmergencyAlertService {
     }
   }
 
-  // Deactivate emergency alert
+  // Deactivate global alert
   Future<void> deactivateAlert(String alertId) async {
     try {
-      await _firestore.collection('emergency_alerts').doc(alertId).update({
+      await _firestore.collection('global_alerts').doc(alertId).update({
         'isActive': false,
         'updatedAt': Timestamp.now(),
       });
@@ -153,7 +154,7 @@ class EmergencyAlertService {
       final alertTitle = 'SOS: Emergency Help Required';
       final alertMessage = message ?? '$studentName has triggered an emergency SOS alert. Please respond immediately.';
       
-      await createEmergencyAlert(
+      await createGlobalAlert(
         title: alertTitle,
         message: alertMessage,
         priority: 'critical',

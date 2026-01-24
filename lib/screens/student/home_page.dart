@@ -282,7 +282,6 @@ class _StudentHomePageState extends State<StudentHomePage> {
           {'label': 'Total Reports', 'value': '${snapshot.data?[0] ?? 0}', 'icon': Icons.folder_rounded, 'color': Colors.blue},
           {'label': 'Resolved', 'value': '${snapshot.data?[1] ?? 0}', 'icon': Icons.verified_rounded, 'color': Colors.green},
           {'label': 'Active', 'value': '${snapshot.data?[2] ?? 0}', 'icon': Icons.hourglass_empty_rounded, 'color': Colors.orange},
-          {'label': 'System Status', 'value': 'Online', 'icon': Icons.sensors_rounded, 'color': Colors.purple},
         ];
 
         return GridView.builder(

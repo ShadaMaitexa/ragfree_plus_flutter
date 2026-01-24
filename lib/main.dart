@@ -489,8 +489,6 @@ class AdminDashboard extends StatelessWidget {
       NavigationDestinationData(icon: Icons.notifications, label: 'Alerts'),
       NavigationDestinationData(icon: Icons.receipt_long, label: 'Reports'),
       NavigationDestinationData(icon: Icons.analytics, label: 'Analytics'),
-      NavigationDestinationData(icon: Icons.verified, label: 'Certifs'),
-      NavigationDestinationData(icon: Icons.folder_open, label: 'Materials'),
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
     ];
 
@@ -503,8 +501,6 @@ class AdminDashboard extends StatelessWidget {
       _AdminPages.notifications,
       _AdminPages.reports,
       _AdminPages.analytics,
-      _AdminPages.certificates,
-      _AdminPages.materials,
       _AdminPages.profile,
     ];
 
@@ -521,6 +517,7 @@ class AdminDashboard extends StatelessWidget {
         onDestinationSelected: (i) => appState.setNavIndex(i),
         destinations: destinations,
         pages: pages,
+        showBottomNavigation: false,
       ),
     );
   }
@@ -537,8 +534,6 @@ class _AdminPages {
   );
   static const Widget reports = _AdminLazy(page: _AdminPage.reports);
   static const Widget analytics = _AdminLazy(page: _AdminPage.analytics);
-  static const Widget certificates = _AdminLazy(page: _AdminPage.certificates);
-  static const Widget materials = _AdminLazy(page: _AdminPage.materials);
   static const Widget profile = _AdminLazy(page: _AdminPage.profile);
 }
 
@@ -551,8 +546,6 @@ enum _AdminPage {
   notifications,
   reports,
   analytics,
-  certificates,
-  materials,
   profile,
 }
 
@@ -579,10 +572,6 @@ class _AdminLazy extends StatelessWidget {
         return const _AdminReportsProxy();
       case _AdminPage.analytics:
         return const _AdminAnalyticsProxy();
-      case _AdminPage.certificates:
-        return const _AdminCertificatesProxy();
-      case _AdminPage.materials:
-        return const _AdminMaterialsProxy();
       case _AdminPage.profile:
         return const _AdminProfileProxy();
     }
@@ -640,18 +629,7 @@ class _AdminAnalyticsProxy extends StatelessWidget {
   Widget build(BuildContext context) => const admin_pages.AdminAnalyticsPage();
 }
 
-class _AdminCertificatesProxy extends StatelessWidget {
-  const _AdminCertificatesProxy();
-  @override
-  Widget build(BuildContext context) =>
-      const admin_pages.AdminCertificatesPage();
-}
 
-class _AdminMaterialsProxy extends StatelessWidget {
-  const _AdminMaterialsProxy();
-  @override
-  Widget build(BuildContext context) => const admin_pages.AdminMaterialsPage();
-}
 
 class _AdminProfileProxy extends StatelessWidget {
   const _AdminProfileProxy();

@@ -9,6 +9,7 @@ class ResponsiveScaffold extends StatelessWidget {
   final List<Widget> pages;
   final List<Widget>? actions;
   final Widget? floatingActionButton;
+  final bool showBottomNavigation;
 
   const ResponsiveScaffold({
     super.key,
@@ -19,6 +20,7 @@ class ResponsiveScaffold extends StatelessWidget {
     required this.pages,
     this.actions,
     this.floatingActionButton,
+    this.showBottomNavigation = true,
   });
 
   @override
@@ -69,7 +71,7 @@ class ResponsiveScaffold extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: (!isDesktop && !isTablet)
+      bottomNavigationBar: (!isDesktop && !isTablet && showBottomNavigation)
           ? _buildBottomBar(context)
           : null,
       floatingActionButton: floatingActionButton,

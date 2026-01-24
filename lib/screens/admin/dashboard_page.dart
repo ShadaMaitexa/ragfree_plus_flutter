@@ -78,11 +78,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 child: _buildRecentActivity(context),
               ),
               const SizedBox(height: 32),
-              AnimatedWidgets.slideIn(
-                beginOffset: const Offset(0, 0.2),
-                delay: const Duration(milliseconds: 400),
-                child: _buildSystemStatus(context),
-              ),
+
             ],
           ),
         ),
@@ -92,7 +88,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   Widget _buildEmergencyBanner(BuildContext context) {
     return StreamBuilder<List<Map<String, dynamic>>>(
-      stream: _emergencyAlertService.getActiveEmergencyAlerts(),
+      stream: _emergencyAlertService.getActiveGlobalAlerts(),
       builder: (context, snapshot) {
         if (!snapshot.hasData || snapshot.data!.isEmpty)
           return const SizedBox.shrink();
@@ -259,7 +255,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   builder: (context, counsellorsSnapshot) {
                     final complaints = complaintsSnapshot.data ?? [];
                     final students = studentsSnapshot.data ?? [];
-                    final counsellors = counsellorsSnapshot.data ?? [];
+                    
+                    // Calculate unique departments from students
+                    final uniqueDepartments = students
+                        .map((s) => s.department)
+                        .where((d) => d != null && d.trim().isNotEmpty)
+                        .map((d) => d!.trim().toUpperCase())
+                        .toSet()
+                        .length;
 
                     final stats = [
                       {
@@ -269,11 +272,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         'color': Colors.blue,
                       },
                       {
-                        'label': 'Resolved',
-                        'value':
-                            '${complaints.where((c) => c.status == 'Resolved').length}',
-                        'icon': Icons.task_alt_rounded,
-                        'color': Colors.green,
+                        'label': 'Departments',
+                        'value': '$uniqueDepartments',
+                        'icon': Icons.apartment_rounded,
+                        'color': Colors.teal,
                       },
                       {
                         'label': 'Action Required',
@@ -385,8 +387,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         'onTap': () => _navigateToDepartments(context),
       },
       {
-        'icon': Icons.broadcast_on_personal_rounded,
-        'title': 'Broadcast',
+        'icon': Icons.notifications_active_rounded,
+        'title': 'Global Notification',
         'color': Colors.orange,
         'onTap': () => _sendAlert(context),
       },
@@ -638,104 +640,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     }
   }
 
-  Widget _buildSystemStatus(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'System Status',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 16),
-        StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('users')
-              .limit(1)
-              .snapshots(),
-          builder: (context, snapshot) {
-            final isOnline =
-                snapshot.hasData ||
-                snapshot.connectionState == ConnectionState.active;
-            final statuses = [
-              {
-                'service': 'Cloud Firestore',
-                'status': isOnline ? 'Online' : 'Reconnecting...',
-                'color': isOnline ? Colors.green : Colors.orange,
-                'uptime': '99.9%',
-              },
-              {
-                'service': 'Authentication',
-                'status': 'Online',
-                'color': Colors.green,
-                'uptime': '99.9%',
-              },
-              {
-                'service': 'Storage (Cloudinary)',
-                'status': 'Online',
-                'color': Colors.green,
-                'uptime': '99.5%',
-              },
-              {
-                'service': 'Notification Engine',
-                'status': 'Online',
-                'color': Colors.green,
-                'uptime': '99.7%',
-              },
-            ];
 
-            return Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: statuses.map((status) {
-                  return _buildStatusItem(context, status);
-                }).toList(),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatusItem(BuildContext context, Map<String, dynamic> status) {
-    return ListTile(
-      leading: Container(
-        width: 12,
-        height: 12,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: status['color'],
-        ),
-      ),
-      title: Text(
-        status['service'],
-        style: Theme.of(
-          context,
-        ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text('Uptime: ${status['uptime']}'),
-      trailing: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: status['color'].withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          status['status'],
-          style: TextStyle(
-            color: status['color'],
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-          ),
-        ),
-      ),
-    );
-  }
 
   void _navigateToUsers(BuildContext context) {
     Provider.of<AppState>(context, listen: false).setNavIndex(1);
@@ -764,7 +669,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           children: [
             Icon(Icons.emergency, color: Colors.red),
             SizedBox(width: 8),
-            Text('Send Campus Alert'),
+            Text('Send Global Notification'),
           ],
         ),
         content: SingleChildScrollView(
@@ -837,7 +742,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 final user = appState.currentUser;
 
                 if (user != null) {
-                  await _emergencyAlertService.createEmergencyAlert(
+                  await _emergencyAlertService.createGlobalAlert(
                     title: titleController.text.trim(),
                     message: messageController.text.trim(),
                     priority: selectedPriority,
@@ -851,7 +756,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Campus alert sent successfully!'),
+                        content: Text('Global notification sent successfully!'),
                         backgroundColor: Colors.green,
                       ),
                     );

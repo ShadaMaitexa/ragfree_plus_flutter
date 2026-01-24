@@ -5,9 +5,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class EmailJSService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   
-  static const String _publicKey = 'YOUR_PUBLIC_KEY'; 
-  static const String _serviceId = 'YOUR_SERVICE_ID'; 
-  static const String _templateId = 'YOUR_TEMPLATE_ID'; 
+  static const String _publicKey = 'DVU3gPjfCV-rtb6Ms'; 
+  static const String _serviceId = 'service_k9cgbqz'; 
+  static const String _templateId = 'template_mfvuith'; 
   static const String _emailJSApiUrl = 'https://api.emailjs.com/api/v1.0/email/send';
   
   Future<void> initialize() async {

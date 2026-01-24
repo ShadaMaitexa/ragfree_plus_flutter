@@ -324,38 +324,148 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Notifications',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Notifications',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            if (userId.isNotEmpty)
+              StreamBuilder<int>(
+                stream: _notificationService.getUnreadCount(userId),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData || snapshot.data == 0)
+                    return const SizedBox.shrink();
+                  return Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${snapshot.data} New',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                },
+              ),
+          ],
         ),
         const SizedBox(height: 16),
-        // Placeholder for notifications
-        Container(
-          padding: const EdgeInsets.all(32),
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
+        StreamBuilder<List<dynamic>>( // List<NotificationModel> needs import, using dynamic to avoid import issues if not already imported or alias conflict
+          stream: _notificationService.getUserNotifications(userId),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final notifications = snapshot.data!;
+            if (notifications.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(32),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.notifications_none,
+                      color: Colors.grey[300],
+                      size: 48,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No new notifications',
+                      style: TextStyle(color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Icon(Icons.notifications_none, color: Colors.grey[300], size: 48),
-              const SizedBox(height: 16),
-              Text(
-                'Stay tuned for updates',
-                style: TextStyle(color: Colors.grey[500]),
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: notifications.length,
+                separatorBuilder: (context, index) =>
+                    Divider(height: 1, color: Colors.grey[100], indent: 72),
+                itemBuilder: (context, index) {
+                  final notification = notifications[index];
+                  // If passing dynamic, we need to access fields carefully or cast
+                  // assuming NotificationModel structure
+                  return ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    leading: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.notifications_active_rounded,
+                        color: Colors.blue,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      notification.title,
+                      style: TextStyle(
+                        fontWeight: notification.isRead
+                            ? FontWeight.normal
+                            : FontWeight.w700,
+                      ),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(notification.message),
+                        const SizedBox(height: 4),
+                        Text(
+                          _formatDate(notification.createdAt.toDate()),
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                    onTap: () {
+                       _notificationService.markAsRead(notification.id);
+                    },
+                  );
+                },
               ),
-            ],
-          ),
+            );
+          },
         ),
       ],
     );

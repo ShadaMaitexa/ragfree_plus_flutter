@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
 import '../../services/appointment_service.dart';
 import '../../services/complaint_service.dart';
+import '../../services/activity_service.dart';
 import '../../models/complaint_model.dart';
 import '../../models/appointment_slot_model.dart';
+import '../../models/activity_model.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/animated_widgets.dart';
 import 'schedule_session_page.dart';
@@ -180,18 +182,6 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
                 'value': '${slots.where((s) => s.status == 'booked').length}',
                 'icon': Icons.calendar_today_rounded,
                 'color': Colors.orange,
-              },
-              {
-                'label': 'Success Rate',
-                'value': '94%',
-                'icon': Icons.auto_graph_rounded,
-                'color': Colors.green,
-              },
-              {
-                'label': 'Hours Logged',
-                'value': '128',
-                'icon': Icons.timer_rounded,
-                'color': Colors.purple,
               },
             ];
 
@@ -390,84 +380,131 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
   }
 
   Widget _buildActivitySection(BuildContext context) {
+    final user = Provider.of<AppState>(context).currentUser;
+    if (user == null) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Recent Interactions',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Recent Interactions',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+            ),
+            if (user.role == 'counsellor') // Check just in case
+            IconButton(
+              icon: const Icon(Icons.refresh),
+               onPressed: () {
+                 setState(() {});
+               },
+            )
+          ],
         ),
         const SizedBox(height: 20),
-        Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-            side: BorderSide(
-              color: Theme.of(context).dividerColor.withOpacity(0.1),
-            ),
-          ),
-          child: ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: 4,
-            separatorBuilder: (context, index) => const Divider(height: 1),
-            itemBuilder: (context, index) {
-              final items = [
-                {
-                  'icon': Icons.assignment_rounded,
-                  'title': 'Case #C001 Assigned',
-                  'subtitle': 'Emma Johnson • Harassment',
-                  'color': Colors.blue,
-                },
-                {
-                  'icon': Icons.check_circle_rounded,
-                  'title': 'Resolution Filed',
-                  'subtitle': 'Case #C012 • Success',
-                  'color': Colors.green,
-                },
-                {
-                  'icon': Icons.event_rounded,
-                  'title': 'Session Booked',
-                  'subtitle': 'Alex Palmer • Tomorrow 2PM',
-                  'color': Colors.orange,
-                },
-                {
-                  'icon': Icons.chat_rounded,
-                  'title': 'New Inquiry',
-                  'subtitle': 'Anonymous Support Request',
-                  'color': Colors.purple,
-                },
-              ];
-              final item = items[index];
-              return ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 8,
-                ),
-                leading: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: (item['color'] as Color).withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    item['icon'] as IconData,
-                    color: item['color'] as Color,
-                    size: 20,
+        StreamBuilder<List<ActivityModel>>(
+          stream: ActivityService().getUserActivities(user.uid, limit: 5),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final activities = snapshot.data ?? [];
+            if (activities.isEmpty) {
+              return Card(
+                elevation: 0,
+                color: Theme.of(context).colorScheme.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  side: BorderSide(
+                    color: Theme.of(context).dividerColor.withOpacity(0.1),
                   ),
                 ),
-                title: Text(
-                  item['title'] as String,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Center(
+                    child: Text(
+                      'No recent interactions',
+                      style: TextStyle( color: Theme.of(context).disabledColor),
+                    ),
+                  ),
                 ),
-                subtitle: Text(item['subtitle'] as String),
-                trailing: const Icon(Icons.chevron_right_rounded, size: 20),
               );
-            },
-          ),
+            }
+
+            return Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+                side: BorderSide(
+                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                ),
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: activities.length,
+                separatorBuilder: (context, index) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final activity = activities[index];
+                  IconData icon;
+                  Color color;
+                  
+                  switch (activity.type) {
+                    case 'complaint':
+                      icon = Icons.assignment_rounded;
+                      color = Colors.blue;
+                      break;
+                    case 'appointment':
+                      icon = Icons.event_rounded;
+                      color = Colors.orange;
+                      break;
+                    default:
+                      icon = Icons.notifications_rounded;
+                      color = Colors.purple;
+                  }
+
+                  return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 8,
+                    ),
+                    leading: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        icon,
+                        color: color,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      activity.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(activity.description),
+                    trailing: Text(
+                      _formatDate(activity.timestamp),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).hintColor,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
         ),
       ],
     );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}';
   }
 
   void _navigateToCases(BuildContext context) {
