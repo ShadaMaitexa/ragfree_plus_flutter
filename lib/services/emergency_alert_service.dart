@@ -77,6 +77,7 @@ class EmergencyAlertService {
     required String priority, // 'low', 'medium', 'high', 'critical'
     required String createdBy,
     String? location,
+    List<String> targetRoles = const ['all'],
   }) async {
     try {
       // Create alert
@@ -86,27 +87,39 @@ class EmergencyAlertService {
         'priority': priority,
         'createdBy': createdBy,
         'location': location,
+        'targetRoles': targetRoles,
         'isActive': true,
         'createdAt': Timestamp.now(),
         'updatedAt': Timestamp.now(),
       });
 
-      // Notify all users (students, parents, staff)
-      await _notifyAllUsers(title, message, priority);
+      // Notify target users
+      await _notifyTargetUsers(title, message, priority, targetRoles);
     } catch (e) {
       throw Exception('Failed to create global alert: ${e.toString()}');
     }
   }
 
-  // Notify all users about global alert
-  Future<void> _notifyAllUsers(
+  // Notify target users about global alert
+  Future<void> _notifyTargetUsers(
     String title,
     String message,
     String priority,
+    List<String> targetRoles,
   ) async {
     try {
-      // Get all users
-      final users = await _firestore.collection('users').get();
+      QuerySnapshot users;
+      
+      if (targetRoles.contains('all') || targetRoles.isEmpty) {
+        // Get all users
+        users = await _firestore.collection('users').get();
+      } else {
+        // Get users with specific roles
+        users = await _firestore
+            .collection('users')
+            .where('role', whereIn: targetRoles)
+            .get();
+      }
 
       final batch = _firestore.batch();
       final timestamp = Timestamp.now();

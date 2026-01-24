@@ -117,7 +117,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                           ?.copyWith(fontWeight: FontWeight.w700, color: color),
                     ),
                     Text(
-                      'Manage academic departments and staff',
+                      'Manage academic departments',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(
                           context,
@@ -127,12 +127,13 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                   ],
                 ),
               ),
-              FilledButton.icon(
-                onPressed: () => _showAddDepartmentDialog(context),
-                icon: const Icon(Icons.add),
-                label: const Text('Add Department'),
-                style: FilledButton.styleFrom(backgroundColor: color),
-              ),
+              if (departments.isNotEmpty)
+                FilledButton.icon(
+                  onPressed: () => _showAddDepartmentDialog(context),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Department'),
+                  style: FilledButton.styleFrom(backgroundColor: color),
+                ),
             ],
           ),
           const SizedBox(height: 20),
@@ -321,15 +322,6 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                                   color: deptColor,
                                 ),
                           ),
-                          Text(
-                            'Head: ${department['head']}',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurface.withOpacity(0.7),
-                                ),
-                          ),
                         ],
                       ),
                     ),
@@ -474,7 +466,6 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
 
   void _showAddDepartmentDialog(BuildContext context) {
     final nameController = TextEditingController();
-    final headController = TextEditingController();
 
     showDialog(
       context: context,
@@ -490,14 +481,6 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: headController,
-              decoration: const InputDecoration(
-                labelText: 'Department Head',
-                border: OutlineInputBorder(),
-              ),
-            ),
           ],
         ),
         actions: [
@@ -507,11 +490,9 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
           ),
           FilledButton(
             onPressed: () async {
-              if (nameController.text.isNotEmpty &&
-                  headController.text.isNotEmpty) {
+              if (nameController.text.isNotEmpty) {
                 await _departmentService.addDepartment({
                   'name': nameController.text,
-                  'head': headController.text,
                   'students': 0,
                   'staff': 0,
                   'colorValue': Colors.blue.value, // Default color or from picker
@@ -536,7 +517,6 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
 
   void _editDepartment(BuildContext context, Map<String, dynamic> department) {
     final nameController = TextEditingController(text: department['name']);
-    final headController = TextEditingController(text: department['head']);
 
     showDialog(
       context: context,
@@ -552,14 +532,6 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: headController,
-              decoration: const InputDecoration(
-                labelText: 'Department Head',
-                border: OutlineInputBorder(),
-              ),
-            ),
           ],
         ),
         actions: [
@@ -571,7 +543,6 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
             onPressed: () async {
               await _departmentService.updateDepartment(department['id'], {
                 'name': nameController.text,
-                'head': headController.text,
               });
               if (context.mounted) {
                 Navigator.pop(context);
@@ -601,7 +572,6 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Head: ${department['head']}'),
             Text('Students: ${department['students']}'),
             Text('Staff: ${department['staff']}'),
             Text('ID: ${department['id']}'),

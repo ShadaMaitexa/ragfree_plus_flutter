@@ -7,6 +7,7 @@ import '../services/app_state.dart';
 import '../services/cloudinary_service.dart';
 import '../models/user_model.dart';
 import '../widgets/animated_widgets.dart';
+import '../services/department_service.dart';
 import '../utils/responsive.dart';
 
 class RegistrationScreen extends StatefulWidget {
@@ -353,13 +354,41 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       AnimatedWidgets.slideIn(
                         beginOffset: const Offset(0, 0.1),
                         delay: const Duration(milliseconds: 200),
-                        child: TextFormField(
-                          controller: _departmentController,
-                          decoration: const InputDecoration(
-                            labelText: 'Department',
-                            prefixIcon: Icon(Icons.school_outlined),
-                          ),
-                          validator: (v) => (v == null || v.isEmpty) ? 'Department required' : null,
+                        child: StreamBuilder<List<String>>(
+                          stream: DepartmentService().getDepartmentNames(),
+                          builder: (context, snapshot) {
+                            var departments = snapshot.data ?? [];
+                            
+                            // If no departments managed yet, show text field fallback
+                            if (departments.isEmpty) {
+                               return TextFormField(
+                                controller: _departmentController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Department',
+                                  prefixIcon: Icon(Icons.school_outlined),
+                                  helperText: 'Admin hasn\'t added departments yet. Enter manually.',
+                                ),
+                                validator: (v) => (v == null || v.isEmpty) ? 'Department required' : null,
+                              );
+                            }
+
+                            return DropdownButtonFormField<String>(
+                              decoration: const InputDecoration(
+                                labelText: 'Department',
+                                prefixIcon: Icon(Icons.school_outlined),
+                              ),
+                              items: departments.map((dept) => DropdownMenuItem(
+                                value: dept,
+                                child: Text(dept),
+                              )).toList(),
+                              onChanged: (val) {
+                                if (val != null) {
+                                  _departmentController.text = val;
+                                }
+                              },
+                              validator: (v) => (_departmentController.text.isEmpty) ? 'Department required' : null,
+                            );
+                          },
                         ),
                       ),
                     ],

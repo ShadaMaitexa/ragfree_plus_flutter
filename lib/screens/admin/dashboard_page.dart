@@ -654,6 +654,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     final titleController = TextEditingController();
     final messageController = TextEditingController();
     String selectedPriority = 'medium';
+    List<String> selectedRoles = ['all'];
+
     final priorities = [
       {'value': 'low', 'label': 'Low'},
       {'value': 'medium', 'label': 'Medium'},
@@ -661,124 +663,204 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       {'value': 'critical', 'label': 'Critical'},
     ];
 
+    final availableRoles = [
+      {'value': 'all', 'label': 'All Users'},
+      {'value': 'student', 'label': 'Students'},
+      {'value': 'teacher', 'label': 'Teachers'},
+      {'value': 'parent', 'label': 'Parents'},
+      {'value': 'counsellor', 'label': 'Counsellors'},
+      {'value': 'warden', 'label': 'Wardens'},
+      {'value': 'police', 'label': 'Police'},
+    ];
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.emergency, color: Colors.red),
-            SizedBox(width: 8),
-            Text('Send Global Notification'),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Alert Title',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.title),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: messageController,
-                decoration: const InputDecoration(
-                  labelText: 'Alert Message',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.message),
-                ),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: selectedPriority,
-                decoration: const InputDecoration(
-                  labelText: 'Priority',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.priority_high),
-                ),
-                items: priorities.map((priority) {
-                  return DropdownMenuItem(
-                    value: priority['value'],
-                    child: Text(priority['label']!),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  selectedPriority = value ?? 'medium';
-                },
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              titleController.dispose();
-              messageController.dispose();
-              Navigator.pop(context);
-            },
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              if (titleController.text.trim().isEmpty ||
-                  messageController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please fill in all fields'),
-                    backgroundColor: Colors.red,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Row(
+              children: [
+                Icon(Icons.dashboard_customize_rounded, color: Colors.orange),
+                SizedBox(width: 8),
+                Text('Send Global Notification'),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(
+                      labelText: 'Title',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.title),
+                    ),
                   ),
-                );
-                return;
-              }
-
-              try {
-                final appState = Provider.of<AppState>(context, listen: false);
-                final user = appState.currentUser;
-
-                if (user != null) {
-                  await _emergencyAlertService.createGlobalAlert(
-                    title: titleController.text.trim(),
-                    message: messageController.text.trim(),
-                    priority: selectedPriority,
-                    createdBy: user.uid,
-                  );
-
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: messageController,
+                    decoration: const InputDecoration(
+                      labelText: 'Message',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.message),
+                    ),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: selectedPriority,
+                    decoration: const InputDecoration(
+                      labelText: 'Priority',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.priority_high),
+                    ),
+                    items: priorities.map((priority) {
+                      return DropdownMenuItem(
+                        value: priority['value'],
+                        child: Text(priority['label']!),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedPriority = value ?? 'medium';
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Recipients',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: availableRoles.map((role) {
+                      final isSelected = selectedRoles.contains(role['value']);
+                      return FilterChip(
+                        label: Text(role['label']!),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          setState(() {
+                            if (role['value'] == 'all') {
+                              if (selected) {
+                                selectedRoles = ['all'];
+                              } else {
+                                selectedRoles = [];
+                              }
+                            } else {
+                              if (selected) {
+                                selectedRoles.remove('all');
+                                selectedRoles.add(role['value']!);
+                              } else {
+                                selectedRoles.remove(role['value']);
+                              }
+                              // Optionally logic to re-select 'all' if empty
+                              if (selectedRoles.isEmpty) {
+                                selectedRoles = ['all'];
+                              }
+                            }
+                          });
+                        },
+                        selectedColor: Colors.orange.withOpacity(0.2),
+                        checkmarkColor: Colors.orange,
+                        labelStyle: TextStyle(
+                          color: isSelected ? Colors.orange : Colors.grey[700],
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
                   titleController.dispose();
                   messageController.dispose();
-
-                  if (context.mounted) {
-                    Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  if (titleController.text.trim().isEmpty ||
+                      messageController.text.trim().isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Global notification sent successfully!'),
-                        backgroundColor: Colors.green,
+                        content: Text('Please fill in all fields'),
+                        backgroundColor: Colors.red,
                       ),
                     );
+                    return;
                   }
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Error: ${e.toString().replaceAll('Exception: ', '')}',
+
+                  if (selectedRoles.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please select at least one recipient type'),
+                        backgroundColor: Colors.red,
                       ),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Send Alert'),
-          ),
-        ],
+                    );
+                    return;
+                  }
+
+                  try {
+                    final appState = Provider.of<AppState>(
+                      context,
+                      listen: false,
+                    );
+                    final user = appState.currentUser;
+
+                    if (user != null) {
+                      await _emergencyAlertService.createGlobalAlert(
+                        title: titleController.text.trim(),
+                        message: messageController.text.trim(),
+                        priority: selectedPriority,
+                        createdBy: user.uid,
+                        targetRoles: selectedRoles,
+                      );
+
+                      titleController.dispose();
+                      messageController.dispose();
+
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Global notification sent successfully!',
+                            ),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Error: ${e.toString().replaceAll('Exception: ', '')}',
+                          ),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
+                style: FilledButton.styleFrom(backgroundColor: Colors.orange),
+                child: const Text('Send'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
