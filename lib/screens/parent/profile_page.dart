@@ -115,7 +115,7 @@ class _ParentProfilePageState extends State<ParentProfilePage>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: isDark
-                      ? [color.withOpacity(0.05), Colors.transparent]
+                      ? [color.withValues(alpha: 0.05), Colors.transparent]
                       : [Colors.grey.shade50, Colors.white],
                 ),
               ),
@@ -153,12 +153,12 @@ class _ParentProfilePageState extends State<ParentProfilePage>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [color, color.withOpacity(0.8)],
+          colors: [color, color.withValues(alpha: 0.8)],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -170,7 +170,7 @@ class _ParentProfilePageState extends State<ParentProfilePage>
             children: [
               CircleAvatar(
                 radius: 50,
-                backgroundColor: Colors.white.withOpacity(0.2),
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
                 child: const Icon(Icons.person, size: 50, color: Colors.white),
               ),
               if (_isEditing)
@@ -184,7 +184,7 @@ class _ParentProfilePageState extends State<ParentProfilePage>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -210,14 +210,14 @@ class _ParentProfilePageState extends State<ParentProfilePage>
           Text(
             'Parent Account',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
             ),
           ),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: StreamBuilder<List<ParentStudentLinkModel>>(
@@ -332,15 +332,15 @@ class _ParentProfilePageState extends State<ParentProfilePage>
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: child['color'].withOpacity(0.1),
+        color: child['color'].withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: child['color'].withOpacity(0.2)),
+        border: Border.all(color: child['color'].withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundColor: child['color'].withOpacity(0.2),
+            backgroundColor: child['color'].withValues(alpha: 0.2),
             child: Text(
               child['name'].split(' ').map((n) => n[0]).join(),
               style: TextStyle(
@@ -365,7 +365,7 @@ class _ParentProfilePageState extends State<ParentProfilePage>
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withOpacity(0.7),
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
                 Text(
@@ -373,7 +373,7 @@ class _ParentProfilePageState extends State<ParentProfilePage>
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withOpacity(0.6),
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
                     fontFamily: 'monospace',
                   ),
                 ),
@@ -383,7 +383,7 @@ class _ParentProfilePageState extends State<ParentProfilePage>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
+              color: Colors.green.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -649,7 +649,7 @@ class _ParentProfilePageState extends State<ParentProfilePage>
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: DropdownButtonFormField<String>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon),
@@ -722,26 +722,24 @@ class _ParentProfilePageState extends State<ParentProfilePage>
       );
       appState.setUser(updatedUser);
 
-      if (mounted) {
-        setState(() {
-          _isEditing = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile updated successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
+      if (!mounted) return;
+      setState(() {
+        _isEditing = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile updated successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error updating profile: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error updating profile: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -768,24 +766,23 @@ class _ParentProfilePageState extends State<ParentProfilePage>
     if (confirmed == true) {
       try {
         await _authService.signOut();
+        if (!mounted) return;
         final appState = Provider.of<AppState>(context, listen: false);
         appState.clearUser();
         
-        if (mounted) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            '/login',
-            (route) => false,
-          );
-        }
+        if (!mounted) return;
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/login',
+          (route) => false,
+        );
       } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error logging out: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error logging out: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }

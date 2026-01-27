@@ -56,7 +56,7 @@ class _TeacherAwarenessPageState extends State<TeacherAwarenessPage>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: isDark
-                      ? [color.withOpacity(0.05), Colors.transparent]
+                      ? [color.withValues(alpha: 0.05), Colors.transparent]
                       : [Colors.grey.shade50, Colors.white],
                 ),
               ),
@@ -88,7 +88,7 @@ class _TeacherAwarenessPageState extends State<TeacherAwarenessPage>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(Icons.school, color: color, size: 24),
@@ -201,8 +201,8 @@ class _TeacherAwarenessPageState extends State<TeacherAwarenessPage>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              color.withOpacity(0.1),
-              color.withOpacity(0.05),
+              color.withValues(alpha: 0.1),
+              color.withValues(alpha: 0.05),
             ],
           ),
         ),
@@ -215,7 +215,7 @@ class _TeacherAwarenessPageState extends State<TeacherAwarenessPage>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -241,7 +241,7 @@ class _TeacherAwarenessPageState extends State<TeacherAwarenessPage>
                               color: Theme.of(context)
                                   .colorScheme
                                   .onSurface
-                                  .withOpacity(0.7),
+                                  .withValues(alpha: 0.7),
                             ),
                       ),
                     ],
@@ -290,7 +290,7 @@ class _TeacherAwarenessPageState extends State<TeacherAwarenessPage>
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: selectedRole,
+                  initialValue: selectedRole,
                   decoration: const InputDecoration(labelText: 'Target Audience'),
                   items: const [
                     DropdownMenuItem(value: 'student', child: Text('Students')),

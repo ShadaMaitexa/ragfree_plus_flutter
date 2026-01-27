@@ -29,7 +29,6 @@ import 'screens/warden/feedback_page.dart' as warden_pages;
 import 'screens/warden/profile_page.dart' as warden_pages;
 import 'screens/counsellor/dashboard_page.dart' as counsellor_pages;
 import 'screens/counsellor/assigned_complaints_page.dart' as counsellor_pages;
-import 'screens/counsellor/respond_complaint_page.dart' as counsellor_pages;
 import 'screens/counsellor/schedule_session_page.dart' as counsellor_pages;
 import 'screens/counsellor/chat_page.dart' as counsellor_pages;
 import 'screens/counsellor/awareness_page.dart' as counsellor_pages;
@@ -40,7 +39,6 @@ import 'screens/police/verify_page.dart' as police_pages;
 import 'screens/police/generate_report_page.dart' as police_pages;
 import 'screens/police/send_notification_page.dart' as police_pages;
 import 'screens/police/profile_page.dart' as police_pages;
-import 'screens/police/awareness_page.dart' as police_pages;
 import 'screens/teacher/dashboard_page.dart' as teacher_pages;
 import 'screens/teacher/complaints_page.dart' as teacher_pages;
 import 'screens/teacher/chat_page.dart' as teacher_pages;
@@ -53,15 +51,11 @@ import 'screens/admin/departments_page.dart' as admin_pages;
 import 'screens/admin/awareness_page.dart' as admin_pages;
 import 'screens/admin/notifications_page.dart' as admin_pages;
 import 'screens/admin/reports_page.dart' as admin_pages;
-import 'screens/admin/feedback_page.dart' as admin_pages;
 import 'screens/admin/analytics_page.dart' as admin_pages;
-import 'screens/admin/certificates_page.dart' as admin_pages;
-import 'screens/admin/materials_page.dart' as admin_pages;
 import 'screens/admin/profile_page.dart' as admin_pages;
 import 'services/emailjs_service.dart';
 import 'services/cloudinary_service.dart';
 import 'widgets/responsive_scaffold.dart';
-import 'utils/responsive.dart';
 import 'models/user_model.dart';
 
 void main() async {
@@ -75,7 +69,7 @@ void main() async {
     await emailJSService.initialize();
   } catch (e) {
     // EmailJS initialization failed
-    print('EmailJS initialization failed: $e');
+    debugPrint('EmailJS initialization failed: $e');
   }
 
   runApp(
@@ -222,12 +216,15 @@ class _SplashScreenState extends State<SplashScreen>
       if (userData != null) {
         // Update session for next time
         await authService.saveUserSession(userData);
-        if (mounted) _navigateBasedOnUser(userData);
+        if (!mounted) return;
+        _navigateBasedOnUser(userData);
       } else {
-        if (mounted) Navigator.of(context).pushReplacementNamed(Routes.login);
+        if (!mounted) return;
+        Navigator.of(context).pushReplacementNamed(Routes.login);
       }
     } else {
-      if (mounted) Navigator.of(context).pushReplacementNamed(Routes.login);
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed(Routes.login);
     }
   }
 
@@ -290,8 +287,8 @@ class _SplashScreenState extends State<SplashScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [color.withOpacity(0.1), color.withOpacity(0.05)]
-                : [color.withOpacity(0.1), color.withOpacity(0.05)],
+                ? [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)]
+                : [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
           ),
         ),
         child: Center(
@@ -309,8 +306,8 @@ class _SplashScreenState extends State<SplashScreen>
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
                           colors: [
-                            color.withOpacity(0.2),
-                            color.withOpacity(0.05),
+                            color.withValues(alpha: 0.2),
+                            color.withValues(alpha: 0.05),
                           ],
                         ),
                       ),
@@ -343,7 +340,7 @@ class _SplashScreenState extends State<SplashScreen>
                               ?.copyWith(
                                 color: Theme.of(
                                   context,
-                                ).colorScheme.onSurface.withOpacity(0.7),
+                                ).colorScheme.onSurface.withValues(alpha: 0.7),
                                 letterSpacing: 0.5,
                               ),
                         ),
@@ -432,7 +429,7 @@ class StudentDashboard extends StatelessWidget {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           Navigator.of(context).pushReplacementNamed(Routes.login);
         }
@@ -479,7 +476,7 @@ class ParentDashboard extends StatelessWidget {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           Navigator.of(context).pushReplacementNamed(Routes.login);
         }
@@ -533,7 +530,7 @@ class AdminDashboard extends StatelessWidget {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           Navigator.of(context).pushReplacementNamed(Routes.login);
         }
@@ -690,7 +687,7 @@ class CounsellorDashboard extends StatelessWidget {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           Navigator.of(context).pushReplacementNamed(Routes.login);
         }
@@ -713,7 +710,6 @@ class _CounsellorPages {
   static const Widget assigned = _CounsellorLazy(
     page: _CounsellorPage.assigned,
   );
-  static const Widget respond = _CounsellorLazy(page: _CounsellorPage.respond);
   static const Widget schedule = _CounsellorLazy(
     page: _CounsellorPage.schedule,
   );
@@ -727,7 +723,6 @@ class _CounsellorPages {
 enum _CounsellorPage {
   dashboard,
   assigned,
-  respond,
   schedule,
   chat,
   awareness,
@@ -745,8 +740,6 @@ class _CounsellorLazy extends StatelessWidget {
         return const _CounsellorDashboardProxy();
       case _CounsellorPage.assigned:
         return const _CounsellorAssignedProxy();
-      case _CounsellorPage.respond:
-        return const _CounsellorRespondProxy();
       case _CounsellorPage.schedule:
         return const _CounsellorScheduleProxy();
       case _CounsellorPage.chat:
@@ -782,12 +775,6 @@ class _CounsellorAssignedProxy extends StatelessWidget {
       const counsellor_pages.CounsellorAssignedComplaintsPage();
 }
 
-class _CounsellorRespondProxy extends StatelessWidget {
-  const _CounsellorRespondProxy();
-  @override
-  Widget build(BuildContext context) =>
-      const counsellor_pages.CounsellorRespondComplaintPage();
-}
 
 class _CounsellorScheduleProxy extends StatelessWidget {
   const _CounsellorScheduleProxy();
@@ -840,7 +827,7 @@ class WardenDashboard extends StatelessWidget {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           Navigator.of(context).pushReplacementNamed(Routes.login);
         }
@@ -1051,7 +1038,7 @@ class PoliceDashboard extends StatelessWidget {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           Navigator.of(context).pushReplacementNamed(Routes.login);
         }
@@ -1078,7 +1065,6 @@ class _PolicePages {
   static const Widget sendNotification = _PoliceLazy(
     page: _PolicePage.sendNotification,
   );
-  static const Widget awareness = _PoliceLazy(page: _PolicePage.awareness);
   static const Widget profile = _PoliceLazy(page: _PolicePage.profile);
 }
 
@@ -1088,7 +1074,6 @@ enum _PolicePage {
   verify,
   generateReport,
   sendNotification,
-  awareness,
   profile,
 }
 
@@ -1109,8 +1094,6 @@ class _PoliceLazy extends StatelessWidget {
         return const _PoliceGenerateReportProxy();
       case _PolicePage.sendNotification:
         return const _PoliceSendNotificationProxy();
-      case _PolicePage.awareness:
-        return const _PoliceAwarenessProxy();
       case _PolicePage.profile:
         return const _PoliceProfileProxy();
     }
@@ -1159,12 +1142,6 @@ class _PoliceSendNotificationProxy extends StatelessWidget {
       const police_pages.PoliceSendNotificationPage();
 }
 
-class _PoliceAwarenessProxy extends StatelessWidget {
-  const _PoliceAwarenessProxy();
-  @override
-  Widget build(BuildContext context) =>
-      const police_pages.PoliceAwarenessPage();
-}
 
 class TeacherDashboard extends StatelessWidget {
   const TeacherDashboard({super.key});
@@ -1192,7 +1169,7 @@ class TeacherDashboard extends StatelessWidget {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           Navigator.of(context).pushReplacementNamed(Routes.login);
         }

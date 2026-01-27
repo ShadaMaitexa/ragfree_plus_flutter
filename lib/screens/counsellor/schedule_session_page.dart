@@ -42,7 +42,7 @@ class _CounsellorScheduleSessionPageState
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [color.withOpacity(0.05), Colors.transparent]
+                ? [color.withValues(alpha: 0.05), Colors.transparent]
                 : [Colors.grey.shade50, Colors.white],
           ),
         ),
@@ -293,7 +293,7 @@ class _CounsellorScheduleSessionPageState
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
+                    color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(Icons.access_time, color: statusColor),
@@ -324,7 +324,7 @@ class _CounsellorScheduleSessionPageState
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        backgroundColor: statusColor.withOpacity(0.1),
+                        backgroundColor: statusColor.withValues(alpha: 0.1),
                       ),
               ),
             );
@@ -365,17 +365,15 @@ class _CounsellorScheduleSessionPageState
 
       await _appointmentService.createSlot(slot);
       
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Slot added successfully')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Slot added successfully')),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -386,17 +384,15 @@ class _CounsellorScheduleSessionPageState
   Future<void> _deleteSlot(String slotId) async {
     try {
       await _appointmentService.deleteSlot(slotId);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Slot removed')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Slot removed')),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     }
   }
 }

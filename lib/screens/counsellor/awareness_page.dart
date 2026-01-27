@@ -65,7 +65,7 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: isDark
-                    ? [color.withOpacity(0.05), Colors.transparent]
+                    ? [color.withValues(alpha: 0.05), Colors.transparent]
                     : [Colors.grey.shade50, Colors.white],
               ),
             ),
@@ -122,7 +122,7 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(Icons.psychology, color: color, size: 24),
@@ -142,7 +142,7 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.7),
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -179,9 +179,9 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -204,7 +204,7 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
@@ -286,8 +286,8 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                    Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
                   ],
                 ),
               ),
@@ -307,7 +307,7 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
                             shape: BoxShape.circle,
                             color: Theme.of(
                               context,
-                            ).colorScheme.primary.withOpacity(0.1),
+                            ).colorScheme.primary.withValues(alpha: 0.1),
                           ),
                           child: Icon(
                             Icons.psychology,
@@ -341,7 +341,7 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
                                     ?.copyWith(
                                       color: Theme.of(
                                         context,
-                                      ).colorScheme.onSurface.withOpacity(0.7),
+                                      ).colorScheme.onSurface.withValues(alpha: 0.7),
                                       fontSize: constraints.maxWidth > 600
                                           ? 14
                                           : 12,
@@ -362,7 +362,7 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
                           height: 1.3,
                           color: Theme.of(
                             context,
-                          ).colorScheme.onSurface.withOpacity(0.8),
+                          ).colorScheme.onSurface.withValues(alpha: 0.8),
                           fontSize: constraints.maxWidth > 600 ? 13 : 11,
                         ),
                         maxLines: constraints.maxWidth > 600 ? 2 : 1,
@@ -437,7 +437,7 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
         Text(
           '$label: $value',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
       ],
@@ -456,7 +456,7 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
           decoration: BoxDecoration(
             color: _currentPage == index
                 ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                : Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(4),
           ),
         ),
@@ -502,7 +502,7 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
             ),
             child: Icon(
               Icons.psychology,
@@ -604,7 +604,7 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
                     : categoryController.text.trim(),
               );
               await _awarenessService.addAwareness(model);
-              if (mounted) {
+              if (context.mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -687,7 +687,7 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
                     : categoryController.text.trim(),
               );
               await _awarenessService.updateAwareness(updated);
-              if (mounted) {
+              if (context.mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -728,7 +728,7 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
           FilledButton(
             onPressed: () async {
               await _awarenessService.deleteAwareness(item.id);
-              if (mounted) {
+              if (context.mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(

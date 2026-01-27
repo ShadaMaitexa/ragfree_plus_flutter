@@ -57,7 +57,7 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: isDark
-                    ? [color.withOpacity(0.05), Colors.transparent]
+                    ? [color.withValues(alpha: 0.05), Colors.transparent]
                     : [Colors.grey.shade50, Colors.white],
               ),
             ),
@@ -73,52 +73,6 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
     );
   }
 
-  Widget _buildStatCard(
-    BuildContext context,
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(child: Icon(icon, color: color, size: 18)),
-          const SizedBox(height: 6),
-          Flexible(
-            child: Text(
-              value,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: color,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          Flexible(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildAwarenessContent(BuildContext context) {
     return StreamBuilder<List<AwarenessModel>>(
@@ -226,8 +180,8 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    color.withOpacity(0.1),
-                    color.withOpacity(0.05),
+                    color.withValues(alpha: 0.1),
+                    color.withValues(alpha: 0.05),
                   ],
                 ),
               ),
@@ -245,7 +199,7 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                           ),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: color.withOpacity(0.1),
+                            color: color.withValues(alpha: 0.1),
                           ),
                           child: Icon(
                             icon,
@@ -279,7 +233,7 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                                       color: Theme.of(context)
                                           .colorScheme
                                           .onSurface
-                                          .withOpacity(0.7),
+                                          .withValues(alpha: 0.7),
                                     ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -301,7 +255,7 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                               color: Theme.of(context)
                                   .colorScheme
                                   .onSurface
-                                  .withOpacity(0.8),
+                                  .withValues(alpha: 0.8),
                             ),
                         maxLines: constraints.maxWidth > 600 ? 4 : 3,
                         overflow: TextOverflow.ellipsis,
@@ -342,7 +296,7 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
           decoration: BoxDecoration(
             color: _currentPage == index
                 ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                : Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(4),
           ),
         ),
@@ -460,7 +414,7 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
+              colors: [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
             ),
           ),
           child: Padding(
@@ -489,7 +443,7 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withOpacity(0.7),
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                     textAlign: TextAlign.center,
                     maxLines: 1,
@@ -613,7 +567,7 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.3),
+                color: Colors.grey.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -630,7 +584,7 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: color.withOpacity(0.1),
+                            color: color.withValues(alpha: 0.1),
                           ),
                           child: Icon(
                             Icons.school,
@@ -662,7 +616,7 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                                       color: Theme.of(context)
                                           .colorScheme
                                           .onSurface
-                                          .withOpacity(0.7),
+                                          .withValues(alpha: 0.7),
                                     ),
                               ),
                             ],
@@ -679,9 +633,9 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
+                          color: color.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: color.withOpacity(0.3)),
+                          border: Border.all(color: color.withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -716,7 +670,7 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
                             color: Theme.of(context)
                                 .colorScheme
                                 .onSurface
-                                .withOpacity(0.8),
+                                .withValues(alpha: 0.8),
                           ),
                     ),
                     const SizedBox(height: 24),

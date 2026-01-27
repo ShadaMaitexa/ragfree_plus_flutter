@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -126,7 +128,7 @@ class AuthService {
         }
       } catch (e) {
         // Email sending failed, but registration succeeded - continue silently
-        print('Registration email failed: $e');
+        debugPrint('Registration email failed: $e');
       }
 
       return userModel;
@@ -377,7 +379,7 @@ class AuthService {
           );
         } catch (e) {
           // Email sending failed, but approval succeeded - continue silently
-          print('Approval email failed: $e');
+          debugPrint('Approval email failed: $e');
         }
       }
     } catch (e) {

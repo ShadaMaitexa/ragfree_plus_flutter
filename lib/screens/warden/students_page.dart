@@ -39,7 +39,7 @@ class _WardenStudentsPageState extends State<WardenStudentsPage> {
                     hintText: 'Search students...',
                     prefixIcon: const Icon(Icons.search),
                     filled: true,
-                    fillColor: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
+                    fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade100,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -64,7 +64,7 @@ class _WardenStudentsPageState extends State<WardenStudentsPage> {
                         label: Text(dept, style: TextStyle(fontSize: 12)),
                         selected: _selectedDepartment == dept,
                         onSelected: (val) => setState(() => _selectedDepartment = dept),
-                        selectedColor: color.withOpacity(0.2),
+                        selectedColor: color.withValues(alpha: 0.2),
                         checkmarkColor: color,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       ),
@@ -91,7 +91,7 @@ class _WardenStudentsPageState extends State<WardenStudentsPage> {
           // Apply filters
           students = students.where((s) {
             final matchesSearch = s.name.toLowerCase().contains(_searchQuery) || 
-                                (s.email?.toLowerCase().contains(_searchQuery) ?? false);
+                                s.email.toLowerCase().contains(_searchQuery);
             final matchesDept = _selectedDepartment == 'All' || s.department == _selectedDepartment;
             return matchesSearch && matchesDept;
           }).toList();
@@ -101,7 +101,7 @@ class _WardenStudentsPageState extends State<WardenStudentsPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.search_off, size: 64, color: Colors.grey.withOpacity(0.5)),
+                  Icon(Icons.search_off, size: 64, color: Colors.grey.withValues(alpha: 0.5)),
                   const SizedBox(height: 16),
                   Text('No students found', style: TextStyle(color: Colors.grey.shade600)),
                 ],
@@ -120,7 +120,7 @@ class _WardenStudentsPageState extends State<WardenStudentsPage> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
+                      color: Colors.black.withValues(alpha: 0.03),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -133,7 +133,7 @@ class _WardenStudentsPageState extends State<WardenStudentsPage> {
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     leading: CircleAvatar(
                       radius: 25,
-                      backgroundColor: color.withOpacity(0.1),
+                      backgroundColor: color.withValues(alpha: 0.1),
                       child: Text(
                         student.name[0].toUpperCase(),
                         style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 18),
@@ -217,24 +217,22 @@ class _WardenStudentsPageState extends State<WardenStudentsPage> {
         counselorName: user.name,
       );
 
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => WardenChatDetailPage(
-              chatId: chatId,
-              peerName: student.name,
-              peerRole: 'student',
-            ),
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => WardenChatDetailPage(
+            chatId: chatId,
+            peerName: student.name,
+            peerRole: 'student',
           ),
-        );
-      }
+        ),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error starting chat: $e')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error starting chat: $e')),
+      );
     }
   }
 

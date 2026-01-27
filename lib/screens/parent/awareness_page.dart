@@ -56,7 +56,7 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: isDark
-                    ? [color.withOpacity(0.05), Colors.transparent]
+                    ? [color.withValues(alpha: 0.05), Colors.transparent]
                     : [Colors.grey.shade50, Colors.white],
               ),
             ),
@@ -83,7 +83,7 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(Icons.school, color: color, size: 24),
@@ -103,7 +103,7 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.7),
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -160,9 +160,9 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -178,7 +178,7 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -293,8 +293,8 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    color.withOpacity(0.1),
-                    color.withOpacity(0.05),
+                    color.withValues(alpha: 0.1),
+                    color.withValues(alpha: 0.05),
                   ],
                 ),
               ),
@@ -312,7 +312,7 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
                           ),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: color.withOpacity(0.1),
+                            color: color.withValues(alpha: 0.1),
                           ),
                           child: Icon(
                             icon,
@@ -346,7 +346,7 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
                                       color: Theme.of(context)
                                           .colorScheme
                                           .onSurface
-                                          .withOpacity(0.7),
+                                          .withValues(alpha: 0.7),
                                     ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -364,7 +364,7 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
                           height: 1.4,
                           color: Theme.of(
                             context,
-                          ).colorScheme.onSurface.withOpacity(0.8),
+                          ).colorScheme.onSurface.withValues(alpha: 0.8),
                         ),
                         maxLines: constraints.maxWidth > 600 ? 4 : 3,
                         overflow: TextOverflow.ellipsis,
@@ -432,7 +432,7 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
           decoration: BoxDecoration(
             color: _currentPage == index
                 ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                : Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(4),
           ),
         ),
@@ -550,7 +550,7 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
+              colors: [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
             ),
           ),
           child: Padding(
@@ -579,7 +579,7 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withOpacity(0.7),
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                     textAlign: TextAlign.center,
                     maxLines: 1,

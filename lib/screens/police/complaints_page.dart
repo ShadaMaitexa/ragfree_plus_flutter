@@ -57,7 +57,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: isDark
-                    ? [color.withOpacity(0.05), Colors.transparent]
+                    ? [color.withValues(alpha: 0.05), Colors.transparent]
                     : [Colors.grey.shade50, Colors.white],
               ),
             ),
@@ -94,7 +94,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(Icons.assignment, color: color, size: 24),
@@ -114,7 +114,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.7),
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -155,9 +155,6 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
     return _buildComplaintsList(context, null, null);
   }
 
-  Widget _buildHighPriorityTab(BuildContext context) {
-    return _buildComplaintsList(context, null, 'High');
-  }
 
   Widget _buildPendingTab(BuildContext context) {
     return _buildComplaintsList(context, 'Pending', null);
@@ -225,7 +222,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                           ? 'No $priority priority complaints'
                           : 'No complaints found',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -308,9 +305,9 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
+                        color: statusColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: statusColor.withOpacity(0.3)),
+                        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         status,
@@ -328,10 +325,10 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: priorityColor.withOpacity(0.1),
+                        color: priorityColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: priorityColor.withOpacity(0.3),
+                          color: priorityColor.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Text(
@@ -349,7 +346,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.6),
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -369,7 +366,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withOpacity(0.7),
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -382,7 +379,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                       size: 16,
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withOpacity(0.6),
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -392,7 +389,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.6),
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -401,7 +398,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                       size: 16,
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withOpacity(0.6),
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                     const SizedBox(width: 4),
                     Flexible(
@@ -410,7 +407,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(
                             context,
-                          ).colorScheme.onSurface.withOpacity(0.6),
+                          ).colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -422,7 +419,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                         size: 16,
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.6),
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                       const SizedBox(width: 4),
                       Flexible(
@@ -431,7 +428,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(
                               context,
-                            ).colorScheme.onSurface.withOpacity(0.6),
+                            ).colorScheme.onSurface.withValues(alpha: 0.6),
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),

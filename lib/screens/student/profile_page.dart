@@ -152,7 +152,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: isDark
-                      ? [color.withOpacity(0.05), Colors.transparent]
+                      ? [color.withValues(alpha: 0.05), Colors.transparent]
                       : [Colors.grey.shade50, Colors.white],
                 ),
               ),
@@ -198,12 +198,12 @@ class _StudentProfilePageState extends State<StudentProfilePage>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [color, color.withOpacity(0.8)],
+          colors: [color, color.withValues(alpha: 0.8)],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -215,7 +215,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
             children: [
               CircleAvatar(
                 radius: 50,
-                backgroundColor: Colors.white.withOpacity(0.2),
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
                 child: const Icon(Icons.person, size: 50, color: Colors.white),
               ),
               if (_isEditing)
@@ -229,7 +229,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -255,14 +255,14 @@ class _StudentProfilePageState extends State<StudentProfilePage>
           Text(
             _studentIdController.text,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
             ),
           ),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -605,7 +605,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: DropdownButtonFormField<String>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon),
@@ -735,7 +735,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
       );
       appState.setUser(updatedUser);
 
-      if (mounted) {
+      if (context.mounted) {
         setState(() {
           _isEditing = false;
         });
@@ -747,7 +747,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error updating profile: ${e.toString()}'),
@@ -784,14 +784,14 @@ class _StudentProfilePageState extends State<StudentProfilePage>
         final appState = Provider.of<AppState>(context, listen: false);
         appState.clearUser();
         
-        if (mounted) {
+        if (context.mounted) {
           Navigator.of(context).pushNamedAndRemoveUntil(
             '/login',
             (route) => false,
           );
         }
       } catch (e) {
-        if (mounted) {
+        if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Error logging out: ${e.toString()}'),
@@ -858,7 +858,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
                   newPassword: newPasswordController.text,
                 );
                 
-                if (mounted) {
+                if (context.mounted) {
                    ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Password updated successfully'),
@@ -867,7 +867,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
                   );
                 }
               } catch (e) {
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Error: ${e.toString()}'),
@@ -919,7 +919,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
         final appState = Provider.of<AppState>(context, listen: false);
         appState.clearUser();
 
-        if (mounted) {
+        if (context.mounted) {
           Navigator.of(context).pushNamedAndRemoveUntil(
             '/login',
             (route) => false,
@@ -929,7 +929,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
           );
         }
       } catch (e) {
-        if (mounted) {
+        if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Error deleting account: ${e.toString()}'),

@@ -27,8 +27,8 @@ class _PoliceDashboardPageState extends State<PoliceDashboardPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDark
-              ? [color.withOpacity(0.08), Colors.transparent, color.withOpacity(0.04)]
-              : [Colors.white, color.withOpacity(0.02), color.withOpacity(0.05)],
+              ? [color.withValues(alpha: 0.08), Colors.transparent, color.withValues(alpha: 0.04)]
+              : [Colors.white, color.withValues(alpha: 0.02), color.withValues(alpha: 0.05)],
         ),
       ),
       child: SafeArea(
@@ -77,7 +77,7 @@ class _PoliceDashboardPageState extends State<PoliceDashboardPage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [color, color.withOpacity(0.85)],
+            colors: [color, color.withValues(alpha: 0.85)],
           ),
           borderRadius: BorderRadius.circular(24),
         ),
@@ -155,8 +155,8 @@ class _PoliceDashboardPageState extends State<PoliceDashboardPage> {
   Widget _buildStatCard(BuildContext context, IconData icon, String label, String value, Color color) {
     return Card(
       elevation: 0,
-      color: color.withOpacity(0.05),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withOpacity(0.1))),
+      color: color.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withValues(alpha: 0.1))),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -225,7 +225,7 @@ class _PoliceDashboardPageState extends State<PoliceDashboardPage> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
+              colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)],
             ),
           ),
           child: Column(
@@ -233,7 +233,7 @@ class _PoliceDashboardPageState extends State<PoliceDashboardPage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.1)),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: 0.1)),
                 child: Icon(icon, color: color, size: 32),
               ),
               const SizedBox(height: 16),
@@ -333,7 +333,7 @@ class _PoliceDashboardPageState extends State<PoliceDashboardPage> {
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: statusColor.withOpacity(0.1),
+          color: statusColor.withValues(alpha: 0.1),
         ),
         child: Icon(
           Icons.assignment,
@@ -357,7 +357,7 @@ class _PoliceDashboardPageState extends State<PoliceDashboardPage> {
       trailing: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: statusColor.withOpacity(0.1),
+          color: statusColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(

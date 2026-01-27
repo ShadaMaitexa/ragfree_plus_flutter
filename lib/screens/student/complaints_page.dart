@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../services/complaint_service.dart';
 import '../../services/app_state.dart';
@@ -67,7 +66,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: isDark
-                      ? [color.withOpacity(0.05), Colors.transparent]
+                      ? [color.withValues(alpha: 0.05), Colors.transparent]
                       : [Colors.grey.shade50, Colors.white],
                 ),
               ),
@@ -95,7 +94,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(Icons.assignment, color: color, size: 24),
@@ -115,7 +114,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.7),
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -187,9 +186,9 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -205,7 +204,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -223,7 +222,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
             ),
             child: Icon(Icons.assignment_outlined, size: 64, color: color),
           ),
@@ -238,7 +237,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
           Text(
             'File a complaint to get help and support',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -339,20 +338,6 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
         statusColor = Colors.grey;
     }
 
-    Color priorityColor;
-    switch (complaint.priority) {
-      case 'High':
-        priorityColor = Colors.red;
-        break;
-      case 'Medium':
-        priorityColor = Colors.orange;
-        break;
-      case 'Low':
-        priorityColor = Colors.green;
-        break;
-      default:
-        priorityColor = Colors.grey;
-    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -375,9 +360,9 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
+                        color: statusColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: statusColor.withOpacity(0.3)),
+                        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         status,
@@ -397,12 +382,12 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                       decoration: BoxDecoration(
                         color: Theme.of(
                           context,
-                        ).colorScheme.primary.withOpacity(0.1),
+                        ).colorScheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: Theme.of(
                             context,
-                          ).colorScheme.primary.withOpacity(0.3),
+                          ).colorScheme.primary.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Text(
@@ -438,7 +423,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.6),
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -464,7 +449,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.1),
+                          color: Colors.grey.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -494,7 +479,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withOpacity(0.7),
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -537,7 +522,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                       size: 16,
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withOpacity(0.6),
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                     const SizedBox(width: 4),
                     Flexible(
@@ -546,7 +531,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(
                             context,
-                          ).colorScheme.onSurface.withOpacity(0.6),
+                          ).colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -557,7 +542,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.6),
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
                         fontFamily: 'monospace',
                       ),
                     ),
@@ -757,6 +742,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
         createdAt: complaint.createdAt,
       );
 
+      if (!context.mounted) return;
       Navigator.pop(context); // Close the dialog
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -765,6 +751,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
         ),
       );
     } catch (e) {
+      if (!context.mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error downloading report: $e')));

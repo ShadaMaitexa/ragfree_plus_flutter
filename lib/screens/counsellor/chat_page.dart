@@ -55,7 +55,7 @@ class _CounsellorChatPageState extends State<CounsellorChatPage>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: isDark
-                    ? [color.withOpacity(0.05), Colors.transparent]
+                    ? [color.withValues(alpha: 0.05), Colors.transparent]
                     : [Colors.grey.shade50, Colors.white],
               ),
             ),
@@ -84,7 +84,7 @@ class _CounsellorChatPageState extends State<CounsellorChatPage>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(Icons.support_agent, color: color, size: 24),
@@ -105,7 +105,7 @@ class _CounsellorChatPageState extends State<CounsellorChatPage>
                         color: Theme.of(context)
                             .colorScheme
                             .onSurface
-                            .withOpacity(0.7),
+                            .withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -157,7 +157,7 @@ class _CounsellorChatPageState extends State<CounsellorChatPage>
                         color: Theme.of(context)
                             .colorScheme
                             .onSurface
-                            .withOpacity(0.7),
+                            .withValues(alpha: 0.7),
                       ),
                 ),
               ],
@@ -297,7 +297,7 @@ class _CounselorChatDetailPageState extends State<_CounselorChatDetailPage> {
                     color: Theme.of(context)
                         .colorScheme
                         .onSurface
-                        .withOpacity(0.7),
+                        .withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -386,8 +386,8 @@ class _CounselorChatDetailPageState extends State<_CounselorChatDetailPage> {
               style: TextStyle(
                 fontSize: 10,
                 color: isMe
-                    ? Colors.white.withOpacity(0.7)
-                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                    ? Colors.white.withValues(alpha: 0.7)
+                    : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
           ],
@@ -403,7 +403,7 @@ class _CounselorChatDetailPageState extends State<_CounselorChatDetailPage> {
         color: Theme.of(context).colorScheme.surface,
         border: Border(
           top: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
           ),
         ),
       ),
@@ -461,11 +461,10 @@ class _CounselorChatDetailPageState extends State<_CounselorChatDetailPage> {
         );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     }
   }
 }

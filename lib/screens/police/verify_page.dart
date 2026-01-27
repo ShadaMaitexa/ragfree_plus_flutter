@@ -55,7 +55,7 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: isDark
-                    ? [color.withOpacity(0.05), Colors.transparent]
+                    ? [color.withValues(alpha: 0.05), Colors.transparent]
                     : [Colors.grey.shade50, Colors.white],
               ),
             ),
@@ -84,7 +84,7 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(Icons.verified_user, color: color, size: 24),
@@ -104,7 +104,7 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.7),
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -162,7 +162,7 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                         color: Theme.of(context)
                             .colorScheme
                             .onSurface
-                            .withOpacity(0.7),
+                            .withValues(alpha: 0.7),
                       ),
                   textAlign: TextAlign.center,
                 ),
@@ -243,9 +243,9 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
+                      color: statusColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: statusColor.withOpacity(0.3)),
+                      border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                     ),
                     child: Text(
                       status,
@@ -263,10 +263,10 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: priorityColor.withOpacity(0.1),
+                      color: priorityColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: priorityColor.withOpacity(0.3),
+                        color: priorityColor.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Text(
@@ -284,7 +284,7 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withOpacity(0.6),
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -304,7 +304,7 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(
                     context,
-                  ).colorScheme.onSurface.withOpacity(0.7),
+                  ).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -317,7 +317,7 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                     size: 16,
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withOpacity(0.6),
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                   const SizedBox(width: 4),
                   Text(
@@ -327,7 +327,7 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withOpacity(0.6),
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                   ),
                   const SizedBox(width: 16),
@@ -336,7 +336,7 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                     size: 16,
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withOpacity(0.6),
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                   const SizedBox(width: 4),
                   Flexible(
@@ -345,7 +345,7 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.6),
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),

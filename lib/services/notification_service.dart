@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/notification_model.dart';
 import 'emailjs_service.dart';
@@ -98,7 +100,7 @@ class NotificationService {
           }
         } catch (e) {
           // Email sending failed, but notification was created - continue silently
-          print('Email notification failed: $e');
+          debugPrint('Email notification failed: $e');
         }
       }
     } catch (e) {

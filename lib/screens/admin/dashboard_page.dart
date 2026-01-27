@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
 import '../../services/activity_service.dart';
@@ -37,14 +36,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           end: Alignment.bottomRight,
           colors: isDark
               ? [
-                  color.withOpacity(0.08),
+                  color.withValues(alpha: 0.08),
                   Colors.transparent,
-                  color.withOpacity(0.04),
+                  color.withValues(alpha: 0.04),
                 ]
               : [
                   Colors.white,
-                  color.withOpacity(0.02),
-                  color.withOpacity(0.05),
+                  color.withValues(alpha: 0.02),
+                  color.withValues(alpha: 0.05),
                 ],
         ),
       ),
@@ -90,8 +89,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: _emergencyAlertService.getActiveGlobalAlerts(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data!.isEmpty)
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const SizedBox.shrink();
+        }
 
         final criticalAlerts = snapshot.data!
             .where((a) => a['priority'] == 'critical')
@@ -109,7 +109,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.red.withOpacity(0.3),
+                  color: Colors.red.withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),
@@ -172,7 +172,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [color, color.withOpacity(0.85)],
+            colors: [color, color.withValues(alpha: 0.85)],
           ),
           borderRadius: BorderRadius.circular(24),
         ),
@@ -337,10 +337,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   ) {
     return Card(
       elevation: 0,
-      color: color.withOpacity(0.05),
+      color: color.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: color.withOpacity(0.1)),
+        side: BorderSide(color: color.withValues(alpha: 0.1)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -449,7 +449,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
+              colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)],
             ),
           ),
           child: Column(
@@ -459,7 +459,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                 ),
                 child: Icon(icon, color: color, size: 32),
               ),
@@ -535,7 +535,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                               ?.copyWith(
                                 color: Theme.of(
                                   context,
-                                ).colorScheme.onSurface.withOpacity(0.7),
+                                ).colorScheme.onSurface.withValues(alpha: 0.7),
                               ),
                           textAlign: TextAlign.center,
                         ),
@@ -605,7 +605,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
         ),
         child: Icon(icon, color: color, size: 20),
       ),
@@ -619,7 +619,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       trailing: Text(
         timeAgo,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
         ),
       ),
     );
@@ -656,12 +656,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     String selectedPriority = 'medium';
     List<String> selectedRoles = ['all'];
 
-    final priorities = [
-      {'value': 'low', 'label': 'Low'},
-      {'value': 'medium', 'label': 'Medium'},
-      {'value': 'high', 'label': 'High'},
-      {'value': 'critical', 'label': 'Critical'},
-    ];
 
     final availableRoles = [
       {'value': 'all', 'label': 'All Users'},
@@ -746,7 +740,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                             }
                           });
                         },
-                        selectedColor: Colors.orange.withOpacity(0.2),
+                        selectedColor: Colors.orange.withValues(alpha: 0.2),
                         checkmarkColor: Colors.orange,
                         labelStyle: TextStyle(
                           color: isSelected ? Colors.orange : Colors.grey[700],
@@ -845,7 +839,4 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  void _navigateToAnalytics(BuildContext context) {
-    Provider.of<AppState>(context, listen: false).setNavIndex(8);
-  }
 }

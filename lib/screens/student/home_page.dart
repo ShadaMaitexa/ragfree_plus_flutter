@@ -34,8 +34,8 @@ class _StudentHomePageState extends State<StudentHomePage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDark
-              ? [color.withOpacity(0.08), Colors.transparent, color.withOpacity(0.04)]
-              : [Colors.white, color.withOpacity(0.02), color.withOpacity(0.05)],
+              ? [color.withValues(alpha: 0.08), Colors.transparent, color.withValues(alpha: 0.04)]
+              : [Colors.white, color.withValues(alpha: 0.02), color.withValues(alpha: 0.05)],
         ),
       ),
       child: SafeArea(
@@ -77,7 +77,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.red.withOpacity(0.3),
+                        color: Colors.red.withValues(alpha: 0.3),
                         blurRadius: 12,
                         offset: const Offset(0, 6),
                       ),
@@ -115,7 +115,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [color, color.withOpacity(0.85)],
+            colors: [color, color.withValues(alpha: 0.85)],
           ),
           borderRadius: BorderRadius.circular(24),
         ),
@@ -127,7 +127,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: const Icon(Icons.stars_rounded, color: Colors.white, size: 28),
@@ -139,7 +139,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                     children: [
                       Text(
                         'Member of RagFree+',
-                        style: TextStyle(color: Colors.white.withOpacity(0.8), fontWeight: FontWeight.w500),
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontWeight: FontWeight.w500),
                       ),
                       Consumer<AppState>(
                         builder: (context, appState, _) {
@@ -177,7 +177,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                   Expanded(
                     child: Text(
                       'Your safety is our priority. Report any concern instantly.',
-                      style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 13),
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 13),
                     ),
                   ),
                 ],
@@ -242,7 +242,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
+              colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)],
             ),
           ),
           child: Column(
@@ -250,7 +250,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.1)),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: 0.1)),
                 child: Icon(icon, color: color, size: 28),
               ),
               const SizedBox(height: 12),
@@ -306,8 +306,8 @@ class _StudentHomePageState extends State<StudentHomePage> {
   Widget _buildStatCard(BuildContext context, IconData icon, String label, String value, Color color) {
     return Card(
       elevation: 0,
-      color: color.withOpacity(0.05),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withOpacity(0.1))),
+      color: color.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withValues(alpha: 0.1))),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -357,7 +357,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.05)),
+        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
       ),
       child: Column(
         children: [
@@ -369,38 +369,6 @@ class _StudentHomePageState extends State<StudentHomePage> {
     );
   }
 
-  Widget _buildActivityItem(
-    BuildContext context,
-    IconData icon,
-    String title,
-    String subtitle,
-    Color color,
-    String time,
-  ) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color.withOpacity(0.1),
-        ),
-        child: Icon(icon, color: color, size: 20),
-      ),
-      title: Text(
-        title,
-        style: Theme.of(
-          context,
-        ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text(subtitle),
-      trailing: Text(
-        time,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-        ),
-      ),
-    );
-  }
 
   Widget _buildActivityItemFromModel(
     BuildContext context,
@@ -433,7 +401,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
         ),
         child: Icon(icon, color: color, size: 20),
       ),
@@ -447,7 +415,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
       trailing: Text(
         timeAgo,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
         ),
       ),
     );
@@ -514,6 +482,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
               onPressed: _isSendingSOS
                   ? null
                   : () async {
+                      if (!context.mounted) return;
                       setDialogState(() => _isSendingSOS = true);
                       try {
                         final appState =
@@ -551,7 +520,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                           );
                         }
                       } finally {
-                        if (mounted) {
+                        if (context.mounted) {
                           setState(() => _isSendingSOS = false);
                         }
                       }
@@ -595,10 +564,4 @@ class _StudentHomePageState extends State<StudentHomePage> {
     Provider.of<AppState>(context, listen: false).setNavIndex(3);
   }
 
-  void _navigateToFeedback(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const StudentFeedbackPage()),
-    );
-  }
 }

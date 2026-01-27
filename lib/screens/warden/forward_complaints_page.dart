@@ -77,7 +77,7 @@ class _WardenForwardComplaintsPageState extends State<WardenForwardComplaintsPag
                       counselorId: co['id'], 
                       counselorName: co['name']
                     );
-                    if (mounted) {
+                    if (context.mounted) {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Forwarded to ${co['name']}'))

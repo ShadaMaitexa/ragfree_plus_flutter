@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/app_theme.dart';
 
 class AnimatedWidgets {
   // Animated Scale Button
@@ -123,10 +122,10 @@ class AnimatedWidgets {
     Duration period = const Duration(milliseconds: 1500),
   }) {
     return ShimmerEffect(
-      child: child,
       baseColor: baseColor,
       highlightColor: highlightColor,
       period: period,
+      child: child,
     );
   }
 
@@ -156,11 +155,11 @@ class AnimatedWidgets {
     Curve curve = Curves.easeInOut,
   }) {
     return PulsingAnimation(
-      child: child,
       beginScale: beginScale,
       endScale: endScale,
       period: period,
       curve: curve,
+      child: child,
     );
   }
 
@@ -312,7 +311,7 @@ class _AnimatedFadeInState extends State<AnimatedFadeIn>
       _controller.forward();
     } else {
       Future.delayed(widget.delay, () {
-        if (mounted) _controller.forward();
+        if (context.mounted) _controller.forward();
       });
     }
   }
@@ -376,7 +375,7 @@ class _AnimatedSlideInState extends State<AnimatedSlideIn>
       _controller.forward();
     } else {
       Future.delayed(widget.delay, () {
-        if (mounted) _controller.forward();
+        if (context.mounted) _controller.forward();
       });
     }
   }
@@ -436,7 +435,7 @@ class _AnimatedBounceInState extends State<AnimatedBounceIn>
       _controller.forward();
     } else {
       Future.delayed(widget.delay, () {
-        if (mounted) _controller.forward();
+        if (context.mounted) _controller.forward();
       });
     }
   }

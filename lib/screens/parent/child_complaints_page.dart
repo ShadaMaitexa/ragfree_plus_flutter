@@ -4,7 +4,6 @@ import '../../services/complaint_service.dart';
 import '../../services/parent_student_service.dart';
 import '../../services/app_state.dart';
 import '../../models/complaint_model.dart';
-import '../../models/parent_student_link_model.dart';
 import '../../models/user_model.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/add_complaint_dialog.dart';
@@ -66,7 +65,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: isDark
-                        ? [color.withOpacity(0.05), Colors.transparent]
+                        ? [color.withValues(alpha: 0.05), Colors.transparent]
                         : [Colors.grey.shade50, Colors.white],
                   ),
                 ),
@@ -122,7 +121,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(Icons.assignment, color: color, size: 24),
@@ -144,7 +143,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.7),
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -252,9 +251,9 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -270,7 +269,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -288,7 +287,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
             ),
             child: Icon(Icons.assignment_outlined, size: 64, color: color),
           ),
@@ -303,7 +302,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
           Text(
             text ?? 'Your children\'s safety reports will appear here',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -365,7 +364,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
             ),
             child: Icon(Icons.link_off, size: 64, color: color),
           ),
@@ -380,7 +379,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
           Text(
             'Students linked to your email ($parentEmail) will appear here. Ask your child to provide your email in their profile.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
             textAlign: TextAlign.center,
           ),
@@ -425,7 +424,6 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
     bool isPublic = false,
   }) {
     final status = complaint.status;
-    final priority = complaint.priority;
 
     Color statusColor;
     switch (status) {
@@ -465,9 +463,9 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
+                        color: statusColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: statusColor.withOpacity(0.3)),
+                        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         status,
@@ -485,10 +483,10 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Text(
@@ -506,7 +504,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.6),
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -518,7 +516,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                       radius: 16,
                       backgroundColor: Theme.of(
                         context,
-                      ).colorScheme.primary.withOpacity(0.1),
+                      ).colorScheme.primary.withValues(alpha: 0.1),
                       child: Text(
                         childName
                             .split(' ')
@@ -549,7 +547,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                         margin: const EdgeInsets.only(left: 8),
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.1),
+                          color: Colors.grey.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -581,7 +579,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withOpacity(0.7),
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -624,7 +622,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                       size: 16,
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withOpacity(0.6),
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                     const SizedBox(width: 4),
                     Flexible(
@@ -633,7 +631,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(
                             context,
-                          ).colorScheme.onSurface.withOpacity(0.6),
+                          ).colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -645,7 +643,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                         size: 16,
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.6),
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                       const SizedBox(width: 4),
                       Flexible(
@@ -654,7 +652,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(
                               context,
-                            ).colorScheme.onSurface.withOpacity(0.6),
+                            ).colorScheme.onSurface.withValues(alpha: 0.6),
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -670,7 +668,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.6),
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
                         fontFamily: 'monospace',
                       ),
                     ),
@@ -681,7 +679,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(
                             context,
-                          ).colorScheme.onSurface.withOpacity(0.6),
+                          ).colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                       ),
                   ],
@@ -710,7 +708,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
               radius: 16,
               backgroundColor: Theme.of(
                 context,
-              ).colorScheme.primary.withOpacity(0.1),
+              ).colorScheme.primary.withValues(alpha: 0.1),
               child: Text(
                 childName.split(' ').map((n) => n.isNotEmpty ? n[0] : '').join().toUpperCase(),
                 style: TextStyle(
@@ -890,104 +888,4 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
     );
   }
 
-  Future<void> _showLinkStudentDialog(BuildContext context) async {
-    final emailController = TextEditingController();
-    final relationshipController = TextEditingController();
-    String selectedRelationship = 'Mother';
-    final relationships = ['Mother', 'Father', 'Guardian', 'Other'];
-
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Link Student Account'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Student Email',
-                  hintText: 'Enter your child\'s registered email',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email),
-                ),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: selectedRelationship,
-                decoration: const InputDecoration(
-                  labelText: 'Relationship',
-                  border: OutlineInputBorder(),
-                ),
-                items: relationships.map((rel) {
-                  return DropdownMenuItem(value: rel, child: Text(rel));
-                }).toList(),
-                onChanged: (value) {
-                  selectedRelationship = value ?? 'Mother';
-                },
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              if (emailController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please enter student email'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-                return;
-              }
-
-              try {
-                final appState = Provider.of<AppState>(context, listen: false);
-                final user = appState.currentUser;
-                
-                if (user != null) {
-                  await _parentStudentService.linkStudent(
-                    parentId: user.uid,
-                    parentName: user.name,
-                    studentEmail: emailController.text.trim(),
-                    relationship: selectedRelationship,
-                  );
-
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Student linked successfully!'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: ${e.toString().replaceAll('Exception: ', '')}'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
-            child: const Text('Link'),
-          ),
-        ],
-      ),
-    );
-
-    emailController.dispose();
-    relationshipController.dispose();
-  }
 }

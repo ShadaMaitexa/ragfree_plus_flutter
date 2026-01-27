@@ -65,7 +65,7 @@ class _StudentFeedbackPageState extends State<StudentFeedbackPage> with SingleTi
 
       await _feedbackService.submitFeedback(feedback);
 
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Thank you for your feedback!'),
@@ -76,7 +76,7 @@ class _StudentFeedbackPageState extends State<StudentFeedbackPage> with SingleTi
         _tabController.animateTo(1);
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: ${e.toString()}'),
@@ -85,7 +85,7 @@ class _StudentFeedbackPageState extends State<StudentFeedbackPage> with SingleTi
         );
       }
     } finally {
-      if (mounted) {
+      if (context.mounted) {
         setState(() => _isSubmitting = false);
       }
     }
@@ -171,7 +171,7 @@ class _StudentFeedbackPageState extends State<StudentFeedbackPage> with SingleTi
             ),
             const SizedBox(height: 32),
             DropdownButtonFormField<String>(
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               decoration: const InputDecoration(
                 labelText: 'Category',
                 border: OutlineInputBorder(),

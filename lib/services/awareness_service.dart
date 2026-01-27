@@ -44,7 +44,7 @@ class AwarenessService {
               .map(
                 (doc) => AwarenessModel.fromMap(
                   {
-                    ...doc.data() as Map<String, dynamic>,
+                    ...doc.data(),
                     'id': doc.id,
                   },
                 ),

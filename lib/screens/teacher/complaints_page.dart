@@ -7,7 +7,6 @@ import 'package:ragfree_plus_flutter/models/complaint_model.dart';
 import 'package:ragfree_plus_flutter/models/chat_message_model.dart';
 import 'package:ragfree_plus_flutter/screens/teacher/chat_page.dart';
 import 'package:intl/intl.dart';
-import 'package:ragfree_plus_flutter/widgets/add_complaint_dialog.dart';
 
 class TeacherComplaintsPage extends StatefulWidget {
   const TeacherComplaintsPage({super.key});
@@ -71,7 +70,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: isDark
-                      ? [color.withOpacity(0.05), Colors.transparent]
+                      ? [color.withValues(alpha: 0.05), Colors.transparent]
                       : [Colors.grey.shade50, Colors.white],
                 ),
               ),
@@ -97,7 +96,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(Icons.assignment, color: color, size: 24),
@@ -263,7 +262,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ExpansionTile(
         leading: CircleAvatar(
-          backgroundColor: statusColor.withOpacity(0.1),
+          backgroundColor: statusColor.withValues(alpha: 0.1),
           child: Icon(Icons.assignment, color: statusColor, size: 20),
         ),
         title: Text(
@@ -283,7 +282,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: statusColor.withOpacity(0.1),
+            color: statusColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
@@ -513,7 +512,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
               const Text('Select where to forward this complaint:'),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: selectedRole,
+                initialValue: selectedRole,
                 decoration: const InputDecoration(
                   labelText: 'Forward To',
                   border: OutlineInputBorder(),

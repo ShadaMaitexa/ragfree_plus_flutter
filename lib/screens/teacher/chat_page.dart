@@ -72,7 +72,7 @@ class _TeacherChatPageState extends State<TeacherChatPage>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: isDark
-                    ? [color.withOpacity(0.05), Colors.transparent]
+                    ? [color.withValues(alpha: 0.05), Colors.transparent]
                     : [Colors.grey.shade50, Colors.white],
               ),
             ),
@@ -98,7 +98,7 @@ class _TeacherChatPageState extends State<TeacherChatPage>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(Icons.chat, color: color, size: 24),
@@ -187,7 +187,7 @@ class _TeacherChatPageState extends State<TeacherChatPage>
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+          backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
           child: Icon(
             Icons.person,
             color: Theme.of(context).colorScheme.primary,
@@ -205,7 +205,7 @@ class _TeacherChatPageState extends State<TeacherChatPage>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: Colors.blue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Text(
@@ -290,7 +290,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
           children: [
             CircleAvatar(
               radius: 16,
-              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               child: Text(
                 widget.conversation.studentName.substring(0, 1).toUpperCase(),
                 style: TextStyle(
@@ -316,7 +316,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                     'Student',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -343,7 +343,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                     child: Text(
                       'No messages yet. Start the conversation!',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   );
@@ -379,7 +379,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
           if (!isMe) ...[
             CircleAvatar(
               radius: 16,
-              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               child: Text(
                 message.senderName.substring(0, 1).toUpperCase(),
                 style: TextStyle(
@@ -404,7 +404,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -427,8 +427,8 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                     style: TextStyle(
                       fontSize: 11,
                       color: isMe
-                          ? Colors.white.withOpacity(0.7)
-                          : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                          ? Colors.white.withValues(alpha: 0.7)
+                          : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -439,7 +439,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
             const SizedBox(width: 8),
             CircleAvatar(
               radius: 16,
-              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               child: const Icon(Icons.person, size: 16, color: Colors.white),
             ),
           ],
@@ -455,7 +455,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
         color: Theme.of(context).colorScheme.surface,
         border: Border(
           top: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
           ),
         ),
       ),
@@ -510,7 +510,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error sending message: ${e.toString()}'),

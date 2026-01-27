@@ -35,8 +35,8 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [color.withOpacity(0.08), Colors.transparent, color.withOpacity(0.04)]
-                : [Colors.white, color.withOpacity(0.02), color.withOpacity(0.05)],
+                ? [color.withValues(alpha: 0.08), Colors.transparent, color.withValues(alpha: 0.04)]
+                : [Colors.white, color.withValues(alpha: 0.02), color.withValues(alpha: 0.05)],
           ),
         ),
         child: SingleChildScrollView(
@@ -95,7 +95,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [color, color.withOpacity(0.85)],
+            colors: [color, color.withValues(alpha: 0.85)],
           ),
           borderRadius: BorderRadius.circular(24),
         ),
@@ -205,8 +205,8 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
   Widget _buildStatCard(BuildContext context, IconData icon, String label, String value, Color color) {
     return Card(
       elevation: 0,
-      color: color.withOpacity(0.05),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withOpacity(0.1))),
+      color: color.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withValues(alpha: 0.1))),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -230,16 +230,16 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
+        color: color.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.1)),
+        border: Border.all(color: color.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(15),
             ),
             child: Icon(icon, color: color),
@@ -315,7 +315,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
+              colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)],
             ),
           ),
           child: Column(
@@ -323,7 +323,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.1)),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: 0.1)),
                 child: Icon(icon, color: color, size: 32),
               ),
               const SizedBox(height: 16),
@@ -370,7 +370,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                 padding: const EdgeInsets.all(32),
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
@@ -388,16 +388,16 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
 
             return Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).cardColor.withOpacity(0.6),
+                color: Theme.of(context).cardColor.withValues(alpha: 0.6),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
+                border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
               ),
               child: ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: activities.length,
                 separatorBuilder: (context, index) =>
-                    Divider(height: 1, color: Theme.of(context).dividerColor.withOpacity(0.2), indent: 72),
+                    Divider(height: 1, color: Theme.of(context).dividerColor.withValues(alpha: 0.2), indent: 72),
                 itemBuilder: (context, index) {
                   final activity = activities[index];
                   return ListTile(
@@ -407,7 +407,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                       decoration: BoxDecoration(
                         color: _getActivityColor(
                           activity.type,
-                        ).withOpacity(0.1),
+                        ).withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -425,7 +425,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                       children: [
                         Text(
                           activity.description,
-                          style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8)),
+                          style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8)),
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -464,8 +464,9 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
               StreamBuilder<int>(
                 stream: _notificationService.getUnreadCount(userId),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData || snapshot.data == 0)
+                  if (!snapshot.hasData || snapshot.data == 0) {
                     return const SizedBox.shrink();
+                  }
                   return Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -500,7 +501,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                 padding: const EdgeInsets.all(32),
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
@@ -522,16 +523,16 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
 
             return Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).cardColor.withOpacity(0.6),
+                color: Theme.of(context).cardColor.withValues(alpha: 0.6),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
+                border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
               ),
               child: ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: notifications.length,
                 separatorBuilder: (context, index) =>
-                    Divider(height: 1, color: Theme.of(context).dividerColor.withOpacity(0.2), indent: 72),
+                    Divider(height: 1, color: Theme.of(context).dividerColor.withValues(alpha: 0.2), indent: 72),
                 itemBuilder: (context, index) {
                   final notification = notifications[index];
                   // If passing dynamic, we need to access fields carefully or cast
@@ -541,7 +542,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                     leading: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
+                        color: Colors.blue.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -563,7 +564,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                       children: [
                         Text(
                           notification.message,
-                          style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8)),
+                          style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8)),
                         ),
                         const SizedBox(height: 4),
                         Text(

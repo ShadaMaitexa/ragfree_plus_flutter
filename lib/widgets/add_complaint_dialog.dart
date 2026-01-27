@@ -4,15 +4,9 @@ import 'package:provider/provider.dart';
 import 'dart:io';
 import 'package:ragfree_plus_flutter/services/app_state.dart';
 import 'package:ragfree_plus_flutter/services/complaint_service.dart';
-import 'package:ragfree_plus_flutter/services/notification_service.dart';
-import 'package:ragfree_plus_flutter/services/activity_service.dart';
-import 'package:ragfree_plus_flutter/models/activity_model.dart';
 import 'package:ragfree_plus_flutter/models/complaint_model.dart';
-import 'package:ragfree_plus_flutter/utils/responsive.dart';
-import 'package:ragfree_plus_flutter/widgets/animated_widgets.dart';
 import 'package:ragfree_plus_flutter/services/parent_student_service.dart';
 import 'package:ragfree_plus_flutter/models/parent_student_link_model.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class AddComplaintDialog extends StatefulWidget {
   final VoidCallback onComplaintAdded;
@@ -38,7 +32,7 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
   String _selectedCategory = 'Harassment';
   String _selectedIncidentType = 'College';
   bool _isAnonymous = false;
-  List<File> _selectedImages = [];
+  final List<File> _selectedImages = [];
   File? _selectedVideo;
   File? _selectedAudio;
   bool _isSubmitting = false;
@@ -141,7 +135,7 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                         if (links.isEmpty) return const Text('No linked children found');
                         
                         return DropdownButtonFormField<String>(
-                          value: _selectedChildId,
+                          initialValue: _selectedChildId,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                             hintText: 'Choose a child',
@@ -187,7 +181,7 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: _selectedCategory,
+                    initialValue: _selectedCategory,
                     decoration: const InputDecoration(
                       labelText: 'Category',
                       border: OutlineInputBorder(),
@@ -206,7 +200,7 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: _selectedIncidentType,
+                    initialValue: _selectedIncidentType,
                     decoration: const InputDecoration(
                       labelText: 'Incident Type',
                       border: OutlineInputBorder(),
@@ -536,7 +530,7 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
         );
       }
 
-      if (mounted) {
+      if (context.mounted) {
         Navigator.pop(context);
         widget.onComplaintAdded();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -547,7 +541,7 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: ${e.toString()}'),
@@ -556,7 +550,7 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
         );
       }
     } finally {
-      if (mounted) {
+      if (context.mounted) {
         setState(() => _isSubmitting = false);
       }
     }

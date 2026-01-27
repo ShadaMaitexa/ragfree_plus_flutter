@@ -56,7 +56,7 @@ class _AwarenessCarouselState extends State<AwarenessCarousel>
 
   void _startAutoPlay() {
     Future.delayed(widget.autoPlayInterval, () {
-      if (mounted) {
+      if (context.mounted) {
         _nextPage();
         _startAutoPlay();
       }
@@ -137,8 +137,8 @@ class _AwarenessCarouselState extends State<AwarenessCarousel>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                    Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
                   ],
                 ),
               ),
@@ -160,7 +160,7 @@ class _AwarenessCarouselState extends State<AwarenessCarousel>
                             shape: BoxShape.circle,
                             color: Theme.of(
                               context,
-                            ).colorScheme.primary.withOpacity(0.1),
+                            ).colorScheme.primary.withValues(alpha: 0.1),
                           ),
                           child: Icon(
                             item['icon'] ?? Icons.school,
@@ -193,7 +193,7 @@ class _AwarenessCarouselState extends State<AwarenessCarousel>
                                         color: Theme.of(context)
                                             .colorScheme
                                             .onSurface
-                                            .withOpacity(0.7),
+                                            .withValues(alpha: 0.7),
                                       ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -213,7 +213,7 @@ class _AwarenessCarouselState extends State<AwarenessCarousel>
                                 height: 1.4,
                                 color: Theme.of(
                                   context,
-                                ).colorScheme.onSurface.withOpacity(0.8),
+                                ).colorScheme.onSurface.withValues(alpha: 0.8),
                               ),
                           maxLines: constraints.maxWidth > 600 ? 3 : 2,
                           overflow: TextOverflow.ellipsis,
@@ -241,7 +241,7 @@ class _AwarenessCarouselState extends State<AwarenessCarousel>
           decoration: BoxDecoration(
             color: _currentPage == index
                 ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                : Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(4),
           ),
         ),

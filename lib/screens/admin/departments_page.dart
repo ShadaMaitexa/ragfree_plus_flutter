@@ -53,7 +53,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: isDark
-                    ? [color.withOpacity(0.05), Colors.transparent]
+                    ? [color.withValues(alpha: 0.05), Colors.transparent]
                     : [Colors.grey.shade50, Colors.white],
               ),
             ),
@@ -101,7 +101,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(Icons.apartment, color: color, size: 24),
@@ -121,7 +121,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.7),
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -183,9 +183,9 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -201,7 +201,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -219,7 +219,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
             ),
             child: Icon(Icons.apartment_outlined, size: 64, color: color),
           ),
@@ -234,7 +234,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
           Text(
             'Add departments to organize students and staff',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -271,7 +271,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
     Map<String, dynamic> department,
     int index,
   ) {
-    final deptColor = Color(department['colorValue'] ?? Colors.blue.value);
+    final deptColor = Color(department['colorValue'] ?? Colors.blue.toARGB32());
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -285,8 +285,8 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                deptColor.withOpacity(0.1),
-                deptColor.withOpacity(0.05),
+                deptColor.withValues(alpha: 0.1),
+                deptColor.withValues(alpha: 0.05),
               ],
             ),
           ),
@@ -301,7 +301,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: deptColor.withOpacity(0.1),
+                        color: deptColor.withValues(alpha: 0.1),
                       ),
                       child: Icon(
                         Icons.apartment,
@@ -331,10 +331,10 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
+                        color: Colors.green.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Colors.green.withOpacity(0.3),
+                          color: Colors.green.withValues(alpha: 0.3),
                         ),
                       ),
                       child: const Text(
@@ -372,7 +372,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.6),
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
                         fontFamily: 'monospace',
                       ),
                     ),
@@ -457,7 +457,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
       ],
@@ -495,7 +495,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                   'name': nameController.text,
                   'students': 0,
                   'staff': 0,
-                  'colorValue': Colors.blue.value, // Default color or from picker
+                  'colorValue': Colors.blue.toARGB32(), // Default color or from picker
                 });
                 if (context.mounted) {
                   Navigator.pop(context);

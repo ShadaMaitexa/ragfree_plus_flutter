@@ -43,12 +43,10 @@ class AppTheme {
         secondary: secondaryColor,
         tertiary: accentColor,
         surface: surfaceLight,
-        background: Colors.white,
         error: errorColor,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: Color(0xFF1E293B),
-        onBackground: Color(0xFF1E293B),
         onError: Colors.white,
       ),
 
@@ -97,10 +95,10 @@ class AppTheme {
             letterSpacing: 0.5,
           ),
         ).copyWith(
-          overlayColor: MaterialStateProperty.resolveWith<Color?>(
-            (Set<MaterialState> states) {
-              if (states.contains(MaterialState.pressed)) {
-                return Colors.white.withOpacity(0.1);
+          overlayColor: WidgetStateProperty.resolveWith<Color?>(
+            (Set<WidgetState> states) {
+              if (states.contains(WidgetState.pressed)) {
+                return Colors.white.withValues(alpha: 0.1);
               }
               return null;
             },
@@ -212,7 +210,7 @@ class AppTheme {
       // Chip Theme
       chipTheme: ChipThemeData(
         backgroundColor: const Color(0xFFF1F5F9),
-        selectedColor: primaryColor.withOpacity(0.1),
+        selectedColor: primaryColor.withValues(alpha: 0.1),
         checkmarkColor: primaryColor,
         deleteIconColor: errorColor,
         labelStyle: const TextStyle(
@@ -250,7 +248,7 @@ class AppTheme {
           fontWeight: FontWeight.w500,
         ),
         indicator: BoxDecoration(
-          color: primaryColor.withOpacity(0.1),
+          color: primaryColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
@@ -261,10 +259,10 @@ class AppTheme {
         backgroundColor: Colors.white,
         shadowColor: Colors.black12,
         surfaceTintColor: Colors.white,
-        indicatorColor: primaryColor.withOpacity(0.1),
-        labelTextStyle: MaterialStateProperty.resolveWith<TextStyle?>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.selected)) {
+        indicatorColor: primaryColor.withValues(alpha: 0.1),
+        labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
               return const TextStyle(
                 color: primaryColor,
                 fontSize: 12,
@@ -330,12 +328,10 @@ class AppTheme {
         secondary: secondaryColor,
         tertiary: accentColor,
         surface: surfaceDark,
-        background: Color(0xFF0F172A),
         error: errorColor,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: Color(0xFFF1F5F9),
-        onBackground: Color(0xFFF1F5F9),
         onError: Colors.white,
       ),
 
@@ -490,7 +486,7 @@ class AppTheme {
       // Chip Theme
       chipTheme: ChipThemeData(
         backgroundColor: const Color(0xFF1E293B),
-        selectedColor: primaryColor.withOpacity(0.2),
+        selectedColor: primaryColor.withValues(alpha: 0.2),
         checkmarkColor: primaryColor,
         deleteIconColor: errorColor,
         labelStyle: const TextStyle(
@@ -528,7 +524,7 @@ class AppTheme {
           fontWeight: FontWeight.w500,
         ),
         indicator: BoxDecoration(
-          color: primaryColor.withOpacity(0.2),
+          color: primaryColor.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(8),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
@@ -539,10 +535,10 @@ class AppTheme {
         backgroundColor: const Color(0xFF0F172A),
         shadowColor: Colors.black38,
         surfaceTintColor: const Color(0xFF0F172A),
-        indicatorColor: primaryColor.withOpacity(0.2),
-        labelTextStyle: MaterialStateProperty.resolveWith<TextStyle?>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.selected)) {
+        indicatorColor: primaryColor.withValues(alpha: 0.2),
+        labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
               return const TextStyle(
                 color: primaryColor,
                 fontSize: 12,

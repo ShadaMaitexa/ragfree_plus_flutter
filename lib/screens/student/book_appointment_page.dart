@@ -37,7 +37,7 @@ class _StudentBookAppointmentPageState
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              color.withOpacity(0.05),
+              color.withValues(alpha: 0.05),
               Theme.of(context).colorScheme.surface,
             ],
           ),
@@ -75,7 +75,7 @@ class _StudentBookAppointmentPageState
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                           side: BorderSide(
-                            color: color.withOpacity(0.1),
+                            color: color.withValues(alpha: 0.1),
                           ),
                         ),
                         child: ListTile(
@@ -84,11 +84,11 @@ class _StudentBookAppointmentPageState
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: color.withOpacity(0.2), width: 2),
+                              border: Border.all(color: color.withValues(alpha: 0.2), width: 2),
                             ),
                             child: CircleAvatar(
                               radius: 28,
-                              backgroundColor: color.withOpacity(0.1),
+                              backgroundColor: color.withValues(alpha: 0.1),
                               child: Text(
                                 counselor['name'].substring(0, 1).toUpperCase(),
                                 style: TextStyle(

@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,7 +17,7 @@ class EmailJSService {
     if (_publicKey == 'YOUR_PUBLIC_KEY' || 
         _serviceId == 'YOUR_SERVICE_ID' || 
         _templateId == 'YOUR_TEMPLATE_ID') {
-      print('EmailJS: Please configure your EmailJS credentials in emailjs_service.dart');
+      debugPrint('EmailJS: Please configure your EmailJS credentials in emailjs_service.dart');
     }
   }
 
@@ -32,7 +34,7 @@ class EmailJSService {
       if (_publicKey == 'YOUR_PUBLIC_KEY' || 
           _serviceId == 'YOUR_SERVICE_ID' || 
           _templateId == 'YOUR_TEMPLATE_ID') { 
-        print('EmailJS: Configuration not set, skipping email send');
+        debugPrint('EmailJS: Configuration not set, skipping email send');
         return false;
       }
 
@@ -61,11 +63,11 @@ class EmailJSService {
       if (response.statusCode == 200) {
         return true;
       } else {
-        print('EmailJS send failed: ${response.statusCode} - ${response.body}');
+        debugPrint('EmailJS send failed: ${response.statusCode} - ${response.body}');
         return false;
       }
     } catch (e) {
-      print('EmailJS send error: $e');
+      debugPrint('EmailJS send error: $e');
       return false;
     }
   }
@@ -339,7 +341,7 @@ RAG FREE+ Team
         }
       }
     } catch (e) {
-      print('Bulk email send failed: $e');
+      debugPrint('Bulk email send failed: $e');
     }
   }
 

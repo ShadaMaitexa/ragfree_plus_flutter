@@ -11,11 +11,7 @@ class PoliceProfilePage extends StatefulWidget {
   State<PoliceProfilePage> createState() => _PoliceProfilePageState();
 }
 
-class _PoliceProfilePageState extends State<PoliceProfilePage>
-    with TickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
+class _PoliceProfilePageState extends State<PoliceProfilePage> {
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -30,24 +26,6 @@ class _PoliceProfilePageState extends State<PoliceProfilePage>
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _animationController,
-            curve: Curves.easeOutCubic,
-          ),
-        );
-
-    _animationController.forward();
     _loadUserData();
   }
 
@@ -65,7 +43,6 @@ class _PoliceProfilePageState extends State<PoliceProfilePage>
 
   @override
   void dispose() {
-    _animationController.dispose();
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
@@ -86,7 +63,7 @@ class _PoliceProfilePageState extends State<PoliceProfilePage>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [color.withOpacity(0.05), Colors.transparent]
+                ? [color.withValues(alpha: 0.05), Colors.transparent]
                 : [Colors.grey.shade50, Colors.white],
           ),
         ),
@@ -115,12 +92,12 @@ class _PoliceProfilePageState extends State<PoliceProfilePage>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [color, color.withOpacity(0.8)],
+          colors: [color, color.withValues(alpha: 0.8)],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -130,7 +107,7 @@ class _PoliceProfilePageState extends State<PoliceProfilePage>
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundColor: Colors.white.withOpacity(0.2),
+            backgroundColor: Colors.white.withValues(alpha: 0.2),
             child: const Icon(Icons.local_police, size: 50, color: Colors.white),
           ),
           const SizedBox(height: 16),
@@ -144,7 +121,7 @@ class _PoliceProfilePageState extends State<PoliceProfilePage>
           Text(
             'Security & Police Department',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
             ),
           ),
         ],
@@ -301,17 +278,15 @@ class _PoliceProfilePageState extends State<PoliceProfilePage>
       appState.setUser(updatedUser);
 
       setState(() => _isEditing = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully'), backgroundColor: Colors.green),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile updated successfully'), backgroundColor: Colors.green),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
     }
   }
 
@@ -350,17 +325,15 @@ class _PoliceProfilePageState extends State<PoliceProfilePage>
                   currentPassword: currentController.text,
                   newPassword: newController.text,
                 );
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Password updated successfully'), backgroundColor: Colors.green),
-                  );
-                }
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Password updated successfully'), backgroundColor: Colors.green),
+                );
               } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                  );
-                }
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                );
               }
             },
             child: const Text('Update'),
@@ -389,10 +362,9 @@ class _PoliceProfilePageState extends State<PoliceProfilePage>
 
     if (confirmed == true) {
       await _authService.signOut();
-      if (mounted) {
-        Provider.of<AppState>(context, listen: false).clearUser();
-        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-      }
+      if (!mounted) return;
+      Provider.of<AppState>(context, listen: false).clearUser();
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
     }
   }
 }

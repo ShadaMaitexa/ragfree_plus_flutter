@@ -28,14 +28,14 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
           end: Alignment.bottomRight,
           colors: isDark
               ? [
-                  color.withOpacity(0.08),
+                  color.withValues(alpha: 0.08),
                   Colors.transparent,
-                  color.withOpacity(0.04),
+                  color.withValues(alpha: 0.04),
                 ]
               : [
                   Colors.white,
-                  color.withOpacity(0.02),
-                  color.withOpacity(0.05),
+                  color.withValues(alpha: 0.02),
+                  color.withValues(alpha: 0.05),
                 ],
         ),
       ),
@@ -85,7 +85,7 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [color, color.withOpacity(0.85)],
+            colors: [color, color.withValues(alpha: 0.85)],
           ),
           borderRadius: BorderRadius.circular(24),
         ),
@@ -221,10 +221,10 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
   ) {
     return Card(
       elevation: 0,
-      color: color.withOpacity(0.05),
+      color: color.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: color.withOpacity(0.1)),
+        side: BorderSide(color: color.withValues(alpha: 0.1)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -342,7 +342,7 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
+              colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)],
             ),
           ),
           child: Column(
@@ -352,7 +352,7 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                 ),
                 child: Icon(icon, color: color, size: 32),
               ),
@@ -385,11 +385,13 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
         StreamBuilder<List<ComplaintModel>>(
           stream: _complaintService.getHostelComplaints(),
           builder: (context, snapshot) {
-            if (!snapshot.hasData)
+            if (!snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
+            }
             final complaints = snapshot.data!.take(5).toList();
-            if (complaints.isEmpty)
+            if (complaints.isEmpty) {
               return const Center(child: Text('No complaints found'));
+            }
 
             return ListView.builder(
               shrinkWrap: true,
@@ -412,7 +414,7 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
                       ),
                       backgroundColor: _getStatusColor(
                         c.status,
-                      ).withOpacity(0.1),
+                      ).withValues(alpha: 0.1),
                       side: BorderSide.none,
                     ),
                   ),

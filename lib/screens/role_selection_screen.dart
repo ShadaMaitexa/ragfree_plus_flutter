@@ -61,7 +61,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [color.withOpacity(0.1), color.withOpacity(0.05)]
+                ? [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)]
                 : [Colors.grey.shade50, Colors.white],
           ),
         ),
@@ -94,7 +94,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                               ?.copyWith(
                                 color: Theme.of(
                                   context,
-                                ).colorScheme.onSurface.withOpacity(0.7),
+                                ).colorScheme.onSurface.withValues(alpha: 0.7),
                               ),
                         ),
                         const SizedBox(height: 32),
@@ -265,8 +265,8 @@ class _RoleTileState extends State<_RoleTile>
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        widget.color.withOpacity(0.1),
-                        widget.color.withOpacity(0.05),
+                        widget.color.withValues(alpha: 0.1),
+                        widget.color.withValues(alpha: 0.05),
                       ],
                     ),
                   ),
@@ -279,7 +279,7 @@ class _RoleTileState extends State<_RoleTile>
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: widget.color.withOpacity(0.1),
+                            color: widget.color.withValues(alpha: 0.1),
                           ),
                           child: Icon(
                             widget.icon,
@@ -304,7 +304,7 @@ class _RoleTileState extends State<_RoleTile>
                               ?.copyWith(
                                 color: Theme.of(
                                   context,
-                                ).colorScheme.onSurface.withOpacity(0.7),
+                                ).colorScheme.onSurface.withValues(alpha: 0.7),
                               ),
                           textAlign: TextAlign.center,
                           maxLines: 2,

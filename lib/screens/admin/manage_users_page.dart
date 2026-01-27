@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../models/user_model.dart';
 import '../../widgets/animated_widgets.dart';
-import '../../utils/responsive.dart';
 
 class AdminManageUsersPage extends StatefulWidget {
   const AdminManageUsersPage({super.key});
@@ -40,14 +39,14 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
           end: Alignment.bottomRight,
           colors: isDark
               ? [
-                  color.withOpacity(0.08),
+                  color.withValues(alpha: 0.08),
                   Colors.transparent,
-                  color.withOpacity(0.04),
+                  color.withValues(alpha: 0.04),
                 ]
               : [
                   Colors.white,
-                  color.withOpacity(0.02),
-                  color.withOpacity(0.05),
+                  color.withValues(alpha: 0.02),
+                  color.withValues(alpha: 0.05),
                 ],
         ),
       ),
@@ -106,7 +105,7 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(Icons.people_alt_rounded, color: color, size: 28),
@@ -141,7 +140,7 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
+        color: color.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
       ),
       child: TabBar(
@@ -152,7 +151,7 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
           color: color,
         ),
         labelColor: Colors.white,
-        unselectedLabelColor: color.withOpacity(0.6),
+        unselectedLabelColor: color.withValues(alpha: 0.6),
         labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
         unselectedLabelStyle: const TextStyle(
           fontWeight: FontWeight.w600,
@@ -177,19 +176,21 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
     return StreamBuilder<List<UserModel>>(
       stream: _authService.getAllUsers(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
+        }
         
         // Filter out administrators
         final allUsers = snapshot.data ?? [];
         final users = allUsers.where((user) => user.role != 'admin').toList();
         
-        if (users.isEmpty)
+        if (users.isEmpty) {
           return _buildEmptyState(
             context,
             Icons.person_search_rounded,
             'No users found',
           );
+        }
 
         return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -211,15 +212,17 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
     return StreamBuilder<List<UserModel>>(
       stream: stream,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
+        }
         final users = snapshot.data ?? [];
-        if (users.isEmpty)
+        if (users.isEmpty) {
           return _buildEmptyState(
             context,
             Icons.person_search_rounded,
             emptyMessage,
           );
+        }
 
         return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -241,7 +244,7 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: color.withOpacity(0.1)),
+        side: BorderSide(color: color.withValues(alpha: 0.1)),
       ),
       child: InkWell(
         onTap: () => _viewUserDetails(context, user),
@@ -253,7 +256,7 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(_getRoleIcon(user.role), color: color),
@@ -298,8 +301,9 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
   }
 
   Widget _buildActionButtons(BuildContext context, UserModel user) {
-    if (user.isApproved)
+    if (user.isApproved) {
       return const Icon(Icons.chevron_right_rounded, color: Colors.grey);
+    }
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -338,7 +342,7 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
           Icon(
             icon,
             size: 64,
-            color: Theme.of(context).hintColor.withOpacity(0.2),
+            color: Theme.of(context).hintColor.withValues(alpha: 0.2),
           ),
           const SizedBox(height: 16),
           Text(
@@ -464,7 +468,6 @@ class _UserDetailSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme.primary;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       padding: EdgeInsets.only(
@@ -475,7 +478,7 @@ class _UserDetailSheet extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 40,
             spreadRadius: 10,
           ),
@@ -491,7 +494,7 @@ class _UserDetailSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.3),
+                  color: Colors.grey.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -502,7 +505,7 @@ class _UserDetailSheet extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: Icon(roleIcon, size: 40, color: color),
@@ -568,7 +571,7 @@ class _UserDetailSheet extends StatelessWidget {
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => Container(
                     height: 200,
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withValues(alpha: 0.1),
                     child: const Icon(
                       Icons.broken_image_rounded,
                       size: 48,
@@ -588,7 +591,7 @@ class _UserDetailSheet extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
+                      color: Colors.red.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: const Row(

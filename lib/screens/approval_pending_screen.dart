@@ -31,7 +31,8 @@ class _ApprovalPendingScreenState extends State<ApprovalPendingScreen> {
           _isChecking = false;
         });
         Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) _navigateToDashboard(userData.role);
+          if (!mounted) return;
+          _navigateToDashboard(userData.role);
         });
       } else {
         setState(() {
@@ -60,7 +61,8 @@ class _ApprovalPendingScreenState extends State<ApprovalPendingScreen> {
 
   Future<void> _signOut() async {
     await _authService.signOut();
-    if (mounted) Navigator.pushReplacementNamed(context, '/login');
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
   @override
@@ -75,8 +77,8 @@ class _ApprovalPendingScreenState extends State<ApprovalPendingScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [color.withOpacity(0.12), Colors.black, color.withOpacity(0.08)]
-                : [color.withOpacity(0.05), Colors.white, color.withOpacity(0.1)],
+                ? [color.withValues(alpha: 0.12), Colors.black, color.withValues(alpha: 0.08)]
+                : [color.withValues(alpha: 0.05), Colors.white, color.withValues(alpha: 0.1)],
           ),
         ),
         child: SafeArea(
@@ -138,7 +140,7 @@ class _ApprovalPendingScreenState extends State<ApprovalPendingScreen> {
         AnimatedWidgets.bounceIn(
           child: Container(
             padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: Icon(Icons.shield_moon_rounded, size: 80, color: color),
           ),
         ),

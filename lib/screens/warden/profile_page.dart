@@ -11,11 +11,7 @@ class WardenProfilePage extends StatefulWidget {
   State<WardenProfilePage> createState() => _WardenProfilePageState();
 }
 
-class _WardenProfilePageState extends State<WardenProfilePage>
-    with TickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
+class _WardenProfilePageState extends State<WardenProfilePage> {
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -29,24 +25,6 @@ class _WardenProfilePageState extends State<WardenProfilePage>
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _animationController,
-            curve: Curves.easeOutCubic,
-          ),
-        );
-
-    _animationController.forward();
     _loadUserData();
   }
 
@@ -63,7 +41,6 @@ class _WardenProfilePageState extends State<WardenProfilePage>
 
   @override
   void dispose() {
-    _animationController.dispose();
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
@@ -83,7 +60,7 @@ class _WardenProfilePageState extends State<WardenProfilePage>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [color.withOpacity(0.05), Colors.transparent]
+                ? [color.withValues(alpha: 0.05), Colors.transparent]
                 : [Colors.grey.shade50, Colors.white],
           ),
         ),
@@ -112,12 +89,12 @@ class _WardenProfilePageState extends State<WardenProfilePage>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [color, color.withOpacity(0.8)],
+          colors: [color, color.withValues(alpha: 0.8)],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -127,7 +104,7 @@ class _WardenProfilePageState extends State<WardenProfilePage>
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundColor: Colors.white.withOpacity(0.2),
+            backgroundColor: Colors.white.withValues(alpha: 0.2),
             child: const Icon(Icons.security, size: 50, color: Colors.white),
           ),
           const SizedBox(height: 16),
@@ -141,7 +118,7 @@ class _WardenProfilePageState extends State<WardenProfilePage>
           Text(
             'Hostel Warden',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
             ),
           ),
         ],
@@ -294,13 +271,13 @@ class _WardenProfilePageState extends State<WardenProfilePage>
       appState.setUser(updatedUser);
 
       setState(() => _isEditing = false);
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully'), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
@@ -343,13 +320,13 @@ class _WardenProfilePageState extends State<WardenProfilePage>
                   currentPassword: currentController.text,
                   newPassword: newController.text,
                 );
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Password updated successfully'), backgroundColor: Colors.green),
                   );
                 }
               } catch (e) {
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
                   );
@@ -382,7 +359,7 @@ class _WardenProfilePageState extends State<WardenProfilePage>
 
     if (confirmed == true) {
       await _authService.signOut();
-      if (mounted) {
+      if (context.mounted) {
         Provider.of<AppState>(context, listen: false).clearUser();
         Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
       }

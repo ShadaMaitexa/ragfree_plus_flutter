@@ -57,7 +57,7 @@ class _StudentChatPageState extends State<StudentChatPage>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: isDark
-                    ? [color.withOpacity(0.05), Colors.transparent]
+                    ? [color.withValues(alpha: 0.05), Colors.transparent]
                     : [Colors.grey.shade50, Colors.white],
               ),
             ),
@@ -84,7 +84,7 @@ class _StudentChatPageState extends State<StudentChatPage>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(Icons.chat, color: color, size: 24),
@@ -104,7 +104,7 @@ class _StudentChatPageState extends State<StudentChatPage>
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.7),
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -183,9 +183,9 @@ class _StudentChatPageState extends State<StudentChatPage>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -201,7 +201,7 @@ class _StudentChatPageState extends State<StudentChatPage>
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -219,7 +219,7 @@ class _StudentChatPageState extends State<StudentChatPage>
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
             ),
             child: Icon(Icons.chat_bubble_outline, size: 64, color: color),
           ),
@@ -234,7 +234,7 @@ class _StudentChatPageState extends State<StudentChatPage>
           Text(
             'Start a conversation with our support team',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -332,7 +332,7 @@ class _StudentChatPageState extends State<StudentChatPage>
                       radius: 24,
                       backgroundColor: Theme.of(
                         context,
-                      ).colorScheme.primary.withOpacity(0.1),
+                      ).colorScheme.primary.withValues(alpha: 0.1),
                       child: Text(
                         conversation.counselorName != null
                             ? conversation.counselorName!
@@ -373,7 +373,7 @@ class _StudentChatPageState extends State<StudentChatPage>
                                 ?.copyWith(
                                   color: Theme.of(
                                     context,
-                                  ).colorScheme.onSurface.withOpacity(0.6),
+                                  ).colorScheme.onSurface.withValues(alpha: 0.6),
                                 ),
                           ),
                         ],
@@ -406,7 +406,7 @@ class _StudentChatPageState extends State<StudentChatPage>
                                   ?.copyWith(
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.onSurface.withOpacity(0.7),
+                                    ).colorScheme.onSurface.withValues(alpha: 0.7),
                                     fontWeight: unread > 0
                                         ? FontWeight.w600
                                         : FontWeight.normal,
@@ -474,14 +474,13 @@ class _StudentChatPageState extends State<StudentChatPage>
       );
 
       if (recipients.isEmpty) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No support staff available at the moment'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No support staff available at the moment'),
+            backgroundColor: Colors.orange,
+          ),
+        );
         return;
       }
 
@@ -508,8 +507,8 @@ class _StudentChatPageState extends State<StudentChatPage>
                   return ListTile(
                     leading: CircleAvatar(
                       backgroundColor: isTeacher
-                          ? Colors.orange.withOpacity(0.2)
-                          : Colors.blue.withOpacity(0.2),
+                          ? Colors.orange.withValues(alpha: 0.2)
+                          : Colors.blue.withValues(alpha: 0.2),
                       child: Text(
                         recipient['name'].substring(0, 1).toUpperCase(),
                         style: TextStyle(
@@ -543,14 +542,13 @@ class _StudentChatPageState extends State<StudentChatPage>
         );
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -572,27 +570,25 @@ class _StudentChatPageState extends State<StudentChatPage>
         counselorRole: counselor['role'],
       );
 
-      if (context.mounted) {
-        final conversation = ChatConversationModel(
-          id: chatId,
-          studentId: user.uid,
-          studentName: user.name,
-          counselorId: counselor['id'],
-          counselorName: counselor['name'],
-          counselorRole: counselor['role'],
-          createdAt: DateTime.now(),
-        );
-        _openChat(context, conversation);
-      }
+      if (!mounted) return;
+      final conversation = ChatConversationModel(
+        id: chatId,
+        studentId: user.uid,
+        studentName: user.name,
+        counselorId: counselor['id'],
+        counselorName: counselor['name'],
+        counselorRole: counselor['role'],
+        createdAt: DateTime.now(),
+      );
+      _openChat(context, conversation);
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error starting chat: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error starting chat: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 }
@@ -630,7 +626,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
               radius: 16,
               backgroundColor: Theme.of(
                 context,
-              ).colorScheme.primary.withOpacity(0.1),
+              ).colorScheme.primary.withValues(alpha: 0.1),
               child: Text(
                 widget.conversation.counselorName != null
                     ? widget.conversation.counselorName!
@@ -672,7 +668,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                       fontSize: 12,
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withOpacity(0.7),
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -707,7 +703,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.6),
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   );
@@ -747,7 +743,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
               radius: 16,
               backgroundColor: Theme.of(
                 context,
-              ).colorScheme.primary.withOpacity(0.1),
+              ).colorScheme.primary.withValues(alpha: 0.1),
               child: Text(
                 message.senderName.substring(0, 1).toUpperCase(),
                 style: TextStyle(
@@ -776,7 +772,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -799,10 +795,10 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                     style: TextStyle(
                       fontSize: 11,
                       color: isMe
-                          ? Colors.white.withOpacity(0.7)
+                          ? Colors.white.withValues(alpha: 0.7)
                           : Theme.of(
                               context,
-                            ).colorScheme.onSurface.withOpacity(0.6),
+                            ).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -815,7 +811,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
               radius: 16,
               backgroundColor: Theme.of(
                 context,
-              ).colorScheme.primary.withOpacity(0.1),
+              ).colorScheme.primary.withValues(alpha: 0.1),
               child: const Icon(Icons.person, size: 16, color: Colors.white),
             ),
           ],
@@ -831,7 +827,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
         color: Theme.of(context).colorScheme.surface,
         border: Border(
           top: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
           ),
         ),
       ),
@@ -890,14 +886,14 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
         );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error sending message: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error sending message: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
       // Restore message on error
       _messageController.text = messageText;
     }
@@ -1045,21 +1041,19 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
             onPressed: () async {
               try {
                 await widget.chatService.clearChat(widget.conversation.id);
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(const SnackBar(content: Text('Chat cleared')));
-                }
+                if (!mounted) return;
+                Navigator.pop(context);
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Chat cleared')));
               } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
               }
             },
             style: FilledButton.styleFrom(backgroundColor: Colors.orange),

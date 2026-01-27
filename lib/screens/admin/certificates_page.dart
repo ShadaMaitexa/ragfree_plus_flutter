@@ -135,7 +135,7 @@ class _AdminCertificatesPageState extends State<AdminCertificatesPage> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: isIssued ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+              backgroundColor: isIssued ? Colors.green.withValues(alpha: 0.1) : Colors.orange.withValues(alpha: 0.1),
               child: Icon(
                 isIssued ? Icons.verified : Icons.pending,
                 color: isIssued ? Colors.green : Colors.orange,
@@ -200,7 +200,7 @@ class _AdminCertificatesPageState extends State<AdminCertificatesPage> {
                   status: 'Issued',
                 );
                 await _certificateService.issueCertificate(cert);
-                if (mounted) Navigator.pop(context);
+                if (context.mounted) Navigator.pop(context);
               }
             },
             child: const Text('Issue'),

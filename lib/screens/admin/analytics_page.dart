@@ -69,7 +69,7 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: isDark
-                            ? [color.withOpacity(0.05), Colors.transparent]
+                            ? [color.withValues(alpha: 0.05), Colors.transparent]
                             : [Colors.grey.shade50, Colors.white],
                       ),
                     ),
@@ -107,7 +107,7 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     double avgResponseTime = 0;
     final resolvedComplaints = complaints.where((c) => c.status == 'Resolved' && c.updatedAt != null).toList();
     if (resolvedComplaints.isNotEmpty) {
-      final totalDiff = resolvedComplaints.fold<int>(0, (sum, c) => sum + c.updatedAt!.difference(c.createdAt).inHours);
+      final totalDiff = resolvedComplaints.fold<int>(0, (totalSum, c) => totalSum + c.updatedAt!.difference(c.createdAt).inHours);
       avgResponseTime = totalDiff / resolvedComplaints.length;
     }
 
@@ -119,85 +119,154 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.analytics, color: color, size: 24),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Analytics Dashboard',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.w700, color: color),
-                    ),
-                    Text(
-                      'Comprehensive insights and reports',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withOpacity(0.7),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 600;
+              return Column(
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(Icons.analytics, color: color, size: 24),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Analytics Dashboard',
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(fontWeight: FontWeight.w700, color: color, fontSize: isNarrow ? 20 : null),
+                            ),
+                            Text(
+                              'Comprehensive insights and reports',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.7),
+                                fontSize: isNarrow ? 12 : null,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (!isNarrow)
+                        FilledButton.icon(
+                          onPressed: () => _exportReport(context),
+                          icon: const Icon(Icons.download),
+                          label: const Text('Export Report'),
+                          style: FilledButton.styleFrom(backgroundColor: color),
+                        ),
+                    ],
+                  ),
+                  if (isNarrow) ...[
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () => _exportReport(context),
+                        icon: const Icon(Icons.download),
+                        label: const Text('Export Report'),
+                        style: FilledButton.styleFrom(backgroundColor: color),
                       ),
                     ),
                   ],
-                ),
-              ),
-              FilledButton.icon(
-                onPressed: () => _exportReport(context),
-                icon: const Icon(Icons.download),
-                label: const Text('Export Report'),
-                style: FilledButton.styleFrom(backgroundColor: color),
-              ),
-            ],
+                ],
+              );
+            },
           ),
           const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  context,
-                  'Total Reports',
-                  total.toString(),
-                  Icons.assignment,
-                  Colors.blue,
-                  'Updated',
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  context,
-                  'Resolved',
-                  resolved.toString(),
-                  Icons.check_circle,
-                  Colors.green,
-                  '${total > 0 ? (resolved/total*100).toStringAsFixed(1) : 0}%',
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  context,
-                  'Response Time',
-                  '${avgResponseTime.toStringAsFixed(1)}h',
-                  Icons.timer,
-                  Colors.orange,
-                  'Average',
-                ),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 600;
+              if (isNarrow) {
+                return Column(
+                  children: [
+                    _buildStatCard(
+                      context,
+                      'Total Reports',
+                      total.toString(),
+                      Icons.assignment,
+                      Colors.blue,
+                      'Updated',
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildStatCard(
+                            context,
+                            'Resolved',
+                            resolved.toString(),
+                            Icons.check_circle,
+                            Colors.green,
+                            '${total > 0 ? (resolved / total * 100).toStringAsFixed(1) : 0}%',
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildStatCard(
+                            context,
+                            'Response Time',
+                            '${avgResponseTime.toStringAsFixed(1)}h',
+                            Icons.timer,
+                            Colors.orange,
+                            'Average',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      'Total Reports',
+                      total.toString(),
+                      Icons.assignment,
+                      Colors.blue,
+                      'Updated',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      'Resolved',
+                      resolved.toString(),
+                      Icons.check_circle,
+                      Colors.green,
+                      '${total > 0 ? (resolved / total * 100).toStringAsFixed(1) : 0}%',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      'Response Time',
+                      '${avgResponseTime.toStringAsFixed(1)}h',
+                      Icons.timer,
+                      Colors.orange,
+                      'Average',
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
     );
+
   }
 
   Widget _buildStatCard(
@@ -211,9 +280,9 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -229,7 +298,7 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -397,7 +466,7 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
+            colors: [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
           ),
         ),
         child: Padding(
@@ -427,7 +496,7 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
                               ?.copyWith(
                                 color: Theme.of(
                                   context,
-                                ).colorScheme.onSurface.withOpacity(0.7),
+                                ).colorScheme.onSurface.withValues(alpha: 0.7),
                               ),
                         ),
                       ],
@@ -440,7 +509,7 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
                 height: 200,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: data.isEmpty 
-                  ? Center(child: Text('No data distribution available', style: TextStyle(color: color.withOpacity(0.5))))
+                  ? Center(child: Text('No data distribution available', style: TextStyle(color: color.withValues(alpha: 0.5))))
                   : Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -454,7 +523,7 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
                               margin: const EdgeInsets.symmetric(horizontal: 4),
                               height: 140 * percentage,
                               decoration: BoxDecoration(
-                                color: color.withOpacity(0.7 + (0.3 * percentage)),
+                                color: color.withValues(alpha: 0.7 + (0.3 * percentage)),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
@@ -725,7 +794,7 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
       ],
@@ -875,11 +944,10 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
                   data: data.isEmpty ? [{'Info': 'No data available'}] : data,
                 );
               } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Export failed: $e'), backgroundColor: Colors.red),
-                  );
-                }
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Export failed: $e'), backgroundColor: Colors.red),
+                );
               }
             },
             child: const Text('Generate PDF'),

@@ -21,7 +21,7 @@ class _PoliceAwarenessPageState extends State<PoliceAwarenessPage> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [color.withOpacity(0.05), Colors.white],
+          colors: [color.withValues(alpha: 0.05), Colors.white],
         ),
       ),
       child: Column(
@@ -41,7 +41,7 @@ class _PoliceAwarenessPageState extends State<PoliceAwarenessPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(Icons.local_police, color: color, size: 24),
@@ -110,7 +110,7 @@ class _PoliceAwarenessPageState extends State<PoliceAwarenessPage> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: selectedRole,
+                  initialValue: selectedRole,
                   decoration: const InputDecoration(labelText: 'Target Audience'),
                   items: const [
                     DropdownMenuItem(value: 'student', child: Text('Students')),
@@ -226,7 +226,7 @@ class _PoliceAwarenessPageState extends State<PoliceAwarenessPage> {
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                   ),
                   child: Icon(Icons.local_police, color: color, size: 20),
                 ),
@@ -249,7 +249,7 @@ class _PoliceAwarenessPageState extends State<PoliceAwarenessPage> {
                                   color: Theme.of(context)
                                       .colorScheme
                                       .onSurface
-                                      .withOpacity(0.7),
+                                      .withValues(alpha: 0.7),
                                 ),
                       ),
                     ],

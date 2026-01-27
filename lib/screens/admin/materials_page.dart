@@ -86,7 +86,7 @@ class _AdminMaterialsPageState extends State<AdminMaterialsPage> {
             _selectedCategory = label;
           });
         },
-        selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+        selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
         checkmarkColor: Theme.of(context).colorScheme.primary,
       ),
     );
@@ -123,7 +123,7 @@ class _AdminMaterialsPageState extends State<AdminMaterialsPage> {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: _getIconColor(material.type).withOpacity(0.1),
+                    color: _getIconColor(material.type).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(_getIcon(material.type), color: _getIconColor(material.type)),
@@ -141,7 +141,7 @@ class _AdminMaterialsPageState extends State<AdminMaterialsPage> {
                   onSelected: (value) async {
                     if (value == 'delete') {
                       await _materialService.deleteMaterial(material.id);
-                      if (mounted) {
+                      if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Material deleted')),
                         );
@@ -192,7 +192,7 @@ class _AdminMaterialsPageState extends State<AdminMaterialsPage> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: category,
+                initialValue: category,
                 items: ['Documents', 'Videos', 'Guidance', 'Policies']
                     .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                     .toList(),
@@ -248,20 +248,18 @@ class _AdminMaterialsPageState extends State<AdminMaterialsPage> {
           updatedAt: DateTime.now(),
         );
         await _materialService.addMaterial(material);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Material uploaded successfully'), backgroundColor: Colors.green),
-          );
-        }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Material uploaded successfully'), backgroundColor: Colors.green),
+        );
       } else {
         throw Exception('Upload failed');
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
     } finally {
       if (mounted) setState(() => _isUploading = false);
     }

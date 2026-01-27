@@ -66,7 +66,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: isDark
-                    ? [color.withOpacity(0.05), Colors.transparent]
+                    ? [color.withValues(alpha: 0.05), Colors.transparent]
                     : [Colors.grey.shade50, Colors.white],
               ),
             ),
@@ -81,14 +81,14 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                       color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(25),
                       border: Border.all(
-                        color: Theme.of(context).dividerColor.withOpacity(0.1),
+                        color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                       ),
                     ),
                     child: TabBar(
                       controller: _tabController,
                       indicator: BoxDecoration(
                         borderRadius: BorderRadius.circular(25),
-                        color: color.withOpacity(0.1),
+                        color: color.withValues(alpha: 0.1),
                       ),
                       labelColor: color,
                       unselectedLabelColor: Theme.of(context).hintColor,
@@ -173,7 +173,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
+                    color: Colors.orange.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.campaign_rounded, color: Colors.orange),
@@ -193,7 +193,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.1),
+                            color: Colors.grey.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -230,7 +230,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
           Text(
             subtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -251,7 +251,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(Icons.notifications, color: color, size: 24),
@@ -274,7 +274,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                         color: Theme.of(context)
                             .colorScheme
                             .onSurface
-                            .withOpacity(0.7),
+                            .withValues(alpha: 0.7),
                       ),
                 ),
               ],
@@ -300,12 +300,6 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
     String selectedPriority = 'medium';
     List<String> selectedRoles = ['all'];
 
-    final priorities = [
-      {'value': 'low', 'label': 'Low'},
-      {'value': 'medium', 'label': 'Medium'},
-      {'value': 'high', 'label': 'High'},
-      {'value': 'critical', 'label': 'Critical'},
-    ];
 
     final availableRoles = [
       {'value': 'all', 'label': 'All Users'},
@@ -389,7 +383,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                             }
                           });
                         },
-                        selectedColor: Colors.orange.withOpacity(0.2),
+                        selectedColor: Colors.orange.withValues(alpha: 0.2),
                         checkmarkColor: Colors.orange,
                         labelStyle: TextStyle(
                           color: isSelected ? Colors.orange : Colors.grey[700],
@@ -549,7 +543,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: typeColor.withOpacity(0.1),
+                    color: typeColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(icon, color: typeColor, size: 20),
@@ -593,7 +587,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                               color: Theme.of(context)
                                   .colorScheme
                                   .onSurface
-                                  .withOpacity(0.7),
+                                  .withValues(alpha: 0.7),
                             ),
                       ),
                       const SizedBox(height: 8),
@@ -604,7 +598,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                               color: Theme.of(context)
                                   .colorScheme
                                   .onSurface
-                                  .withOpacity(0.5),
+                                  .withValues(alpha: 0.5),
                             ),
                       ),
                     ],

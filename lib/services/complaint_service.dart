@@ -1,5 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
 import '../models/complaint_model.dart';
@@ -99,7 +99,7 @@ class ComplaintService {
           }
         } catch (e) {
           // Email sending failed, but complaint was submitted - continue silently
-          print('Complaint submission email failed: $e');
+          debugPrint('Complaint submission email failed: $e');
         }
       }
 
@@ -246,7 +246,7 @@ class ComplaintService {
           }
         } catch (e) {
           // Email sending failed, but status was updated - continue silently
-          print('Complaint status update email failed: $e');
+          debugPrint('Complaint status update email failed: $e');
         }
       }
     } catch (e) {
@@ -290,7 +290,7 @@ class ComplaintService {
           }
         } catch (e) {
           // Email sending failed, but complaint was assigned - continue silently
-          print('Complaint assignment email failed: $e');
+          debugPrint('Complaint assignment email failed: $e');
         }
       }
     } catch (e) {

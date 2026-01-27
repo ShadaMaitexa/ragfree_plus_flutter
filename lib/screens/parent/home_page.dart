@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../services/app_state.dart';
 import '../../services/parent_student_service.dart';
-import '../../services/notification_service.dart';
 import '../../services/activity_service.dart';
-import '../../services/complaint_service.dart';
-import '../../services/emergency_alert_service.dart';
 
-import '../../models/parent_student_link_model.dart';
-import '../../models/notification_model.dart';
 import '../../models/activity_model.dart';
 import '../../models/user_model.dart';
 
@@ -26,10 +20,7 @@ class ParentHomePage extends StatefulWidget {
 
 class _ParentHomePageState extends State<ParentHomePage> {
   final ParentStudentService _parentStudentService = ParentStudentService();
-  final NotificationService _notificationService = NotificationService();
   final ActivityService _activityService = ActivityService();
-  final ComplaintService _complaintService = ComplaintService();
-  final EmergencyAlertService _emergencyAlertService = EmergencyAlertService();
 
   @override
   Widget build(BuildContext context) {
@@ -42,8 +33,8 @@ class _ParentHomePageState extends State<ParentHomePage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDark
-              ? [color.withOpacity(0.08), Colors.transparent, color.withOpacity(0.04)]
-              : [Colors.white, color.withOpacity(0.02), color.withOpacity(0.05)],
+              ? [color.withValues(alpha: 0.08), Colors.transparent, color.withValues(alpha: 0.04)]
+              : [Colors.white, color.withValues(alpha: 0.02), color.withValues(alpha: 0.05)],
         ),
       ),
       child: SafeArea(
@@ -92,7 +83,7 @@ class _ParentHomePageState extends State<ParentHomePage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [color, color.withOpacity(0.85)],
+            colors: [color, color.withValues(alpha: 0.85)],
           ),
           borderRadius: BorderRadius.circular(24),
         ),
@@ -181,17 +172,17 @@ class _ParentHomePageState extends State<ParentHomePage> {
   Widget _buildStudentLinkCard(BuildContext context, UserModel student, Color color) {
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withOpacity(0.1))),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withValues(alpha: 0.1))),
       child: Center(
         child: ListTile(
           leading: Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: Icon(Icons.person_rounded, color: color),
           ),
           title: Text(student.name, style: const TextStyle(fontWeight: FontWeight.bold)),
           subtitle: Text(student.email),
-          trailing: Icon(Icons.check_circle, color: color.withOpacity(0.5)),
+          trailing: Icon(Icons.check_circle, color: color.withValues(alpha: 0.5)),
         ),
       ),
     );
@@ -232,7 +223,7 @@ class _ParentHomePageState extends State<ParentHomePage> {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [(action['color'] as Color).withOpacity(0.15), (action['color'] as Color).withOpacity(0.05)],
+                      colors: [(action['color'] as Color).withValues(alpha: 0.15), (action['color'] as Color).withValues(alpha: 0.05)],
                     ),
                   ),
                   child: Column(
@@ -240,7 +231,7 @@ class _ParentHomePageState extends State<ParentHomePage> {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(shape: BoxShape.circle, color: (action['color'] as Color).withOpacity(0.1)),
+                        decoration: BoxDecoration(shape: BoxShape.circle, color: (action['color'] as Color).withValues(alpha: 0.1)),
                         child: Icon(action['icon'] as IconData, color: action['color'] as Color, size: 32),
                       ),
                       const SizedBox(height: 16),
@@ -281,7 +272,7 @@ class _ParentHomePageState extends State<ParentHomePage> {
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),
-                    side: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1)),
+                    side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
                   ),
                   child: ListView.separated(
                     shrinkWrap: true,
@@ -295,7 +286,7 @@ class _ParentHomePageState extends State<ParentHomePage> {
                         leading: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -323,13 +314,13 @@ class _ParentHomePageState extends State<ParentHomePage> {
     return Card(
       elevation: 0,
       color: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.2), width: 1.5, style: BorderStyle.solid)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.2), width: 1.5, style: BorderStyle.solid)),
       child: Padding(
         padding: const EdgeInsets.all(40),
         child: Center(
           child: Column(
             children: [
-              Icon(icon, size: 48, color: Theme.of(context).hintColor.withOpacity(0.3)),
+              Icon(icon, size: 48, color: Theme.of(context).hintColor.withValues(alpha: 0.3)),
               const SizedBox(height: 16),
               Text(text, textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).hintColor, fontSize: 14, height: 1.5)),
             ],

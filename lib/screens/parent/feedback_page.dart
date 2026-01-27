@@ -65,25 +65,23 @@ class _ParentFeedbackPageState extends State<ParentFeedbackPage> with SingleTick
 
       await _feedbackService.submitFeedback(feedback);
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Thank you for your feedback!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        _contentController.clear();
-        _tabController.animateTo(1);
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Thank you for your feedback!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      _contentController.clear();
+      _tabController.animateTo(1);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -174,7 +172,7 @@ class _ParentFeedbackPageState extends State<ParentFeedbackPage> with SingleTick
             ),
             const SizedBox(height: 32),
             DropdownButtonFormField<String>(
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               decoration: const InputDecoration(
                 labelText: 'Feedback Category',
                 border: OutlineInputBorder(),

@@ -104,7 +104,7 @@ class _TeacherProfilePageState extends State<TeacherProfilePage>
       appState.setUser(updatedUser);
 
       setState(() => _isEditing = false);
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profile updated successfully'),
@@ -113,7 +113,7 @@ class _TeacherProfilePageState extends State<TeacherProfilePage>
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: ${e.toString()}'),
@@ -142,7 +142,7 @@ class _TeacherProfilePageState extends State<TeacherProfilePage>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: isDark
-                      ? [color.withOpacity(0.05), Colors.transparent]
+                      ? [color.withValues(alpha: 0.05), Colors.transparent]
                       : [Colors.grey.shade50, Colors.white],
                 ),
               ),
@@ -174,12 +174,12 @@ class _TeacherProfilePageState extends State<TeacherProfilePage>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [color, color.withOpacity(0.8)],
+          colors: [color, color.withValues(alpha: 0.8)],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -189,7 +189,7 @@ class _TeacherProfilePageState extends State<TeacherProfilePage>
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundColor: Colors.white.withOpacity(0.2),
+            backgroundColor: Colors.white.withValues(alpha: 0.2),
             child: const Icon(Icons.person_outline, size: 50, color: Colors.white),
           ),
           const SizedBox(height: 16),
@@ -212,7 +212,7 @@ class _TeacherProfilePageState extends State<TeacherProfilePage>
               return Text(
                 userEmail,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                     ),
               );
             },
@@ -221,7 +221,7 @@ class _TeacherProfilePageState extends State<TeacherProfilePage>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Text(
@@ -357,7 +357,7 @@ class _TeacherProfilePageState extends State<TeacherProfilePage>
           child: FilledButton.icon(
             onPressed: () async {
               await _authService.signOut();
-              if (mounted) {
+              if (context.mounted) {
                 Provider.of<AppState>(context, listen: false).clearUser();
                 Navigator.pushReplacementNamed(context, '/login');
               }
@@ -406,15 +406,16 @@ class _TeacherProfilePageState extends State<TeacherProfilePage>
               child: const Text('Cancel')),
           FilledButton(
             onPressed: () async {
-              if (currentController.text.isEmpty || newController.text.isEmpty)
+              if (currentController.text.isEmpty || newController.text.isEmpty) {
                 return;
+              }
               Navigator.pop(context);
               try {
                 await _authService.updatePassword(
                   currentPassword: currentController.text,
                   newPassword: newController.text,
                 );
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                         content: Text('Password updated successfully'),
@@ -422,7 +423,7 @@ class _TeacherProfilePageState extends State<TeacherProfilePage>
                   );
                 }
               } catch (e) {
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                         content: Text('Error: $e'),
@@ -461,12 +462,12 @@ class _TeacherProfilePageState extends State<TeacherProfilePage>
     if (confirmed == true) {
       try {
         await _authService.deleteAccount();
-        if (mounted) {
+        if (context.mounted) {
           Provider.of<AppState>(context, listen: false).clearUser();
           Navigator.pushReplacementNamed(context, '/login');
         }
       } catch (e) {
-        if (mounted) {
+        if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
           );

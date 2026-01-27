@@ -21,7 +21,7 @@ class _WardenAwarenessPageState extends State<WardenAwarenessPage> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [color.withOpacity(0.05), Colors.white],
+          colors: [color.withValues(alpha: 0.05), Colors.white],
         ),
       ),
       child: Column(
@@ -41,7 +41,7 @@ class _WardenAwarenessPageState extends State<WardenAwarenessPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(Icons.apartment, color: color, size: 24),
@@ -138,7 +138,7 @@ class _WardenAwarenessPageState extends State<WardenAwarenessPage> {
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                   ),
                   child: Icon(Icons.apartment, color: color, size: 20),
                 ),
@@ -161,7 +161,7 @@ class _WardenAwarenessPageState extends State<WardenAwarenessPage> {
                                   color: Theme.of(context)
                                       .colorScheme
                                       .onSurface
-                                      .withOpacity(0.7),
+                                      .withValues(alpha: 0.7),
                                 ),
                       ),
                     ],

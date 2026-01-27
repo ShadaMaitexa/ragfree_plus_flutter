@@ -9,8 +9,6 @@ import '../../models/appointment_slot_model.dart';
 import '../../models/activity_model.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/animated_widgets.dart';
-import 'schedule_session_page.dart';
-import 'chat_page.dart';
 
 class CounsellorDashboardPage extends StatefulWidget {
   const CounsellorDashboardPage({super.key});
@@ -36,14 +34,14 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
           end: Alignment.bottomRight,
           colors: isDark
               ? [
-                  color.withOpacity(0.08),
+                  color.withValues(alpha: 0.08),
                   Colors.transparent,
-                  color.withOpacity(0.04),
+                  color.withValues(alpha: 0.04),
                 ]
               : [
                   Colors.white,
-                  color.withOpacity(0.02),
-                  color.withOpacity(0.05),
+                  color.withValues(alpha: 0.02),
+                  color.withValues(alpha: 0.05),
                 ],
         ),
       ),
@@ -93,7 +91,7 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [color, color.withOpacity(0.85)],
+            colors: [color, color.withValues(alpha: 0.85)],
           ),
           borderRadius: BorderRadius.circular(24),
         ),
@@ -226,10 +224,10 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
   ) {
     return Card(
       elevation: 0,
-      color: color.withOpacity(0.05),
+      color: color.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: color.withOpacity(0.1)),
+        side: BorderSide(color: color.withValues(alpha: 0.1)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -348,7 +346,7 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
+              colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)],
             ),
           ),
           child: Column(
@@ -358,7 +356,7 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                 ),
                 child: Icon(icon, color: color, size: 32),
               ),
@@ -417,7 +415,7 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
                   side: BorderSide(
-                    color: Theme.of(context).dividerColor.withOpacity(0.1),
+                    color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                   ),
                 ),
                 child: Padding(
@@ -437,7 +435,7 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
                 side: BorderSide(
-                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                 ),
               ),
               child: ListView.separated(
@@ -472,7 +470,7 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
                     leading: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
+                        color: color.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -507,37 +505,4 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
     return '${date.day}/${date.month}';
   }
 
-  void _navigateToCases(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Navigating to assigned cases...'),
-        backgroundColor: Colors.blue,
-      ),
-    );
-  }
-
-  void _navigateToRespond(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Navigating to respond to complaints...'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  void _navigateToSchedule(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const CounsellorScheduleSessionPage(),
-      ),
-    );
-  }
-
-  void _navigateToChat(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const CounsellorChatPage()),
-    );
-  }
 }

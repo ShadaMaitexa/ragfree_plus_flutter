@@ -45,26 +45,25 @@ class _LoginScreenState extends State<LoginScreen> {
         user = await _authService.loginWithEmailAndPassword(email: email, password: password);
 
         if (user != null && user.role != 'admin' && !user.isApproved) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Your account is pending admin approval'), backgroundColor: Colors.orange),
-            );
-            Navigator.pushReplacementNamed(context, '/approval-pending');
-          }
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Your account is pending admin approval'), backgroundColor: Colors.orange),
+          );
+          Navigator.pushReplacementNamed(context, '/approval-pending');
           return;
         }
       }
 
-      if (user != null && mounted) {
+      if (user != null) {
+        if (!mounted) return;
         context.read<AppState>().setUser(user);
         _navigateToDashboard(user.role);
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Colors.red),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Colors.red),
+      );
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -171,15 +170,14 @@ class _LoginScreenState extends State<LoginScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [color.withOpacity(0.12), Colors.black, color.withOpacity(0.08)]
-                : [color.withOpacity(0.05), Colors.white, color.withOpacity(0.1)],
+                ? [color.withValues(alpha: 0.12), Colors.black, color.withValues(alpha: 0.08)]
+                : [color.withValues(alpha: 0.05), Colors.white, color.withValues(alpha: 0.1)],
           ),
         ),
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
               final isWide = constraints.maxWidth >= 900;
-              final formWidth = isWide ? 480.0 : double.infinity;
 
               return Center(
                 child: SingleChildScrollView(
@@ -200,8 +198,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     padding: const EdgeInsets.all(40),
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(32),
-                                      color: isDark ? Colors.white.withOpacity(0.03) : Colors.white.withOpacity(0.8),
-                                      border: Border.all(color: color.withOpacity(0.1)),
+                                      color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white.withValues(alpha: 0.8),
+                                      border: Border.all(color: color.withValues(alpha: 0.1)),
                                     ),
                                     child: _buildLoginForm(color, context),
                                   ),
@@ -233,8 +231,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(colors: [color, color.withOpacity(0.7)]),
-                  boxShadow: [BoxShadow(color: color.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8))],
+                  gradient: LinearGradient(colors: [color, color.withValues(alpha: 0.7)]),
+                  boxShadow: [BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8))],
                 ),
                 child: const Icon(Icons.shield_rounded, size: 56, color: Colors.white),
               ),
@@ -299,7 +297,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   elevation: 8,
-                  shadowColor: color.withOpacity(0.5),
+                  shadowColor: color.withValues(alpha: 0.5),
                 ),
                 child: _isLoading
                     ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
@@ -312,12 +310,12 @@ class _LoginScreenState extends State<LoginScreen> {
             delay: const Duration(milliseconds: 700),
             child: Row(
               children: [
-                Expanded(child: Divider(color: color.withOpacity(0.1))),
+                Expanded(child: Divider(color: color.withValues(alpha: 0.1))),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text('OR', style: TextStyle(color: Theme.of(context).hintColor, fontWeight: FontWeight.bold, fontSize: 12)),
                 ),
-                Expanded(child: Divider(color: color.withOpacity(0.1))),
+                Expanded(child: Divider(color: color.withValues(alpha: 0.1))),
               ],
             ),
           ),
@@ -330,7 +328,7 @@ class _LoginScreenState extends State<LoginScreen> {
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                side: BorderSide(color: color.withOpacity(0.3), width: 1.5),
+                side: BorderSide(color: color.withValues(alpha: 0.3), width: 1.5),
               ),
               child: Text('Create New Account', style: TextStyle(color: color, fontWeight: FontWeight.bold)),
             ),
@@ -365,7 +363,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 )
               : null,
           filled: true,
-          fillColor: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+          fillColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
           enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.transparent)),
           focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)),
@@ -404,7 +402,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
                   child: Icon(e.value['icon'] as IconData, color: color),
                 ),
                 const SizedBox(width: 20),

@@ -55,7 +55,7 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
                 ),
                 child: ExpansionTile(
                   leading: CircleAvatar(
-                    backgroundColor: _getStatusColor(c.status).withOpacity(0.1),
+                    backgroundColor: _getStatusColor(c.status).withValues(alpha: 0.1),
                     child: Icon(
                       Icons.description,
                       color: _getStatusColor(c.status),
@@ -91,7 +91,7 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
                                 label: Text(c.incidentType),
                                 backgroundColor: Theme.of(
                                   context,
-                                ).colorScheme.primary.withOpacity(0.1),
+                                ).colorScheme.primary.withValues(alpha: 0.1),
                               ),
                               const Spacer(),
                               TextButton.icon(
@@ -133,7 +133,7 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
               const Text('Forward this complaint to college authorities:'),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: selectedRole,
+                initialValue: selectedRole,
                 decoration: const InputDecoration(
                   labelText: 'Forward To',
                   border: OutlineInputBorder(),
@@ -168,14 +168,14 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
                     forwarderName: 'Hostel Warden',
                   );
 
-                  if (context.mounted) {
+                  if (mounted) {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Forwarded to $selectedRole')),
                     );
                   }
                 } catch (e) {
-                  if (context.mounted) {
+                  if (mounted) {
                     ScaffoldMessenger.of(
                       context,
                     ).showSnackBar(SnackBar(content: Text('Error: $e')));
@@ -190,45 +190,13 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
     );
   }
 
-  void _updateStatus(ComplaintModel complaint) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Update Status',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                title: const Text('Pending'),
-                onTap: () => _setComplaintStatus(complaint, 'Pending'),
-              ),
-              ListTile(
-                title: const Text('In Progress'),
-                onTap: () => _setComplaintStatus(complaint, 'In Progress'),
-              ),
-              ListTile(
-                title: const Text('Resolved'),
-                onTap: () => _setComplaintStatus(complaint, 'Resolved'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> _setComplaintStatus(
     ComplaintModel complaint,
     String status,
   ) async {
     await _complaintService.updateComplaintStatus(complaint.id, status);
-    if (mounted) Navigator.pop(context);
+    if (!mounted) return;
+    Navigator.pop(context);
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('Status updated to $status')));
@@ -240,9 +208,4 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
     return Colors.orange;
   }
 
-  Color _getPriorityColor(String priority) {
-    if (priority == 'High') return Colors.red;
-    if (priority == 'Medium') return Colors.orange;
-    return Colors.green;
-  }
 }

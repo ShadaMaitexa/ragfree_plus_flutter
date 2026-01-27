@@ -216,11 +216,10 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
         data: data,
       );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error generating report: $e'), backgroundColor: Colors.red),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error generating report: $e'), backgroundColor: Colors.red),
+      );
     } finally {
       if (mounted) setState(() => _isGenerating = false);
     }

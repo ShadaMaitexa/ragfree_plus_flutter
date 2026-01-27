@@ -59,7 +59,7 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: isDark
-                    ? [color.withOpacity(0.05), Colors.transparent]
+                    ? [color.withValues(alpha: 0.05), Colors.transparent]
                     : [Colors.grey.shade50, Colors.white],
               ),
             ),
@@ -88,7 +88,7 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -96,7 +96,7 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
+              color: color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(Icons.picture_as_pdf, color: color, size: 24),
@@ -117,7 +117,7 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withOpacity(0.7),
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -148,7 +148,7 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
               children: [
                 Expanded(
                   child: DropdownButtonFormField<String>(
-                    value: _selectedStatus,
+                    initialValue: _selectedStatus,
                     decoration: const InputDecoration(
                       labelText: 'Status',
                       border: OutlineInputBorder(),
@@ -167,7 +167,7 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
                 const SizedBox(width: 16),
                 Expanded(
                   child: DropdownButtonFormField<String>(
-                    value: _selectedPriority,
+                    initialValue: _selectedPriority,
                     decoration: const InputDecoration(
                       labelText: 'Priority',
                       border: OutlineInputBorder(),
@@ -246,6 +246,7 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
                 ),
                 const SizedBox(height: 16),
                 _buildStatRow('Total Complaints', '$total', Colors.blue),
+                _buildStatRow('High Priority', '$highPriority', Colors.red),
                 _buildStatRow('Pending', '$pending', Colors.orange),
                 _buildStatRow('In Progress', '$inProgress', Colors.blue),
                 _buildStatRow('Resolved', '$resolved', Colors.green),
@@ -304,7 +305,7 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(

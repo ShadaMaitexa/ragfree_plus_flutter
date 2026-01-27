@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../services/auth_service.dart';
-import '../services/app_state.dart';
 import '../services/cloudinary_service.dart';
 import '../models/user_model.dart';
 import '../widgets/animated_widgets.dart';
 import '../services/department_service.dart';
-import '../utils/responsive.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -65,7 +62,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         });
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to pick image: ${e.toString()}'),
@@ -147,7 +144,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             padding: const EdgeInsets.all(12),
@@ -168,7 +165,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 Text(
                   subtitle,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
               ],
@@ -191,12 +188,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() => _isUploadingIdProof = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload failed: $e'), backgroundColor: Colors.red),
-        );
-      }
+      if (!mounted) return;
+      setState(() => _isUploadingIdProof = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Upload failed: $e'), backgroundColor: Colors.red),
+      );
     }
   }
 
@@ -231,15 +227,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         idProofUrl: _idProofUrl,
       );
 
-      if (user != null && mounted) {
+      if (user != null) {
+        if (!mounted) return;
         Navigator.pushReplacementNamed(context, '/approval-pending');
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Colors.red),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Colors.red),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -257,7 +253,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [color.withOpacity(0.05), Colors.transparent]
+                ? [color.withValues(alpha: 0.05), Colors.transparent]
                 : [Colors.grey.shade50, Colors.white],
           ),
         ),
@@ -274,7 +270,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     AnimatedWidgets.bounceIn(
                       child: Container(
                         padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.1)),
+                        decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: 0.1)),
                         child: Icon(Icons.person_add_rounded, size: 48, color: color),
                       ),
                     ),
@@ -291,7 +287,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     AnimatedWidgets.slideIn(
                       beginOffset: const Offset(0, 0.1),
                       child: DropdownButtonFormField<String>(
-                        value: _selectedRole,
+                        initialValue: _selectedRole,
                         decoration: const InputDecoration(
                           labelText: 'Role',
                           prefixIcon: Icon(Icons.badge_outlined),
@@ -417,7 +413,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           child: Container(
                             height: 120,
                             decoration: BoxDecoration(
-                              border: Border.all(color: color.withOpacity(0.3), style: BorderStyle.solid),
+                              border: Border.all(color: color.withValues(alpha: 0.3), style: BorderStyle.solid),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: _idProofFile != null || _idProofUrl != null
