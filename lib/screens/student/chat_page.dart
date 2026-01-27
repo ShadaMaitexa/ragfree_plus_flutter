@@ -120,41 +120,44 @@ class _StudentChatPageState extends State<StudentChatPage>
           const SizedBox(height: 20),
           Row(
             children: [
-              StreamBuilder<List<ChatConversationModel>>(
-                stream: _getConversationsStream(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const SizedBox.shrink();
-                  }
-                  final conversations = snapshot.data!;
-                  final unreadCount = conversations.fold(
-                    0,
-                    (sum, c) => sum + c.unreadCount,
-                  );
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: _buildStatCard(
-                          context,
-                          'Active Chats',
-                          '${conversations.length}',
-                          Icons.chat_bubble,
-                          Colors.blue,
+              Expanded(
+                flex: 2,
+                child: StreamBuilder<List<ChatConversationModel>>(
+                  stream: _getConversationsStream(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const SizedBox.shrink();
+                    }
+                    final conversations = snapshot.data!;
+                    final unreadCount = conversations.fold(
+                      0,
+                      (sum, c) => sum + c.unreadCount,
+                    );
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: _buildStatCard(
+                            context,
+                            'Active Chats',
+                            '${conversations.length}',
+                            Icons.chat_bubble,
+                            Colors.blue,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildStatCard(
-                          context,
-                          'Unread',
-                          '$unreadCount',
-                          Icons.mark_email_unread,
-                          Colors.orange,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildStatCard(
+                            context,
+                            'Unread',
+                            '$unreadCount',
+                            Icons.mark_email_unread,
+                            Colors.orange,
+                          ),
                         ),
-                      ),
-                    ],
-                  );
-                },
+                      ],
+                    );
+                  },
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -484,7 +487,7 @@ class _StudentChatPageState extends State<StudentChatPage>
         return;
       }
 
-      if (context.mounted) {
+      if (mounted) {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -885,18 +888,17 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
           curve: Curves.easeOut,
         );
       }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error sending message: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-      // Restore message on error
-      _messageController.text = messageText;
-    }
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error sending message: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        // Restore message on error
+        _messageController.text = messageText;
+      }
   }
 
   void _showChatOptions(BuildContext context) {
