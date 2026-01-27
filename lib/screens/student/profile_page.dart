@@ -6,6 +6,7 @@ import '../../services/chat_service.dart';
 import '../../models/chat_message_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../utils/responsive.dart';
+import '../../services/parent_student_service.dart';
 
 class StudentProfilePage extends StatefulWidget {
   const StudentProfilePage({super.key});
@@ -27,6 +28,9 @@ class _StudentProfilePageState extends State<StudentProfilePage>
   final TextEditingController _studentIdController = TextEditingController();
   final TextEditingController _yearController = TextEditingController();
   final TextEditingController _institutionController = TextEditingController();
+  final TextEditingController _parentNameController = TextEditingController();
+  final TextEditingController _parentEmailController = TextEditingController();
+  final TextEditingController _parentPhoneController = TextEditingController();
 
   final AuthService _authService = AuthService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -105,6 +109,9 @@ class _StudentProfilePageState extends State<StudentProfilePage>
             _selectedGender = data['gender'] ?? 'Male';
             _selectedBloodGroup = data['bloodGroup'] ?? 'O+';
             _selectedEmergencyContact = data['emergencyContact'] ?? 'Parent';
+            _parentNameController.text = data['parentName'] ?? '';
+            _parentEmailController.text = data['parentEmail'] ?? '';
+            _parentPhoneController.text = data['parentPhone'] ?? '';
           });
         }
       });
@@ -121,6 +128,9 @@ class _StudentProfilePageState extends State<StudentProfilePage>
     _studentIdController.dispose();
     _yearController.dispose();
     _institutionController.dispose();
+    _parentNameController.dispose();
+    _parentEmailController.dispose();
+    _parentPhoneController.dispose();
     super.dispose();
   }
 
@@ -159,6 +169,8 @@ class _StudentProfilePageState extends State<StudentProfilePage>
                         _buildPersonalInfo(context),
                         const SizedBox(height: 24),
                         _buildAcademicInfo(context),
+                        const SizedBox(height: 24),
+                        _buildParentInfo(context),
                         const SizedBox(height: 24),
                         _buildEmergencyInfo(context),
                         const SizedBox(height: 24),
@@ -347,6 +359,32 @@ class _StudentProfilePageState extends State<StudentProfilePage>
       ),
     ]);
 
+  }
+
+  Widget _buildParentInfo(BuildContext context) {
+    return _buildSection(context, 'Parent Information', Icons.family_restroom, [
+      _buildEditableField(
+        context,
+        'Parent/Guardian Name',
+        _parentNameController,
+        Icons.person,
+        enabled: _isEditing,
+      ),
+      _buildEditableField(
+        context,
+        'Parent Email',
+        _parentEmailController,
+        Icons.email,
+        enabled: _isEditing,
+      ),
+      _buildEditableField(
+        context,
+        'Parent Phone Number',
+        _parentPhoneController,
+        Icons.phone,
+        enabled: _isEditing,
+      ),
+    ]);
   }
 
   Widget _buildEmergencyInfo(BuildContext context) {
@@ -663,7 +701,25 @@ class _StudentProfilePageState extends State<StudentProfilePage>
         'emergencyContact': _selectedEmergencyContact,
         'institution': _institutionController.text.trim(),
         'institutionNormalized': _institutionController.text.trim().replaceAll(RegExp(r'\s+'), '').toLowerCase(),
+        'parentName': _parentNameController.text.trim(),
+        'parentEmail': _parentEmailController.text.trim(),
+        'parentPhone': _parentPhoneController.text.trim(),
       });
+
+      // Try to link with parent if email is provided
+      if (_parentEmailController.text.trim().isNotEmpty) {
+        try {
+          final parentStudentService = ParentStudentService();
+          await parentStudentService.linkWithParent(
+            studentId: user.uid,
+            studentName: _nameController.text.trim(),
+            parentEmail: _parentEmailController.text.trim(),
+            relationship: 'Parent', // Default relationship
+          );
+        } catch(e) {
+          debugPrint('Silent error during auto-linking: $e');
+        }
+      }
 
       // Update AppState
       final updatedUser = user.copyWith(

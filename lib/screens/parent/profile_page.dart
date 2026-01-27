@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
 import '../../services/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/parent_student_service.dart';
+import '../../models/parent_student_link_model.dart';
 
 class ParentProfilePage extends StatefulWidget {
   const ParentProfilePage({super.key});
@@ -218,12 +220,20 @@ class _ParentProfilePageState extends State<ParentProfilePage>
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text(
-              '2 Children Enrolled',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
+            child: StreamBuilder<List<ParentStudentLinkModel>>(
+              stream: ParentStudentService().getLinkedStudents(
+                Provider.of<AppState>(context, listen: false).currentUser!.uid,
               ),
+              builder: (context, snapshot) {
+                final count = snapshot.data?.length ?? 0;
+                return Text(
+                  '$count Children Enrolled',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -279,30 +289,41 @@ class _ParentProfilePageState extends State<ParentProfilePage>
   }
 
   Widget _buildChildrenInfo(BuildContext context) {
-    final children = [
-      {
-        'name': 'Emma Johnson',
-        'studentId': 'CS2024001',
-        'department': 'Computer Science',
-        'year': 'Sophomore',
-        'status': 'Active',
-        'color': Colors.blue,
-      },
-      {
-        'name': 'Alex Johnson',
-        'studentId': 'EN2023001',
-        'department': 'Engineering',
-        'year': 'Junior',
-        'status': 'Active',
-        'color': Colors.green,
-      },
-    ];
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+    if (user == null) return const SizedBox.shrink();
 
     return _buildSection(
       context,
       'Children Information',
       Icons.family_restroom,
-      children.map((child) => _buildChildCard(context, child)).toList(),
+      [
+        StreamBuilder<List<ParentStudentLinkModel>>(
+          stream: ParentStudentService().getLinkedStudents(user.uid),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final children = snapshot.data ?? [];
+            if (children.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Center(child: Text('No children linked yet.')),
+              );
+            }
+            return Column(
+              children: children.map((link) => _buildChildCard(context, {
+                'name': link.studentName,
+                'studentId': link.studentId,
+                'department': link.relationship, // Using relationship as a placeholder for dept
+                'year': 'Student',
+                'status': link.isActive ? 'Active' : 'Inactive',
+                'color': Colors.blue,
+              })).toList(),
+            );
+          },
+        ),
+      ],
     );
   }
 

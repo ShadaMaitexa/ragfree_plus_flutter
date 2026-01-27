@@ -94,6 +94,69 @@ class ParentStudentService {
             .toList());
   }
 
+  // Link student with parent using parent email
+  Future<ParentStudentLinkModel> linkWithParent({
+    required String studentId,
+    required String studentName,
+    required String parentEmail,
+    required String relationship,
+  }) async {
+    try {
+      // Find parent by email
+      final parentQuery = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: parentEmail)
+          .where('role', isEqualTo: 'parent')
+          .limit(1)
+          .get();
+
+      if (parentQuery.docs.isEmpty) {
+        throw Exception('Parent not found with email: $parentEmail');
+      }
+
+      final parentData = parentQuery.docs.first.data();
+      final parentId = parentQuery.docs.first.id;
+      final parentName = parentData['name'] ?? '';
+
+      // Check if link already exists
+      final existingLink = await _firestore
+          .collection('parent_student_links')
+          .where('parentId', isEqualTo: parentId)
+          .where('studentId', isEqualTo: studentId)
+          .where('isActive', isEqualTo: true)
+          .limit(1)
+          .get();
+
+      if (existingLink.docs.isNotEmpty) {
+        return ParentStudentLinkModel.fromMap({
+          ...existingLink.docs.first.data(),
+          'id': existingLink.docs.first.id,
+        });
+      }
+
+      // Create link
+      final link = ParentStudentLinkModel(
+        id: '',
+        parentId: parentId,
+        parentName: parentName,
+        studentId: studentId,
+        studentName: studentName,
+        studentEmail: '', // Not strictly needed when student initiates, but we could fetch it
+        relationship: relationship,
+        linkedAt: DateTime.now(),
+      );
+
+      final docRef = _firestore.collection('parent_student_links').doc();
+      final updatedLink = link.copyWith(id: docRef.id);
+
+      await docRef.set(updatedLink.toMap());
+
+      return updatedLink;
+    } catch (e) {
+      throw Exception('Failed to link parent: ${e.toString()}');
+    }
+  }
+
   // Unlink student
   Future<void> unlinkStudent(String linkId) async {
     try {
