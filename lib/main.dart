@@ -462,16 +462,18 @@ class ParentDashboard extends StatelessWidget {
         label: 'Child Complaints',
       ),
       NavigationDestinationData(icon: Icons.chat_bubble, label: 'Chat'),
-      NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
+      NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
+      NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
     ];
 
     final pages = <Widget>[
       const parent.ParentHomePage(),
       const parent.ParentChildComplaintsPage(),
       const parent.ParentChatPage(),
-      const parent.ParentFeedbackPage(),
+      const parent.ParentAwarenessPage(),
       const parent.ParentProfilePage(),
+      const parent.ParentFeedbackPage(),
     ];
 
     return PopScope(
@@ -487,6 +489,7 @@ class ParentDashboard extends StatelessWidget {
         onDestinationSelected: (i) => appState.setNavIndex(i),
         destinations: destinations,
         pages: pages,
+        showBottomNavigation: false,
       ),
     );
   }

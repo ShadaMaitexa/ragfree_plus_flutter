@@ -22,6 +22,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
   late Animation<double> _fadeAnimation;
   final ComplaintService _complaintService = ComplaintService();
   final ParentStudentService _parentStudentService = ParentStudentService();
+  int _currentTab = 0;
 
   @override
   void initState() {
@@ -49,41 +50,60 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
     final color = Theme.of(context).colorScheme.primary;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: AnimatedBuilder(
-        animation: _animationController,
-        builder: (context, child) {
-          return FadeTransition(
-            opacity: _fadeAnimation,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: isDark
-                      ? [color.withOpacity(0.05), Colors.transparent]
-                      : [Colors.grey.shade50, Colors.white],
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: AnimatedBuilder(
+          animation: _animationController,
+          builder: (context, child) {
+            return FadeTransition(
+              opacity: _fadeAnimation,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDark
+                        ? [color.withOpacity(0.05), Colors.transparent]
+                        : [Colors.grey.shade50, Colors.white],
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    _buildHeader(context, color),
+                    TabBar(
+                      onTap: (index) => setState(() => _currentTab = index),
+                      tabs: const [
+                        Tab(text: 'My Children', icon: Icon(Icons.family_restroom)),
+                        Tab(text: 'Campus Feed', icon: Icon(Icons.public)),
+                      ],
+                      indicatorColor: color,
+                      labelColor: color,
+                      unselectedLabelColor: Colors.grey,
+                    ),
+                    Expanded(
+                      child: TabBarView(
+                        physics: const NeverScrollableScrollPhysics(),
+                        children: [
+                          _buildComplaintsContent(context),
+                          _buildCampusFeedContent(context),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: Column(
-                children: [
-                  _buildHeader(context, color),
-                  Expanded(
-                    child: _buildComplaintsContent(context),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddComplaintDialog(context),
-        icon: const Icon(Icons.add),
-        label: const Text('New Complaint'),
-        backgroundColor: color,
-        foregroundColor: Colors.white,
+            );
+          },
+        ),
+        floatingActionButton: _currentTab == 0 ? FloatingActionButton.extended(
+          onPressed: () => _showAddComplaintDialog(context),
+          icon: const Icon(Icons.add),
+          label: const Text('New Complaint'),
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+        ) : null,
       ),
     );
   }
@@ -110,12 +130,14 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Child Complaints',
+                      _currentTab == 0 ? 'Child Complaints' : 'Campus Safety Feed',
                       style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(fontWeight: FontWeight.w700, color: color),
                     ),
                     Text(
-                      'Monitor your children\'s safety reports',
+                      _currentTab == 0 
+                          ? 'Monitor your children\'s safety reports'
+                          : 'Recent reports from other students in your campus',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(
                           context,
@@ -206,6 +228,46 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
     );
   }
 
+  Widget _buildCampusFeedContent(BuildContext context) {
+    final user = Provider.of<AppState>(context).currentUser;
+    if (user == null || user.institutionNormalized == null) {
+      return _buildEmptyState(context, Colors.grey, text: 'No institution data found');
+    }
+
+    return StreamBuilder<List<ComplaintModel>>(
+      stream: _complaintService.getComplaintsByInstitution(user.institutionNormalized!),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        final complaints = snapshot.data ?? [];
+        if (complaints.isEmpty) {
+          return _buildEmptyState(context, Colors.grey, text: 'No reports from your campus yet');
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(20),
+          itemCount: complaints.length,
+          itemBuilder: (context, index) {
+            final complaint = complaints[index];
+            // Anonymize for campus feed
+            return _buildComplaintCard(
+              context, 
+              complaint, 
+              'Student at ${user.institution}', 
+              index, 
+              {},
+              isPublic: true,
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showAddComplaintDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -256,7 +318,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, Color color) {
+  Widget _buildEmptyState(BuildContext context, Color color, {String? text}) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -278,7 +340,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
           ),
           const SizedBox(height: 8),
           Text(
-            'Your children\'s safety reports will appear here',
+            text ?? 'Your children\'s safety reports will appear here',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
             ),
@@ -419,8 +481,9 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
     ComplaintModel complaint,
     String childName,
     int index,
-    Map<String, String> studentMap,
-  ) {
+    Map<String, String> studentMap, {
+    bool isPublic = false,
+  }) {
     final status = complaint.status;
     final priority = complaint.priority;
 
@@ -447,7 +510,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: InkWell(
-          onTap: () => _showComplaintDetails(context, complaint, childName),
+          onTap: () => _showComplaintDetails(context, complaint, childName, isPublic: isPublic),
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -691,11 +754,12 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
     );
   }
 
-  void _showComplaintDetails(
+   void _showComplaintDetails(
     BuildContext context,
     ComplaintModel complaint,
-    String childName,
-  ) {
+    String childName, {
+    bool isPublic = false,
+  }) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -842,7 +906,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
           ),
-          if (complaint.assignedToName != null)
+          if (!isPublic && complaint.assignedToName != null)
             FilledButton(
               onPressed: () {
                 Navigator.pop(context);

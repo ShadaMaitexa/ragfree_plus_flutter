@@ -286,7 +286,7 @@ class _ParentHomePageState extends State<ParentHomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Safety Log', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        const Text('Recent Activity', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
         const SizedBox(height: 20),
         StreamBuilder<List<ActivityModel>>(
           stream: _activityService.getUserActivities(user.uid, limit: 5),
