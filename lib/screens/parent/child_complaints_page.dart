@@ -98,12 +98,11 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
             );
           },
         ),
-        floatingActionButton: _currentTab == 0 ? FloatingActionButton.extended(
+        floatingActionButton: _currentTab == 0 ? FloatingActionButton(
           onPressed: () => _showAddComplaintDialog(context),
-          icon: const Icon(Icons.add),
-          label: const Text('New Complaint'),
           backgroundColor: color,
           foregroundColor: Colors.white,
+          child: const Icon(Icons.add),
         ) : null,
       ),
     );

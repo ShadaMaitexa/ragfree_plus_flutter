@@ -53,21 +53,30 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
       builder: (context, child) {
         return FadeTransition(
           opacity: _fadeAnimation,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: isDark
-                    ? [color.withOpacity(0.05), Colors.transparent]
-                    : [Colors.grey.shade50, Colors.white],
-              ),
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            floatingActionButton: FloatingActionButton(
+              onPressed: () => _showAddComplaintDialog(context),
+              backgroundColor: color,
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.add),
             ),
-            child: Column(
-              children: [
-                _buildHeader(context, color),
-                Expanded(child: _buildComplaintsContent(context)),
-              ],
+            body: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [color.withOpacity(0.05), Colors.transparent]
+                      : [Colors.grey.shade50, Colors.white],
+                ),
+              ),
+              child: Column(
+                children: [
+                  _buildHeader(context, color),
+                  Expanded(child: _buildComplaintsContent(context)),
+                ],
+              ),
             ),
           ),
         );
