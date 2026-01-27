@@ -18,6 +18,7 @@ import 'screens/parent/home_page.dart' as parent;
 import 'screens/parent/child_complaints_page.dart' as parent;
 import 'screens/parent/chat_page.dart' as parent;
 import 'screens/parent/feedback_page.dart' as parent;
+import 'screens/parent/awareness_page.dart' as parent;
 import 'screens/parent/profile_page.dart' as parent;
 import 'screens/warden/dashboard_page.dart' as warden_pages;
 import 'screens/warden/view_complaints_page.dart' as warden_pages;
