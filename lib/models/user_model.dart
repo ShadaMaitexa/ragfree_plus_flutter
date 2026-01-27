@@ -9,6 +9,9 @@ class UserModel {
   final String? institution;
   final String? institutionNormalized;
   final String? idProofUrl; // ID proof document URL
+  final String? parentName;
+  final String? parentEmail;
+  final String? parentPhone;
   final DateTime createdAt;
 
   UserModel({
@@ -22,6 +25,9 @@ class UserModel {
     this.institution,
     this.institutionNormalized,
     this.idProofUrl,
+    this.parentName,
+    this.parentEmail,
+    this.parentPhone,
     required this.createdAt,
   });
 
@@ -37,6 +43,9 @@ class UserModel {
       'institution': institution,
       'institutionNormalized': institutionNormalized,
       'idProofUrl': idProofUrl,
+      'parentName': parentName,
+      'parentEmail': parentEmail,
+      'parentPhone': parentPhone,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -53,6 +62,9 @@ class UserModel {
       institution: map['institution'],
       institutionNormalized: map['institutionNormalized'],
       idProofUrl: map['idProofUrl'],
+      parentName: map['parentName'],
+      parentEmail: map['parentEmail'],
+      parentPhone: map['parentPhone'],
       createdAt: map['createdAt'] != null
           ? DateTime.parse(map['createdAt'])
           : DateTime.now(),
@@ -70,6 +82,9 @@ class UserModel {
     String? institution,
     String? institutionNormalized,
     String? idProofUrl,
+    String? parentName,
+    String? parentEmail,
+    String? parentPhone,
     DateTime? createdAt,
   }) {
     return UserModel(
@@ -83,6 +98,9 @@ class UserModel {
       institution: institution ?? this.institution,
       institutionNormalized: institutionNormalized ?? this.institutionNormalized,
       idProofUrl: idProofUrl ?? this.idProofUrl,
+      parentName: parentName ?? this.parentName,
+      parentEmail: parentEmail ?? this.parentEmail,
+      parentPhone: parentPhone ?? this.parentPhone,
       createdAt: createdAt ?? this.createdAt,
     );
   }

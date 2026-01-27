@@ -11,6 +11,28 @@ class ActivityService {
     return _firestore
         .collection('activities')
         .where('userId', isEqualTo: userId)
+        .orderBy('timestamp', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ActivityModel.fromMap({
+                  ...doc.data(),
+                  'id': doc.id,
+                }))
+            .toList());
+  }
+
+  // Get activities for multiple users (e.g., Parent + Children)
+  Stream<List<ActivityModel>> getMultiUserActivities(List<String> userIds, {int limit = 10}) {
+    if (userIds.isEmpty) return Stream.value([]);
+    
+    // Firestore whereIn supports max 10 IDs
+    final limitedIds = userIds.length > 10 ? userIds.sublist(0, 10) : userIds;
+    
+    return _firestore
+        .collection('activities')
+        .where('userId', whereIn: limitedIds)
+        .orderBy('timestamp', descending: true)
         .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs

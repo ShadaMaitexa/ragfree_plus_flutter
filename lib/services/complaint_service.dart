@@ -1,14 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
 import '../models/complaint_model.dart';
 import 'cloudinary_service.dart';
 import 'emailjs_service.dart';
+import 'activity_service.dart';
 
 class ComplaintService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final CloudinaryService _cloudinaryService = CloudinaryService();
   final EmailJSService _emailJSService = EmailJSService();
+  final ActivityService _activityService = ActivityService();
 
   // Submit a complaint
   Future<ComplaintModel> submitComplaint({
@@ -68,6 +71,19 @@ class ComplaintService {
       final finalComplaint = complaintWithMedia.copyWith(id: complaintId);
       
       await docRef.set(finalComplaint.toMap());
+
+      // Record activity
+      if (complaintToSubmit.studentId != null) {
+        try {
+          await _activityService.createActivityFromComplaint(
+            userId: complaintToSubmit.studentId!,
+            complaint: finalComplaint,
+            activityType: 'created',
+          );
+        } catch (e) {
+          debugPrint('Failed to record activity: $e');
+        }
+      }
 
       // Send email notification to student (if not anonymous)
       if (complaintToSubmit.studentId != null) {

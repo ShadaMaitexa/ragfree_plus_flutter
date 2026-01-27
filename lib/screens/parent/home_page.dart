@@ -12,6 +12,7 @@ import '../../services/emergency_alert_service.dart';
 import '../../models/parent_student_link_model.dart';
 import '../../models/notification_model.dart';
 import '../../models/activity_model.dart';
+import '../../models/user_model.dart';
 
 import '../../utils/responsive.dart';
 import '../../widgets/animated_widgets.dart';
@@ -140,18 +141,20 @@ class _ParentHomePageState extends State<ParentHomePage> {
     final user = Provider.of<AppState>(context).currentUser;
     if (user == null) return const SizedBox.shrink();
 
+
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Monitored Students', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
         const SizedBox(height: 20),
-        StreamBuilder<List<ParentStudentLinkModel>>(
-          stream: _parentStudentService.getLinkedStudents(user.uid),
+        StreamBuilder<List<UserModel>>(
+          stream: _parentStudentService.getStudentsByParentEmail(user.email),
           builder: (context, snapshot) {
             final linkedStudents = snapshot.data ?? [];
             
             if (linkedStudents.isEmpty) {
-              return _buildEmptyState(context, Icons.link_off_rounded, 'No linked accounts found. Connect with your child to start monitoring.');
+              return _buildEmptyState(context, Icons.link_off_rounded, 'Students who list your email (${user.email}) in their profile will appear here.');
             }
 
             return GridView.builder(
@@ -165,40 +168,17 @@ class _ParentHomePageState extends State<ParentHomePage> {
               ),
               itemCount: linkedStudents.length,
               itemBuilder: (context, index) {
-                final link = linkedStudents[index];
-                return _buildStudentLinkCard(context, link, color);
+                final student = linkedStudents[index];
+                return _buildStudentLinkCard(context, student, color);
               },
             );
           },
-        ),
-        const SizedBox(height: 20),
-        SizedBox(
-          width: double.infinity,
-          child: AnimatedWidgets.scaleButton(
-            onPressed: () => _showLinkStudentDialog(context),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                border: Border.all(color: color.withOpacity(0.3), width: 2),
-                borderRadius: BorderRadius.circular(16),
-                color: color.withOpacity(0.05),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add_link_rounded, color: color),
-                  const SizedBox(width: 12),
-                  Text('Link Student Account', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16)),
-                ],
-              ),
-            ),
-          ),
         ),
       ],
     );
   }
 
-  Widget _buildStudentLinkCard(BuildContext context, ParentStudentLinkModel link, Color color) {
+  Widget _buildStudentLinkCard(BuildContext context, UserModel student, Color color) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withOpacity(0.1))),
@@ -209,12 +189,9 @@ class _ParentHomePageState extends State<ParentHomePage> {
             decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
             child: Icon(Icons.person_rounded, color: color),
           ),
-          title: Text(link.studentName, style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text(link.studentEmail),
-          trailing: IconButton(
-            icon: const Icon(Icons.link_off_rounded, color: Colors.grey),
-            onPressed: () => _unlinkStudent(context, link.id),
-          ),
+          title: Text(student.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text(student.email),
+          trailing: Icon(Icons.check_circle, color: color.withOpacity(0.5)),
         ),
       ),
     );
@@ -288,35 +265,53 @@ class _ParentHomePageState extends State<ParentHomePage> {
       children: [
         const Text('Recent Activity', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
         const SizedBox(height: 20),
-        StreamBuilder<List<ActivityModel>>(
-          stream: _activityService.getUserActivities(user.uid, limit: 5),
-          builder: (context, snapshot) {
-            final activities = snapshot.data ?? [];
-            if (activities.isEmpty) return _buildEmptyState(context, Icons.history_rounded, 'No recent activity recorded.');
+        StreamBuilder<List<UserModel>>(
+          stream: _parentStudentService.getStudentsByParentEmail(user.email),
+          builder: (context, studentsSnapshot) {
+            final List<String> studentIds = (studentsSnapshot.data ?? []).map((s) => s.uid).toList().cast<String>();
+            final List<String> allUserIds = [user.uid, ...studentIds];
 
-            return Card(
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1))),
-              child: ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: activities.length,
-                separatorBuilder: (context, index) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final activity = activities[index];
-                  return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                    leading: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary.withOpacity(0.1), shape: BoxShape.circle),
-                      child: const Icon(Icons.notifications_active_rounded, size: 18),
-                    ),
-                    title: Text(activity.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text(activity.description),
-                    trailing: const Icon(Icons.chevron_right_rounded, size: 20, color: Colors.grey),
-                  );
-                },
-              ),
+            return StreamBuilder<List<ActivityModel>>(
+              stream: _activityService.getMultiUserActivities(allUserIds, limit: 10),
+              builder: (context, snapshot) {
+                final activities = snapshot.data ?? [];
+                if (activities.isEmpty) return _buildEmptyState(context, Icons.history_rounded, 'No recent activity recorded.');
+
+                return Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    side: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1)),
+                  ),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: activities.length,
+                    separatorBuilder: (context, index) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final activity = activities[index];
+                      return ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                        leading: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            activity.type == 'complaint' ? Icons.assignment_rounded : Icons.notifications_active_rounded,
+                            size: 18,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        title: Text(activity.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(activity.description),
+                        trailing: const Icon(Icons.chevron_right_rounded, size: 20, color: Colors.grey),
+                      );
+                    },
+                  ),
+                );
+              },
             );
           },
         ),
@@ -339,112 +334,6 @@ class _ParentHomePageState extends State<ParentHomePage> {
               Text(text, textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).hintColor, fontSize: 14, height: 1.5)),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  // -------------------- ACTIONS --------------------
-
-  Future<void> _unlinkStudent(BuildContext context, String linkId) async {
-    try {
-      await _parentStudentService.unlinkStudent(linkId);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Account unlinked successfully')));
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
-      }
-    }
-  }
-
-  void _showLinkStudentDialog(BuildContext context) {
-    final emailController = TextEditingController();
-    final relationshipController = TextEditingController();
-    bool isLoading = false;
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-          title: const Text('Link Child\'s Account', style: TextStyle(fontWeight: FontWeight.w800)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Enter your child\'s registered email to securely link their safety monitoring.', style: TextStyle(fontSize: 14, height: 1.4)),
-              const SizedBox(height: 24),
-              TextField(
-                controller: emailController,
-                decoration: InputDecoration(
-                  labelText: 'Student Email',
-                  prefixIcon: const Icon(Icons.email_rounded),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: relationshipController,
-                decoration: InputDecoration(
-                  labelText: 'Relationship (Parent/Guardian)',
-                  prefixIcon: const Icon(Icons.family_restroom_rounded),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-              ),
-            ],
-          ),
-          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          actions: [
-            TextButton(
-              onPressed: isLoading ? null : () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            const SizedBox(width: 8),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-              onPressed: isLoading
-                  ? null
-                  : () async {
-                      if (emailController.text.trim().isEmpty || relationshipController.text.trim().isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
-                        return;
-                      }
-
-                      setState(() => isLoading = true);
-                      try {
-                        final user = Provider.of<AppState>(context, listen: false).currentUser;
-                        if (user != null) {
-                          await _parentStudentService.linkStudent(
-                            parentId: user.uid,
-                            parentName: user.name,
-                            studentEmail: emailController.text.trim(),
-                            relationship: relationshipController.text.trim(),
-                          );
-                          if (context.mounted) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Accounts linked! Monitoring started.'), backgroundColor: Colors.green));
-                          }
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Colors.red));
-                        }
-                      } finally {
-                        if (context.mounted) {
-                          setState(() => isLoading = false);
-                        }
-                      }
-                    },
-              child: isLoading
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('Link Account'),
-            ),
-          ],
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/parent_student_link_model.dart';
+import '../models/user_model.dart';
 
 class ParentStudentService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -157,7 +158,20 @@ class ParentStudentService {
     }
   }
 
-  // Unlink student
+  // Get students linked to a parent via email match (dynamic)
+  Stream<List<UserModel>> getStudentsByParentEmail(String parentEmail) {
+    if (parentEmail.isEmpty) return Stream.value([]);
+    return _firestore
+        .collection('users')
+        .where('role', isEqualTo: 'student')
+        .where('parentEmail', isEqualTo: parentEmail)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => UserModel.fromMap({...doc.data(), 'uid': doc.id}))
+            .toList());
+  }
+
+  // Unlink student (optional, for manual links)
   Future<void> unlinkStudent(String linkId) async {
     try {
       await _firestore.collection('parent_student_links').doc(linkId).update({
