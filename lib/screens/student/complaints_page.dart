@@ -406,6 +406,24 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                       ),
                     ),
                     const Spacer(),
+                    if (status == 'Pending')
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 18, color: Colors.blue),
+                        onPressed: () => _showEditComplaintDialog(context, complaint),
+                        tooltip: 'Edit Complaint',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    const SizedBox(width: 4),
+                    if (status == 'Pending')
+                      IconButton(
+                        icon: const Icon(Icons.delete, size: 18, color: Colors.red),
+                        onPressed: () => _confirmDelete(context, complaint),
+                        tooltip: 'Delete Complaint',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    const SizedBox(width: 8),
                     Text(
                       DateFormat('MMM dd, yyyy').format(complaint.createdAt),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -631,7 +649,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
               label: const Text('Edit', style: TextStyle(color: Colors.blue)),
             ),
             TextButton.icon(
-              onPressed: () => _confirmDelete(context, complaint),
+              onPressed: () => _confirmDelete(context, complaint, fromDetails: true),
               icon: const Icon(Icons.delete, color: Colors.red),
               label: const Text('Delete', style: TextStyle(color: Colors.red)),
             ),
@@ -656,7 +674,7 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
     );
   }
 
-  void _confirmDelete(BuildContext context, ComplaintModel complaint) {
+  void _confirmDelete(BuildContext context, ComplaintModel complaint, {bool fromDetails = false}) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -673,7 +691,9 @@ class _StudentComplaintsPageState extends State<StudentComplaintsPage>
                 await _complaintService.deleteComplaint(complaint.id);
                 if (context.mounted) {
                   Navigator.pop(context); // Close confirm
-                  Navigator.pop(context); // Close details
+                  if (fromDetails) {
+                    Navigator.pop(context); // Close details
+                  }
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Complaint deleted'),
