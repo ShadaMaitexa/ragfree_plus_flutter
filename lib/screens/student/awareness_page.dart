@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/awareness_service.dart';
 import '../../models/awareness_model.dart';
+import '../../widgets/add_complaint_dialog.dart';
 
 class StudentAwarenessPage extends StatefulWidget {
   const StudentAwarenessPage({super.key});
@@ -548,10 +549,12 @@ class _StudentAwarenessPageState extends State<StudentAwarenessPage>
   }
 
   void _fileReport(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Opening report form...'),
-        backgroundColor: Colors.orange,
+    showDialog(
+      context: context,
+      builder: (context) => AddComplaintDialog(
+        onComplaintAdded: () {
+          // Success message is handled inside the dialog
+        },
       ),
     );
   }
