@@ -359,7 +359,7 @@ class _StudentChatPageState extends State<StudentChatPage>
                         children: [
                           Expanded(
                             child: Text(
-                              conversation.counselorName ?? 'Counselor',
+                              conversation.counselorName ?? 'Staff',
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.w600),
                               maxLines: 1,
@@ -385,14 +385,7 @@ class _StudentChatPageState extends State<StudentChatPage>
                       Text(
                         conversation.counselorRole != null &&
                                     conversation.counselorRole!.isNotEmpty
-                                ? (conversation.counselorRole!.toLowerCase() ==
-                                        'counsellor'
-                                    ? 'Counselor'
-                                    : conversation.counselorRole!
-                                            .substring(0, 1)
-                                            .toUpperCase() +
-                                        conversation.counselorRole!
-                                            .substring(1))
+                                ? _formatRole(conversation.counselorRole!)
                                 : 'Staff',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
@@ -502,10 +495,11 @@ class _StudentChatPageState extends State<StudentChatPage>
                 itemCount: recipients.length,
                 itemBuilder: (context, index) {
                   final recipient = recipients[index];
-                  final isTeacher = recipient['role'] == 'teacher';
+                  final role = recipient['role'] ?? '';
+                  final isTeacher = role == 'teacher';
                   final subtitle = isTeacher
                       ? 'Teacher • ${recipient['department']}'
-                      : 'Counselor';
+                      : _formatRole(role);
 
                   return ListTile(
                     leading: CircleAvatar(
@@ -594,6 +588,14 @@ class _StudentChatPageState extends State<StudentChatPage>
       );
     }
   }
+
+  String _formatRole(String role) {
+    if (role.toLowerCase() == 'counsellor') {
+      return 'Counselor';
+    }
+    // Capitalize first letter of the role
+    return role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase();
+  }
 }
 
 class _ChatDetailPage extends StatefulWidget {
@@ -649,7 +651,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.conversation.counselorName ?? 'Counselor',
+                    widget.conversation.counselorName ?? 'Staff',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -658,15 +660,8 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                   Text(
                       widget.conversation.counselorRole != null &&
                               widget.conversation.counselorRole!.isNotEmpty
-                          ? (widget.conversation.counselorRole!.toLowerCase() ==
-                                  'counsellor'
-                              ? 'Counselor'
-                              : widget.conversation.counselorRole!
-                                      .substring(0, 1)
-                                      .toUpperCase() +
-                                  widget.conversation.counselorRole!
-                                      .substring(1))
-                          : 'Counselor',
+                          ? _formatRole(widget.conversation.counselorRole!)
+                          : 'Staff',
                     style: TextStyle(
                       fontSize: 12,
                       color: Theme.of(
@@ -959,8 +954,9 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Name: ${widget.conversation.counselorName ?? 'Counselor'}'),
-            Text('Role: Counselor'),
+            Text('Name: ${widget.conversation.counselorName ?? 'Staff'}'),
+            Text(
+                'Role: ${widget.conversation.counselorRole != null ? _formatRole(widget.conversation.counselorRole!) : 'Staff'}'),
             Text('Chat ID: ${widget.conversation.id}'),
           ],
         ),
@@ -1064,5 +1060,13 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
         ],
       ),
     );
+  }
+
+  String _formatRole(String role) {
+    if (role.toLowerCase() == 'counsellor') {
+      return 'Counselor';
+    }
+    // Capitalize first letter of the role
+    return role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase();
   }
 }

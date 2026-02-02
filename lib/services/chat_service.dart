@@ -43,8 +43,19 @@ class ChatService {
             final data = doc.data() as Map<String, dynamic>;
             return data['complaintId'] == null || data['complaintId'] == '';
           }).toList();
-          
+
           if (generalConvo.isNotEmpty) {
+            // Update the existing conversation with current counselor info if available
+            if (counselorId != null &&
+                (counselorName != null || counselorRole != null)) {
+              final docRef = generalConvo.first.reference;
+              final updates = <String, dynamic>{};
+              if (counselorName != null) updates['counselorName'] = counselorName;
+              if (counselorRole != null) updates['counselorRole'] = counselorRole;
+              if (updates.isNotEmpty) {
+                await docRef.update(updates);
+              }
+            }
             return generalConvo.first.id;
           }
         }
