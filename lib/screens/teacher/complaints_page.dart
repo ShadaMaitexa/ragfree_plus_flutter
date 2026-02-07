@@ -41,7 +41,7 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
       final user = Provider.of<AppState>(context, listen: false).currentUser;
       if (user?.department != null && user!.department!.isNotEmpty) {
         setState(() {
-          _selectedFilter = 'My Department';
+          _selectedFilter = 'All';
         });
       }
     });

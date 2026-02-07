@@ -272,7 +272,7 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
       },
       {
         'icon': Icons.forward_to_inbox_rounded,
-        'title': 'Escalations',
+        'title': 'Forward',
         'color': Colors.orange,
         'target': 2,
       },
