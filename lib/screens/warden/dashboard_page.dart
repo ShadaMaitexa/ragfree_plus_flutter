@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
 import '../../services/complaint_service.dart';
 import '../../models/complaint_model.dart';
+import '../../models/notification_model.dart';
+import '../../services/notification_service.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/animated_widgets.dart';
 
@@ -15,6 +17,7 @@ class WardenDashboardPage extends StatefulWidget {
 
 class _WardenDashboardPageState extends State<WardenDashboardPage> {
   final ComplaintService _complaintService = ComplaintService();
+  final NotificationService _notificationService = NotificationService();
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +68,12 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
               AnimatedWidgets.slideIn(
                 beginOffset: const Offset(0, 0.2),
                 delay: const Duration(milliseconds: 300),
+                child: _buildNotifications(context),
+              ),
+              const SizedBox(height: 32),
+              AnimatedWidgets.slideIn(
+                beginOffset: const Offset(0, 0.2),
+                delay: const Duration(milliseconds: 400),
                 child: _buildRecentComplaints(context),
               ),
             ],
@@ -342,7 +351,10 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)],
+              colors: [
+                color.withValues(alpha: 0.15),
+                color.withValues(alpha: 0.05),
+              ],
             ),
           ),
           child: Column(
@@ -417,6 +429,119 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
                       ).withValues(alpha: 0.1),
                       side: BorderSide.none,
                     ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNotifications(BuildContext context) {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+    if (user == null) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Notifications',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            StreamBuilder<int>(
+              stream: _notificationService.getUnreadCount(user.uid),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || snapshot.data == 0) {
+                  return const SizedBox.shrink();
+                }
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${snapshot.data} New',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        StreamBuilder<List<NotificationModel>>(
+          stream: _notificationService.getUserNotifications(user.uid, limit: 3),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final notifications = snapshot.data!;
+            if (notifications.isEmpty) {
+              return const Center(child: Text('No new notifications'));
+            }
+
+            return ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: notifications.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                final n = notifications[index];
+                return Card(
+                  margin: EdgeInsets.zero,
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: n.isRead
+                          ? Colors.grey[200]
+                          : Colors.blue[100],
+                      child: Icon(
+                        n.type == 'alert'
+                            ? Icons.warning_amber_rounded
+                            : Icons.notifications_active,
+                        color: n.isRead ? Colors.grey : Colors.blue,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      n.title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: n.isRead
+                            ? FontWeight.normal
+                            : FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      n.message,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    trailing: !n.isRead
+                        ? Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
+                            ),
+                          )
+                        : null,
+                    onTap: () => _notificationService.markAsRead(n.id),
                   ),
                 );
               },

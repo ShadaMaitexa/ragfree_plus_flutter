@@ -1,56 +1,102 @@
 import 'package:flutter/material.dart';
+import '../../services/feedback_service.dart';
+import '../../models/feedback_model.dart';
+import 'package:intl/intl.dart';
 
-class WardenFeedbackPage extends StatelessWidget {
+class WardenFeedbackPage extends StatefulWidget {
   const WardenFeedbackPage({super.key});
+
+  @override
+  State<WardenFeedbackPage> createState() => _WardenFeedbackPageState();
+}
+
+class _WardenFeedbackPageState extends State<WardenFeedbackPage> {
+  final FeedbackService _feedbackService = FeedbackService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Hostel Feedback')),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: 5,
-        itemBuilder: (context, index) {
-          final feedback = [
-            {'user': 'Rahul S.', 'text': 'The hostel security needs more presence at night.', 'date': '2 days ago'},
-            {'user': 'Anjali P.', 'text': 'Awareness session last week was very helpful.', 'date': '3 days ago'},
-            {'user': 'Kevin M.', 'text': 'Emergency exit signs are missing on the 3rd floor.', 'date': '1 week ago'},
-            {'user': 'Sneha R.', 'text': 'Request for more anti-ragging posters in the mess.', 'date': '1 week ago'},
-            {'user': 'Vikram T.', 'text': 'The reporting process is smooth now.', 'date': '2 weeks ago'},
-          ][index];
+      appBar: AppBar(title: const Text('Student Feedback')),
+      body: StreamBuilder<List<FeedbackModel>>(
+        stream: _feedbackService.getAllFeedback(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No feedback received yet.'));
+          }
 
-          return Card(
-            margin: const EdgeInsets.only(bottom: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const CircleAvatar(child: Icon(Icons.person, size: 20)),
-                      const SizedBox(width: 12),
-                      Text(feedback['user']!, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      const Spacer(),
-                      Text(feedback['date']!, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                    ],
+          final feedbacks = snapshot.data!;
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: feedbacks.length,
+            itemBuilder: (context, index) {
+              final f = feedbacks[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: ExpansionTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.teal.withValues(alpha: 0.1),
+                    child: Text(
+                      f.rating.toString(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.teal,
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Text(feedback['text']!, style: const TextStyle(height: 1.4)),
-                ],
-              ),
-            ),
+                  title: Text(
+                    f.category ?? 'General Feedback',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    '${f.userName} (${f.userRole}) • ${DateFormat('MMM dd').format(f.createdAt)}',
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Comment:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(f.content),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              ...List.generate(5, (i) {
+                                return Icon(
+                                  i < f.rating ? Icons.star : Icons.star_border,
+                                  color: Colors.amber,
+                                  size: 20,
+                                );
+                              }),
+                              const Spacer(),
+                              Text(
+                                f.createdAt.toString().split('.')[0],
+                                style: TextStyle(
+                                  color: Theme.of(context).hintColor,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Add feedback feature coming soon!')),
-          );
-        },
-        child: const Icon(Icons.add_comment),
       ),
     );
   }

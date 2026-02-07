@@ -53,11 +53,7 @@ class _WardenStudentsPageState extends State<WardenStudentsPage> {
                   child: Row(
                     children: [
                       'All',
-                      'Computer Science',
-                      'Electronics',
-                      'Mechanical',
-                      'Civil',
-                      'Other'
+                    
                     ].map((dept) => Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: FilterChip(
