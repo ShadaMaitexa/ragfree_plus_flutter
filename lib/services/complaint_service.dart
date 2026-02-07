@@ -22,20 +22,27 @@ class ComplaintService {
       // Fetch current user details to populate reporter info and institution
       final user = FirebaseAuth.instance.currentUser;
       ComplaintModel complaintToSubmit = complaint;
-      
+
       if (user != null) {
-        final userDoc = await _firestore.collection('users').doc(user.uid).get();
+        final userDoc = await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .get();
         if (userDoc.exists) {
           final userData = userDoc.data();
           if (userData != null) {
-             complaintToSubmit = complaintToSubmit.copyWith(
-               institution: complaintToSubmit.institution ?? userData['institution'],
-               institutionNormalized: complaintToSubmit.institutionNormalized ?? userData['institutionNormalized'],
-               studentDepartment: complaintToSubmit.studentDepartment ?? userData['department'],
-               reporterId: complaintToSubmit.reporterId ?? user.uid,
-               reporterName: complaintToSubmit.reporterName ?? userData['name'],
-               reporterRole: complaintToSubmit.reporterRole ?? userData['role'],
-             );
+            complaintToSubmit = complaintToSubmit.copyWith(
+              institution:
+                  complaintToSubmit.institution ?? userData['institution'],
+              institutionNormalized:
+                  complaintToSubmit.institutionNormalized ??
+                  userData['institutionNormalized'],
+              studentDepartment:
+                  complaintToSubmit.studentDepartment ?? userData['department'],
+              reporterId: complaintToSubmit.reporterId ?? user.uid,
+              reporterName: complaintToSubmit.reporterName ?? userData['name'],
+              reporterRole: complaintToSubmit.reporterRole ?? userData['role'],
+            );
           }
         }
       }
@@ -46,7 +53,7 @@ class ComplaintService {
         for (var file in mediaFiles) {
           final extension = file.path.split('.').last.toLowerCase();
           String? url;
-          
+
           // Determine media type and upload accordingly
           if (['mp4', 'mov', 'avi', 'mkv', 'webm'].contains(extension)) {
             url = await _cloudinaryService.uploadVideo(file);
@@ -55,21 +62,23 @@ class ComplaintService {
           } else {
             url = await _cloudinaryService.uploadImage(file);
           }
-          
+
           if (url != null) mediaUrls.add(url);
         }
       }
 
       // Update complaint with media URLs
-      final complaintWithMedia = complaintToSubmit.copyWith(mediaUrls: mediaUrls);
+      final complaintWithMedia = complaintToSubmit.copyWith(
+        mediaUrls: mediaUrls,
+      );
 
       // Save to Firestore - always use Firestore's auto-generated ID for consistency
       final docRef = _firestore.collection('complaints').doc();
       final complaintId = docRef.id;
-      
+
       // Update complaint with ID and media URLs
       final finalComplaint = complaintWithMedia.copyWith(id: complaintId);
-      
+
       await docRef.set(finalComplaint.toMap());
 
       // Record activity
@@ -88,7 +97,9 @@ class ComplaintService {
       // Send email notification to student (if not anonymous)
       if (complaintToSubmit.studentId != null) {
         try {
-          final userEmail = await _emailJSService.getUserEmail(complaintToSubmit.studentId!);
+          final userEmail = await _emailJSService.getUserEmail(
+            complaintToSubmit.studentId!,
+          );
           if (userEmail != null) {
             await _emailJSService.sendComplaintSubmittedEmail(
               userEmail: userEmail,
@@ -116,9 +127,13 @@ class ComplaintService {
         .collection('complaints')
         .where('studentId', isEqualTo: studentId)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}),
+              )
+              .toList(),
+        );
   }
 
   // Get all complaints (for admin/counselor)
@@ -126,9 +141,13 @@ class ComplaintService {
     return _firestore
         .collection('complaints')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}),
+              )
+              .toList(),
+        );
   }
 
   // Get complaints by status
@@ -137,9 +156,13 @@ class ComplaintService {
         .collection('complaints')
         .where('status', isEqualTo: status)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}),
+              )
+              .toList(),
+        );
   }
 
   // Get complaints assigned to a counselor
@@ -148,20 +171,52 @@ class ComplaintService {
         .collection('complaints')
         .where('assignedTo', isEqualTo: counselorId)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}),
+              )
+              .toList(),
+        );
   }
 
   // Get complaints for Warden (Hostel incidents)
   Stream<List<ComplaintModel>> getHostelComplaints() {
-    return _firestore
+    // Get hostel complaints
+    final hostelStream = _firestore
         .collection('complaints')
         .where('incidentType', isEqualTo: 'Hostel')
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
-            .toList());
+        .snapshots();
+
+    // Get complaints forwarded to warden
+
+    // Combine both streams
+    return hostelStream.asyncMap((hostelSnapshot) async {
+      final forwardedSnapshot = await _firestore
+          .collection('complaints')
+          .where('metadata.forwardedTo', isEqualTo: 'warden')
+          .get();
+
+      final hostelComplaints = hostelSnapshot.docs
+          .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
+          .toList();
+
+      final forwardedComplaints = forwardedSnapshot.docs
+          .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
+          .toList();
+
+      // Merge and deduplicate by ID
+      final allComplaints = <String, ComplaintModel>{};
+      for (var c in hostelComplaints) {
+        allComplaints[c.id] = c;
+      }
+      for (var c in forwardedComplaints) {
+        allComplaints[c.id] = c;
+      }
+
+      return allComplaints.values.toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    });
   }
 
   // Get complaints for Teacher (College incidents) - DEPRECATED/LEGACY
@@ -170,51 +225,76 @@ class ComplaintService {
         .collection('complaints')
         .where('incidentType', isEqualTo: 'College')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}),
+              )
+              .toList(),
+        );
   }
 
   // Get complaints by Institution (for Teachers/Admin)
-  Stream<List<ComplaintModel>> getComplaintsByInstitution(String institutionNormalized) {
+  Stream<List<ComplaintModel>> getComplaintsByInstitution(
+    String institutionNormalized,
+  ) {
     if (institutionNormalized.isEmpty) return Stream.value([]);
     return _firestore
         .collection('complaints')
         .where('institutionNormalized', isEqualTo: institutionNormalized)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}),
+              )
+              .toList(),
+        );
   }
 
   // Get complaints by Department (for Teachers)
-  Stream<List<ComplaintModel>> getComplaintsByDepartment(String institutionNormalized, String department) {
-    if (institutionNormalized.isEmpty || department.isEmpty) return Stream.value([]);
+  Stream<List<ComplaintModel>> getComplaintsByDepartment(
+    String institutionNormalized,
+    String department,
+  ) {
+    if (institutionNormalized.isEmpty || department.isEmpty)
+      return Stream.value([]);
     return _firestore
         .collection('complaints')
         .where('institutionNormalized', isEqualTo: institutionNormalized)
         .where('studentDepartment', isEqualTo: department)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}),
+              )
+              .toList(),
+        );
   }
 
   // Get complaints for a parent's linked students
   Stream<List<ComplaintModel>> getParentChildComplaints(
-      List<String> studentIds) {
+    List<String> studentIds,
+  ) {
     if (studentIds.isEmpty) {
       return Stream.value([]);
     }
     // Limit to 10 IDs as Firestore whereIn supports max 10 items
-    final limitedIds = studentIds.length > 10 ? studentIds.sublist(0, 10) : studentIds;
+    final limitedIds = studentIds.length > 10
+        ? studentIds.sublist(0, 10)
+        : studentIds;
     return _firestore
         .collection('complaints')
         .where('studentId', whereIn: limitedIds)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}),
+              )
+              .toList(),
+        );
   }
 
   // Update complaint status
@@ -234,7 +314,9 @@ class ComplaintService {
       // Send email notification to student (if not anonymous)
       if (complaint.studentId != null) {
         try {
-          final userEmail = await _emailJSService.getUserEmail(complaint.studentId!);
+          final userEmail = await _emailJSService.getUserEmail(
+            complaint.studentId!,
+          );
           if (userEmail != null) {
             await _emailJSService.sendComplaintStatusUpdateEmail(
               userEmail: userEmail,
@@ -277,7 +359,9 @@ class ComplaintService {
       // Send email notification to student (if not anonymous)
       if (complaint.studentId != null) {
         try {
-          final userEmail = await _emailJSService.getUserEmail(complaint.studentId!);
+          final userEmail = await _emailJSService.getUserEmail(
+            complaint.studentId!,
+          );
           if (userEmail != null) {
             await _emailJSService.sendComplaintStatusUpdateEmail(
               userEmail: userEmail,
@@ -301,7 +385,10 @@ class ComplaintService {
   // Get complaint by ID
   Future<ComplaintModel?> getComplaintById(String complaintId) async {
     try {
-      final doc = await _firestore.collection('complaints').doc(complaintId).get();
+      final doc = await _firestore
+          .collection('complaints')
+          .doc(complaintId)
+          .get();
       if (!doc.exists) return null;
       return ComplaintModel.fromMap({...doc.data()!, 'id': doc.id});
     } catch (e) {
@@ -328,13 +415,13 @@ class ComplaintService {
   }) async {
     try {
       List<String> newMediaUrls = [];
-      
+
       // Upload new files if provided
       if (newMediaFiles != null && newMediaFiles.isNotEmpty) {
         for (var file in newMediaFiles) {
           final extension = file.path.split('.').last.toLowerCase();
           String? url;
-          
+
           if (['mp4', 'mov', 'avi', 'mkv', 'webm'].contains(extension)) {
             url = await _cloudinaryService.uploadVideo(file);
           } else if (['mp3', 'wav', 'm4a', 'aac', 'ogg'].contains(extension)) {
@@ -342,7 +429,7 @@ class ComplaintService {
           } else {
             url = await _cloudinaryService.uploadImage(file);
           }
-          
+
           if (url != null) newMediaUrls.add(url);
         }
       }

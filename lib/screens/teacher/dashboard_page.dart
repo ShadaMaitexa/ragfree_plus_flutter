@@ -368,15 +368,15 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
         'target': 2,
       },
       {
-        'icon': Icons.menu_book_rounded,
-        'title': 'Awareness',
-        'color': Colors.purple,
+        'icon': Icons.notifications_active_rounded,
+        'title': 'Notifications',
+        'color': Colors.red,
         'target': 3,
       },
       {
-        'icon': Icons.person_rounded,
-        'title': 'My Profile',
-        'color': Colors.orange,
+        'icon': Icons.menu_book_rounded,
+        'title': 'Awareness',
+        'color': Colors.purple,
         'target': 4,
       },
     ];
@@ -612,38 +612,16 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
-            if (userId.isNotEmpty)
-              StreamBuilder<int>(
-                stream: _notificationService.getUnreadCount(userId),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData || snapshot.data == 0) {
-                    return const SizedBox.shrink();
-                  }
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${snapshot.data} New',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  );
-                },
-              ),
+            TextButton(
+              onPressed: () =>
+                  Provider.of<AppState>(context, listen: false).setNavIndex(3),
+              child: const Text('See All'),
+            ),
           ],
         ),
         const SizedBox(height: 16),
         StreamBuilder<List<NotificationModel>>(
-          stream: _notificationService.getUserNotifications(userId),
+          stream: _notificationService.getUserNotifications(userId, limit: 5),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());

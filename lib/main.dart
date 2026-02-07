@@ -44,6 +44,7 @@ import 'screens/teacher/complaints_page.dart' as teacher_pages;
 import 'screens/teacher/chat_page.dart' as teacher_pages;
 import 'screens/teacher/awareness_page.dart' as teacher_pages;
 import 'screens/teacher/profile_page.dart' as teacher_pages;
+import 'screens/teacher/notifications_page.dart' as teacher_pages;
 import 'screens/admin/dashboard_page.dart' as admin_pages;
 import 'screens/admin/manage_users_page.dart' as admin_pages;
 import 'screens/admin/complaints_page.dart' as admin_pages;
@@ -720,14 +721,7 @@ class _CounsellorPages {
   static const Widget profile = _CounsellorLazy(page: _CounsellorPage.profile);
 }
 
-enum _CounsellorPage {
-  dashboard,
-  assigned,
-  schedule,
-  chat,
-  awareness,
-  profile,
-}
+enum _CounsellorPage { dashboard, assigned, schedule, chat, awareness, profile }
 
 class _CounsellorLazy extends StatelessWidget {
   final _CounsellorPage page;
@@ -774,7 +768,6 @@ class _CounsellorAssignedProxy extends StatelessWidget {
   Widget build(BuildContext context) =>
       const counsellor_pages.CounsellorAssignedComplaintsPage();
 }
-
 
 class _CounsellorScheduleProxy extends StatelessWidget {
   const _CounsellorScheduleProxy();
@@ -838,6 +831,7 @@ class WardenDashboard extends StatelessWidget {
         onDestinationSelected: (i) => appState.setNavIndex(i),
         destinations: destinations,
         pages: pages,
+        showBottomNavigation: false,
       ),
     );
   }
@@ -1142,7 +1136,6 @@ class _PoliceSendNotificationProxy extends StatelessWidget {
       const police_pages.PoliceSendNotificationPage();
 }
 
-
 class TeacherDashboard extends StatelessWidget {
   const TeacherDashboard({super.key});
 
@@ -1155,6 +1148,10 @@ class TeacherDashboard extends StatelessWidget {
       NavigationDestinationData(icon: Icons.home, label: 'Home'),
       NavigationDestinationData(icon: Icons.assignment, label: 'Complaints'),
       NavigationDestinationData(icon: Icons.chat_bubble, label: 'Chat'),
+      NavigationDestinationData(
+        icon: Icons.notifications,
+        label: 'Notifications',
+      ),
       NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
     ];
@@ -1163,6 +1160,7 @@ class TeacherDashboard extends StatelessWidget {
       _TeacherDashboardPages.dashboard,
       _TeacherDashboardPages.complaints,
       _TeacherDashboardPages.chat,
+      _TeacherDashboardPages.notifications,
       _TeacherDashboardPages.awareness,
       _TeacherDashboardPages.profile,
     ];
@@ -1189,11 +1187,21 @@ class _TeacherDashboardPages {
   static const Widget dashboard = _TeacherLazy(page: _TeacherPage.dashboard);
   static const Widget complaints = _TeacherLazy(page: _TeacherPage.complaints);
   static const Widget chat = _TeacherLazy(page: _TeacherPage.chat);
+  static const Widget notifications = _TeacherLazy(
+    page: _TeacherPage.notifications,
+  );
   static const Widget awareness = _TeacherLazy(page: _TeacherPage.awareness);
   static const Widget profile = _TeacherLazy(page: _TeacherPage.profile);
 }
 
-enum _TeacherPage { dashboard, complaints, chat, awareness, profile }
+enum _TeacherPage {
+  dashboard,
+  complaints,
+  chat,
+  notifications,
+  awareness,
+  profile,
+}
 
 class _TeacherLazy extends StatelessWidget {
   final _TeacherPage page;
@@ -1208,6 +1216,8 @@ class _TeacherLazy extends StatelessWidget {
         return const _TeacherComplaintsProxy();
       case _TeacherPage.chat:
         return const _TeacherChatProxy();
+      case _TeacherPage.notifications:
+        return const _TeacherNotificationsProxy();
       case _TeacherPage.awareness:
         return const _TeacherAwarenessProxy();
       case _TeacherPage.profile:
@@ -1234,6 +1244,13 @@ class _TeacherChatProxy extends StatelessWidget {
   const _TeacherChatProxy();
   @override
   Widget build(BuildContext context) => const teacher_pages.TeacherChatPage();
+}
+
+class _TeacherNotificationsProxy extends StatelessWidget {
+  const _TeacherNotificationsProxy();
+  @override
+  Widget build(BuildContext context) =>
+      const teacher_pages.TeacherNotificationsPage();
 }
 
 class _TeacherAwarenessProxy extends StatelessWidget {

@@ -64,9 +64,7 @@ class _CounsellorAssignedComplaintsPageState
             child: Column(
               children: [
                 _buildHeader(context, color),
-                Expanded(
-                  child: _buildComplaintsContent(context),
-                ),
+                Expanded(child: _buildComplaintsContent(context)),
               ],
             ),
           ),
@@ -199,7 +197,9 @@ class _CounsellorAssignedComplaintsPageState
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -238,18 +238,17 @@ class _CounsellorAssignedComplaintsPageState
                 Text(
                   'No Assigned Complaints',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Complaints assigned to you will appear here',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.7),
-                      ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -261,7 +260,10 @@ class _CounsellorAssignedComplaintsPageState
     );
   }
 
-  Widget _buildComplaintsList(BuildContext context, List<ComplaintModel> complaints) {
+  Widget _buildComplaintsList(
+    BuildContext context,
+    List<ComplaintModel> complaints,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return ListView.builder(
@@ -338,7 +340,9 @@ class _CounsellorAssignedComplaintsPageState
                       decoration: BoxDecoration(
                         color: statusColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: statusColor.withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Text(
                         status,
@@ -475,7 +479,10 @@ class _CounsellorAssignedComplaintsPageState
                     ? 'Anonymous'
                     : (complaint.studentName ?? 'Unknown'),
               ),
-              _buildDetailRow('Date', DateFormat('MMM dd, yyyy').format(complaint.createdAt)),
+              _buildDetailRow(
+                'Date',
+                DateFormat('MMM dd, yyyy').format(complaint.createdAt),
+              ),
               if (complaint.location != null)
                 _buildDetailRow('Location', complaint.location!),
               if (complaint.mediaUrls.isNotEmpty) ...[
@@ -543,17 +550,18 @@ class _CounsellorAssignedComplaintsPageState
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
-          Expanded(
-            child: Text(value),
-          ),
+          Expanded(child: Text(value)),
         ],
       ),
     );
   }
 
-  Future<void> _showRespondDialog(BuildContext context, ComplaintModel complaint) async {
+  Future<void> _showRespondDialog(
+    BuildContext context,
+    ComplaintModel complaint,
+  ) async {
     final responseController = TextEditingController();
-    
+
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -591,7 +599,7 @@ class _CounsellorAssignedComplaintsPageState
                   complaint.id,
                   'In Progress',
                 );
-                
+
                 // You can add response to metadata or create a separate responses collection
                 if (context.mounted) {
                   Navigator.pop(context); // Close respond dialog
@@ -623,7 +631,10 @@ class _CounsellorAssignedComplaintsPageState
     responseController.dispose();
   }
 
-  Future<void> _showResolveDialog(BuildContext context, ComplaintModel complaint) async {
+  Future<void> _showResolveDialog(
+    BuildContext context,
+    ComplaintModel complaint,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(

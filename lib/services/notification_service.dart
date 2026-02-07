@@ -9,20 +9,25 @@ class NotificationService {
   final EmailJSService _emailJSService = EmailJSService();
 
   // Get notifications for a user
-  Stream<List<NotificationModel>> getUserNotifications(String userId) {
-    return _firestore
+  Stream<List<NotificationModel>> getUserNotifications(
+    String userId, {
+    int? limit,
+  }) {
+    Query<Map<String, dynamic>> query = _firestore
         .collection('notifications')
-        .where('userId', isEqualTo: userId)
-        .limit(10)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map(
-                (doc) =>
-                    NotificationModel.fromMap({...doc.data(), 'id': doc.id}),
-              )
-              .toList(),
-        );
+        .where('userId', isEqualTo: userId);
+
+    if (limit != null) {
+      query = query.limit(limit);
+    }
+
+    return query.snapshots().map(
+      (snapshot) => snapshot.docs
+          .map(
+            (doc) => NotificationModel.fromMap({...doc.data(), 'id': doc.id}),
+          )
+          .toList(),
+    );
   }
 
   // Get unread notifications count
@@ -43,6 +48,25 @@ class NotificationService {
       });
     } catch (e) {
       throw Exception('Failed to mark notification as read: ${e.toString()}');
+    }
+  }
+
+  // Mark all notifications as read for a user
+  Future<void> markAllAsRead(String userId) async {
+    try {
+      final unread = await _firestore
+          .collection('notifications')
+          .where('userId', isEqualTo: userId)
+          .where('isRead', isEqualTo: false)
+          .get();
+
+      final batch = _firestore.batch();
+      for (var doc in unread.docs) {
+        batch.update(doc.reference, {'isRead': true});
+      }
+      await batch.commit();
+    } catch (e) {
+      throw Exception('Failed to mark all as read: ${e.toString()}');
     }
   }
 
