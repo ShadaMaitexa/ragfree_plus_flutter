@@ -27,6 +27,7 @@ import 'screens/warden/students_page.dart' as warden_pages;
 import 'screens/warden/awareness_page.dart' as warden_pages;
 import 'screens/warden/feedback_page.dart' as warden_pages;
 import 'screens/warden/profile_page.dart' as warden_pages;
+import 'screens/warden/notifications_page.dart' as warden_pages;
 import 'screens/counsellor/dashboard_page.dart' as counsellor_pages;
 import 'screens/counsellor/assigned_complaints_page.dart' as counsellor_pages;
 import 'screens/counsellor/schedule_session_page.dart' as counsellor_pages;
@@ -813,6 +814,10 @@ class WardenDashboard extends StatelessWidget {
       NavigationDestinationData(icon: Icons.people, label: 'Students'),
       NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
       NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
+      NavigationDestinationData(
+        icon: Icons.notifications,
+        label: 'Notifications',
+      ),
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
     ];
 
@@ -823,6 +828,7 @@ class WardenDashboard extends StatelessWidget {
       _WardenDashboardPages.students,
       _WardenDashboardPages.awareness,
       _WardenDashboardPages.feedback,
+      _WardenDashboardPages.notifications,
       _WardenDashboardPages.profile,
     ];
 
@@ -865,6 +871,9 @@ class _WardenDashboardPages {
   static const Widget feedback = _WardenDashboardLazy(
     page: _WardenPage.feedback,
   );
+  static const Widget notifications = _WardenDashboardLazy(
+    page: _WardenPage.notifications,
+  );
   static const Widget profile = _WardenDashboardLazy(page: _WardenPage.profile);
 }
 
@@ -875,6 +884,7 @@ enum _WardenPage {
   students,
   awareness,
   feedback,
+  notifications,
   profile,
 }
 
@@ -897,6 +907,8 @@ class _WardenDashboardLazy extends StatelessWidget {
         return const _ImportWardenAwarenessPage();
       case _WardenPage.feedback:
         return const _ImportWardenFeedbackPage();
+      case _WardenPage.notifications:
+        return const _ImportWardenNotificationsPage();
       case _WardenPage.profile:
         return const _ImportWardenProfilePage();
     }
@@ -967,6 +979,14 @@ class _ImportWardenFeedbackPage extends StatelessWidget {
   }
 }
 
+class _ImportWardenNotificationsPage extends StatelessWidget {
+  const _ImportWardenNotificationsPage();
+  @override
+  Widget build(BuildContext context) {
+    return const _WardenNotificationsProxy();
+  }
+}
+
 // Proxies resolve actual pages via top-level imports
 
 class _WardenDashboardProxy extends StatelessWidget {
@@ -1007,6 +1027,13 @@ class _WardenFeedbackProxy extends StatelessWidget {
   const _WardenFeedbackProxy();
   @override
   Widget build(BuildContext context) => const warden_pages.WardenFeedbackPage();
+}
+
+class _WardenNotificationsProxy extends StatelessWidget {
+  const _WardenNotificationsProxy();
+  @override
+  Widget build(BuildContext context) =>
+      const warden_pages.WardenNotificationsPage();
 }
 
 class PoliceDashboard extends StatelessWidget {

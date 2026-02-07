@@ -55,7 +55,9 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
                 ),
                 child: ExpansionTile(
                   leading: CircleAvatar(
-                    backgroundColor: _getStatusColor(c.status).withValues(alpha: 0.1),
+                    backgroundColor: _getStatusColor(
+                      c.status,
+                    ).withValues(alpha: 0.1),
                     child: Icon(
                       Icons.description,
                       color: _getStatusColor(c.status),
@@ -144,10 +146,7 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
                     child: Text('College Admin'),
                   ),
                   DropdownMenuItem(value: 'police', child: Text('Police')),
-                  DropdownMenuItem(
-                    value: 'counsellor',
-                    child: Text('Counsellor'),
-                  ),
+                  DropdownMenuItem(value: 'teacher', child: Text('Teacher')),
                 ],
                 onChanged: (val) => setDialogState(() => selectedRole = val!),
               ),
@@ -207,5 +206,4 @@ class _WardenViewComplaintsPageState extends State<WardenViewComplaintsPage> {
     if (status == 'In Progress') return Colors.blue;
     return Colors.orange;
   }
-
 }

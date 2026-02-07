@@ -169,7 +169,12 @@ class ComplaintService {
   Stream<List<ComplaintModel>> getAssignedComplaints(String counselorId) {
     return _firestore
         .collection('complaints')
-        .where('assignedTo', isEqualTo: counselorId)
+        .where(
+          Filter.or(
+            Filter('assignedTo', isEqualTo: counselorId),
+            Filter('metadata.forwardedTo', isEqualTo: 'counsellor'),
+          ),
+        )
         .snapshots()
         .map(
           (snapshot) => snapshot.docs

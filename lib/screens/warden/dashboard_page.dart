@@ -454,31 +454,42 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
               'Notifications',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            StreamBuilder<int>(
-              stream: _notificationService.getUnreadCount(user.uid),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData || snapshot.data == 0) {
-                  return const SizedBox.shrink();
-                }
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '${snapshot.data} New',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                );
-              },
+            Row(
+              children: [
+                StreamBuilder<int>(
+                  stream: _notificationService.getUnreadCount(user.uid),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData || snapshot.data == 0) {
+                      return const SizedBox.shrink();
+                    }
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${snapshot.data} New',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                TextButton(
+                  onPressed: () => Provider.of<AppState>(
+                    context,
+                    listen: false,
+                  ).setNavIndex(6),
+                  child: const Text('View All'),
+                ),
+              ],
             ),
           ],
         ),
@@ -541,7 +552,7 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
                             ),
                           )
                         : null,
-                    onTap: () => _notificationService.markAsRead(n.id),
+                    onTap: () => _showNotificationDetails(context, n),
                   ),
                 );
               },
@@ -561,5 +572,45 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
       default:
         return Colors.orange;
     }
+  }
+
+  void _showNotificationDetails(
+    BuildContext context,
+    NotificationModel notification,
+  ) {
+    if (!notification.isRead) {
+      _notificationService.markAsRead(notification.id);
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(notification.title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(notification.message),
+            const SizedBox(height: 16),
+            Text(
+              'Received on: ${_formatDate(notification.createdAt)}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    // Basic date formatting
+    return '${date.day}/${date.month}/${date.year}';
   }
 }
