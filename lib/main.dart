@@ -416,8 +416,16 @@ class StudentDashboard extends StatelessWidget {
       NavigationDestinationData(icon: Icons.home, label: 'Home'),
       NavigationDestinationData(icon: Icons.assignment, label: 'Complaints'),
       NavigationDestinationData(icon: Icons.chat_bubble, label: 'Chat'),
-      NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
-      NavigationDestinationData(icon: Icons.person, label: 'Profile'),
+      NavigationDestinationData(
+        icon: Icons.school,
+        label: 'Awareness',
+        showInBottomNav: false,
+      ),
+      NavigationDestinationData(
+        icon: Icons.person,
+        label: 'Profile',
+        showInBottomNav: false,
+      ),
     ];
 
     final pages = <Widget>[

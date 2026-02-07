@@ -38,8 +38,7 @@ class ResponsiveScaffold extends StatelessWidget {
       drawer: (!isDesktop && !isTablet) ? _buildDrawer(context) : null,
       body: Row(
         children: [
-          if (isDesktop || isTablet)
-            _buildNavigationRail(context, isDesktop),
+          if (isDesktop || isTablet) _buildNavigationRail(context, isDesktop),
           Expanded(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 400),
@@ -70,7 +69,11 @@ class ResponsiveScaffold extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: (!isDesktop && !isTablet && showBottomNavigation)
+      bottomNavigationBar:
+          (!isDesktop &&
+              !isTablet &&
+              showBottomNavigation &&
+              destinations[selectedIndex].showInBottomNav)
           ? _buildBottomBar(context)
           : null,
       floatingActionButton: floatingActionButton,
@@ -79,7 +82,7 @@ class ResponsiveScaffold extends StatelessWidget {
 
   Widget _buildNavigationRail(BuildContext context, bool isDesktop) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Container(
       decoration: BoxDecoration(
         border: Border(
@@ -104,25 +107,70 @@ class ResponsiveScaffold extends StatelessWidget {
         unselectedLabelTextStyle: TextStyle(
           color: colorScheme.onSurfaceVariant,
         ),
-        labelType: isDesktop ? NavigationRailLabelType.none : NavigationRailLabelType.all,
-        destinations: destinations.map((d) => NavigationRailDestination(
-          icon: Icon(d.icon),
-          selectedIcon: Icon(d.selectedIcon ?? d.icon),
-          label: Text(d.label),
-        )).toList(),
+        labelType: isDesktop
+            ? NavigationRailLabelType.none
+            : NavigationRailLabelType.all,
+        destinations: destinations
+            .map(
+              (d) => NavigationRailDestination(
+                icon: Icon(d.icon),
+                selectedIcon: Icon(d.selectedIcon ?? d.icon),
+                label: Text(d.label),
+              ),
+            )
+            .toList(),
       ),
     );
   }
 
   Widget _buildBottomBar(BuildContext context) {
+    // Filter destinations that should appear in bottom nav
+    final bottomDestinations = destinations
+        .where((d) => d.showInBottomNav)
+        .toList();
+
+    // We need to map the selected index to the index in the filtered list
+    // If the selected index is not in the filtered list, we might want to highlight nothing
+    // But NavigationBar requires a valid selectedIndex.
+
+    // Find the index of the currently selected item within the filtered list
+    int filteredIndex = 0;
+    bool found = false;
+    for (int i = 0; i < bottomDestinations.length; i++) {
+      // We need to compare with the original list to find the matching item
+      if (destinations.indexOf(bottomDestinations[i]) == selectedIndex) {
+        filteredIndex = i;
+        found = true;
+        break;
+      }
+    }
+
+    // If the selected page is not in the bottom nav, we can either:
+    // 1. Show the first item as selected (misleading)
+    // 2. Hide the bottom nav (if supported)
+    // 3. Keep the old selected index but it might be out of bounds if logical index != visual index
+
+    // Better approach: When an item is tapped in bottom nav, we find its original index
+
     return NavigationBar(
-      selectedIndex: selectedIndex,
-      onDestinationSelected: onDestinationSelected,
-      destinations: destinations.map((d) => NavigationDestination(
-        icon: Icon(d.icon),
-        selectedIcon: Icon(d.selectedIcon ?? d.icon),
-        label: d.label,
-      )).toList(),
+      selectedIndex: found
+          ? filteredIndex
+          : 0, // Fallback if not found, though ideally we handle this better
+      onDestinationSelected: (visualIndex) {
+        // Map visual index back to original logical index
+        final destination = bottomDestinations[visualIndex];
+        final logicalIndex = destinations.indexOf(destination);
+        onDestinationSelected(logicalIndex);
+      },
+      destinations: bottomDestinations
+          .map(
+            (d) => NavigationDestination(
+              icon: Icon(d.icon),
+              selectedIcon: Icon(d.selectedIcon ?? d.icon),
+              label: d.label,
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -187,10 +235,12 @@ class NavigationDestinationData {
   final IconData icon;
   final IconData? selectedIcon;
   final String label;
+  final bool showInBottomNav;
 
   const NavigationDestinationData({
     required this.icon,
     this.selectedIcon,
     required this.label,
+    this.showInBottomNav = true,
   });
 }
