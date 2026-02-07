@@ -73,8 +73,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     }
   }
 
-
-
   Widget _buildHeroPanel(BuildContext context, Color color) {
     final textTheme = Theme.of(context).textTheme;
     return Container(
@@ -157,15 +155,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               children: [
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   subtitle,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
               ],
@@ -191,21 +191,31 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       if (!mounted) return;
       setState(() => _isUploadingIdProof = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Upload failed: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Upload failed: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedRole != 'parent' && _idProofFile == null && _idProofUrl == null) {
+    if (_selectedRole != 'parent' &&
+        _idProofFile == null &&
+        _idProofUrl == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ID proof is required'), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text('ID proof is required'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
 
-    if (_selectedRole != 'parent' && _idProofFile != null && _idProofUrl == null) {
+    if (_selectedRole != 'parent' &&
+        _idProofFile != null &&
+        _idProofUrl == null) {
       await _uploadIdProof();
       if (_idProofUrl == null) return;
     }
@@ -234,7 +244,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text(e.toString().replaceAll('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -261,7 +274,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           child: LayoutBuilder(
             builder: (context, constraints) {
               final isDesktop = constraints.maxWidth >= 1024;
-              
+
               final form = Form(
                 key: _formKey,
                 child: Column(
@@ -270,17 +283,22 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     AnimatedWidgets.bounceIn(
                       child: Container(
                         padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: 0.1)),
-                        child: Icon(Icons.person_add_rounded, size: 48, color: color),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: color.withValues(alpha: 0.1),
+                        ),
+                        child: Icon(
+                          Icons.person_add_rounded,
+                          size: 48,
+                          color: color,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
                     Text(
                       'Create Account',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: color,
-                      ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.w800, color: color),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
@@ -292,12 +310,24 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           labelText: 'Role',
                           prefixIcon: Icon(Icons.badge_outlined),
                         ),
-                        items: ['student', 'parent', 'counsellor', 'warden', 'police', 'teacher']
-                            .map((role) => DropdownMenuItem(
-                                  value: role,
-                                  child: Text(role[0].toUpperCase() + role.substring(1)),
-                                ))
-                            .toList(),
+                        items:
+                            [
+                                  'student',
+                                  'parent',
+                                  'counsellor',
+                                  'warden',
+                                  'police',
+                                  'teacher',
+                                ]
+                                .map(
+                                  (role) => DropdownMenuItem(
+                                    value: role,
+                                    child: Text(
+                                      role[0].toUpperCase() + role.substring(1),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
                         onChanged: (v) => setState(() {
                           _selectedRole = v!;
                           _idProofFile = null;
@@ -311,6 +341,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       delay: const Duration(milliseconds: 50),
                       child: TextFormField(
                         controller: _nameController,
+                        textInputAction: TextInputAction.next,
                         decoration: const InputDecoration(
                           labelText: 'Full Name',
                           prefixIcon: Icon(Icons.person_outline),
@@ -324,12 +355,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       delay: const Duration(milliseconds: 100),
                       child: TextFormField(
                         controller: _emailController,
+                        textInputAction: TextInputAction.next,
                         decoration: const InputDecoration(
                           labelText: 'Email',
                           prefixIcon: Icon(Icons.alternate_email),
                         ),
                         keyboardType: TextInputType.emailAddress,
-                        validator: (v) => !v!.contains('@') ? 'Invalid email' : null,
+                        validator: (v) =>
+                            !v!.contains('@') ? 'Invalid email' : null,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -338,6 +371,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       delay: const Duration(milliseconds: 150),
                       child: TextFormField(
                         controller: _phoneController,
+                        textInputAction: TextInputAction.next,
                         decoration: const InputDecoration(
                           labelText: 'Phone',
                           prefixIcon: Icon(Icons.phone_outlined),
@@ -345,7 +379,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         keyboardType: TextInputType.phone,
                       ),
                     ),
-                    if (_selectedRole != 'parent' && _selectedRole != 'police') ...[
+                    if (_selectedRole != 'parent' &&
+                        _selectedRole != 'police') ...[
                       const SizedBox(height: 16),
                       AnimatedWidgets.slideIn(
                         beginOffset: const Offset(0, 0.1),
@@ -354,17 +389,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           stream: DepartmentService().getDepartmentNames(),
                           builder: (context, snapshot) {
                             var departments = snapshot.data ?? [];
-                            
+
                             // If no departments managed yet, show text field fallback
                             if (departments.isEmpty) {
-                               return TextFormField(
+                              return TextFormField(
                                 controller: _departmentController,
+                                textInputAction: TextInputAction.next,
                                 decoration: const InputDecoration(
                                   labelText: 'Department',
                                   prefixIcon: Icon(Icons.school_outlined),
-                                  helperText: 'Admin hasn\'t added departments yet. Enter manually.',
+                                  helperText:
+                                      'Admin hasn\'t added departments yet. Enter manually.',
                                 ),
-                                validator: (v) => (v == null || v.isEmpty) ? 'Department required' : null,
+                                validator: (v) => (v == null || v.isEmpty)
+                                    ? 'Department required'
+                                    : null,
                               );
                             }
 
@@ -373,39 +412,59 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 labelText: 'Department',
                                 prefixIcon: Icon(Icons.school_outlined),
                               ),
-                              items: departments.map((dept) => DropdownMenuItem(
-                                value: dept,
-                                child: Text(dept),
-                              )).toList(),
+                              items: departments
+                                  .map(
+                                    (dept) => DropdownMenuItem(
+                                      value: dept,
+                                      child: Text(dept),
+                                    ),
+                                  )
+                                  .toList(),
                               onChanged: (val) {
                                 if (val != null) {
                                   _departmentController.text = val;
                                 }
                               },
-                              validator: (v) => (_departmentController.text.isEmpty) ? 'Department required' : null,
+                              validator: (v) =>
+                                  (_departmentController.text.isEmpty)
+                                  ? 'Department required'
+                                  : null,
                             );
                           },
                         ),
                       ),
                     ],
-                    if (['student', 'teacher', 'counsellor', 'warden'].contains(_selectedRole)) ...[
+                    if ([
+                      'student',
+                      'teacher',
+                      'counsellor',
+                      'warden',
+                    ].contains(_selectedRole)) ...[
                       const SizedBox(height: 16),
                       AnimatedWidgets.slideIn(
                         beginOffset: const Offset(0, 0.1),
                         delay: const Duration(milliseconds: 220),
                         child: TextFormField(
                           controller: _institutionController,
+                          textInputAction: TextInputAction.next,
                           decoration: const InputDecoration(
                             labelText: 'College Name',
                             prefixIcon: Icon(Icons.account_balance_outlined),
                           ),
-                          validator: (v) => v!.isEmpty ? 'College name required' : null,
+                          validator: (v) =>
+                              v!.isEmpty ? 'College name required' : null,
                         ),
                       ),
                     ],
                     if (_selectedRole != 'parent') ...[
                       const SizedBox(height: 24),
-                      Text('Proof of Identity', style: TextStyle(fontWeight: FontWeight.bold, color: color)),
+                      Text(
+                        'Proof of Identity',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       AnimatedWidgets.hoverCard(
                         child: InkWell(
@@ -413,20 +472,32 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           child: Container(
                             height: 120,
                             decoration: BoxDecoration(
-                              border: Border.all(color: color.withValues(alpha: 0.3), style: BorderStyle.solid),
+                              border: Border.all(
+                                color: color.withValues(alpha: 0.3),
+                                style: BorderStyle.solid,
+                              ),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: _idProofFile != null || _idProofUrl != null
                                 ? ClipRRect(
                                     borderRadius: BorderRadius.circular(12),
                                     child: _idProofUrl != null
-                                        ? Image.network(_idProofUrl!, fit: BoxFit.cover)
-                                        : Image.file(_idProofFile!, fit: BoxFit.cover),
+                                        ? Image.network(
+                                            _idProofUrl!,
+                                            fit: BoxFit.cover,
+                                          )
+                                        : Image.file(
+                                            _idProofFile!,
+                                            fit: BoxFit.cover,
+                                          ),
                                   )
                                 : Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.add_a_photo_outlined, color: color),
+                                      Icon(
+                                        Icons.add_a_photo_outlined,
+                                        color: color,
+                                      ),
                                       const SizedBox(height: 8),
                                       const Text('Tap to upload ID proof'),
                                     ],
@@ -442,12 +513,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       child: TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
+                        textInputAction: TextInputAction.next,
                         decoration: InputDecoration(
                           labelText: 'Password',
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
-                            icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
-                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: () => setState(
+                              () => _obscurePassword = !_obscurePassword,
+                            ),
                           ),
                         ),
                         validator: (v) => v!.length < 6 ? 'Too short' : null,
@@ -460,12 +538,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       child: TextFormField(
                         controller: _confirmPasswordController,
                         obscureText: _obscureConfirmPassword,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _register(),
                         decoration: InputDecoration(
                           labelText: 'Confirm Password',
                           prefixIcon: const Icon(Icons.lock_reset),
                           suffixIcon: IconButton(
-                            icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
-                            onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                            icon: Icon(
+                              _obscureConfirmPassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: () => setState(
+                              () => _obscureConfirmPassword =
+                                  !_obscureConfirmPassword,
+                            ),
                           ),
                         ),
                       ),
@@ -475,21 +562,44 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       onPressed: _isLoading ? () {} : _register,
                       child: FilledButton(
                         onPressed: _isLoading ? null : _register,
-                        style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
                         child: _isLoading
-                            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                            : const Text('Register Now', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'Register Now',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 16),
                     Center(
                       child: TextButton(
-                        onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                        onPressed: () =>
+                            Navigator.pushReplacementNamed(context, '/login'),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text('Already have an account? ', style: TextStyle(color: Theme.of(context).hintColor)),
-                            Text('Sign In', style: TextStyle(fontWeight: FontWeight.bold, color: color)),
+                            Text(
+                              'Already have an account? ',
+                              style: TextStyle(
+                                color: Theme.of(context).hintColor,
+                              ),
+                            ),
+                            Text(
+                              'Sign In',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: color,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -499,7 +609,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               );
 
               if (!isDesktop) {
-                return SingleChildScrollView(padding: const EdgeInsets.all(24), child: form);
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: form,
+                );
               }
 
               return Row(
@@ -515,7 +628,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           child: AnimatedWidgets.hoverCard(
                             elevation: 8,
                             hoverElevation: 16,
-                            child: Padding(padding: const EdgeInsets.all(40), child: form),
+                            child: Padding(
+                              padding: const EdgeInsets.all(40),
+                              child: form,
+                            ),
                           ),
                         ),
                       ),

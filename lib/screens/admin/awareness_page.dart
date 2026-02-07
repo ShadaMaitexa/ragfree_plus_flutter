@@ -75,9 +75,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
                   if (snapshot.hasError) {
                     return Padding(
                       padding: const EdgeInsets.all(24),
-                      child: Center(
-                        child: Text('Error: ${snapshot.error}'),
-                      ),
+                      child: Center(child: Text('Error: ${snapshot.error}')),
                     );
                   }
 
@@ -199,7 +197,9 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
@@ -211,10 +211,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
     );
   }
 
-  Widget _buildContent(
-    BuildContext context,
-    List<AwarenessModel> items,
-  ) {
+  Widget _buildContent(BuildContext context, List<AwarenessModel> items) {
     return Column(
       children: [
         SizedBox(
@@ -241,10 +238,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
     );
   }
 
-  Widget _buildAwarenessCard(
-    BuildContext context,
-    AwarenessModel item,
-  ) {
+  Widget _buildAwarenessCard(BuildContext context, AwarenessModel item) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
@@ -264,8 +258,12 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
+                    Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.1),
+                    Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.05),
                   ],
                 ),
               ),
@@ -317,9 +315,10 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
                                 item.subtitle,
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface.withValues(alpha: 0.7),
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.7),
                                       fontSize: constraints.maxWidth > 600
                                           ? 14
                                           : 12,
@@ -415,7 +414,9 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
         Text(
           '$label: $value',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
       ],
@@ -442,10 +443,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
     );
   }
 
-  Widget _buildContentList(
-    BuildContext context,
-    List<AwarenessModel> items,
-  ) {
+  Widget _buildContentList(BuildContext context, List<AwarenessModel> items) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -458,18 +456,13 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
             ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 16),
-          ...items.map(
-            (item) => _buildContentListItem(context, item),
-          ),
+          ...items.map((item) => _buildContentListItem(context, item)),
         ],
       ),
     );
   }
 
-  Widget _buildContentListItem(
-    BuildContext context,
-    AwarenessModel item,
-  ) {
+  Widget _buildContentListItem(BuildContext context, AwarenessModel item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Card(
@@ -480,7 +473,9 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.1),
             ),
             child: Icon(
               Icons.school,
@@ -513,7 +508,11 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
     );
   }
 
-  void _showAddContentDialog(BuildContext context, String authorId, String authorRole) {
+  void _showAddContentDialog(
+    BuildContext context,
+    String authorId,
+    String authorRole,
+  ) {
     final titleController = TextEditingController();
     final subtitleController = TextEditingController();
     final contentController = TextEditingController();
@@ -529,6 +528,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
             children: [
               TextField(
                 controller: titleController,
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
                   labelText: 'Title',
                   border: OutlineInputBorder(),
@@ -537,6 +537,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
               const SizedBox(height: 16),
               TextField(
                 controller: subtitleController,
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
                   labelText: 'Subtitle',
                   border: OutlineInputBorder(),
@@ -545,6 +546,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
               const SizedBox(height: 16),
               TextField(
                 controller: contentController,
+                // Multiline content, usually doesn't submit on enter
                 decoration: const InputDecoration(
                   labelText: 'Content',
                   border: OutlineInputBorder(),
@@ -554,6 +556,30 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
               const SizedBox(height: 16),
               TextField(
                 controller: categoryController,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) async {
+                  final model = AwarenessModel(
+                    id: '',
+                    title: titleController.text.trim(),
+                    subtitle: subtitleController.text.trim(),
+                    content: contentController.text.trim(),
+                    role: 'public',
+                    authorId: authorId,
+                    authorRole: authorRole,
+                    category: categoryController.text.trim().isEmpty
+                        ? null
+                        : categoryController.text.trim(),
+                  );
+                  await _awarenessService.addAwareness(model);
+                  if (!context.mounted) return;
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Content added successfully!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                },
                 decoration: const InputDecoration(
                   labelText: 'Category (optional)',
                   border: OutlineInputBorder(),
@@ -602,8 +628,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
     final titleController = TextEditingController(text: item.title);
     final subtitleController = TextEditingController(text: item.subtitle);
     final contentController = TextEditingController(text: item.content);
-    final categoryController =
-        TextEditingController(text: item.category ?? '');
+    final categoryController = TextEditingController(text: item.category ?? '');
 
     showDialog(
       context: context,
@@ -615,6 +640,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
             children: [
               TextField(
                 controller: titleController,
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
                   labelText: 'Title',
                   border: OutlineInputBorder(),
@@ -623,6 +649,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
               const SizedBox(height: 16),
               TextField(
                 controller: subtitleController,
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
                   labelText: 'Subtitle',
                   border: OutlineInputBorder(),
@@ -640,6 +667,25 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
               const SizedBox(height: 16),
               TextField(
                 controller: categoryController,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) async {
+                  final updated = item.copyWith(
+                    title: titleController.text.trim(),
+                    subtitle: subtitleController.text.trim(),
+                    content: contentController.text.trim(),
+                    category: categoryController.text.trim().isEmpty
+                        ? null
+                        : categoryController.text.trim(),
+                  );
+                  await _awarenessService.updateAwareness(updated);
+                  if (!context.mounted) return;
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Content updated successfully!'),
+                    ),
+                  );
+                },
                 decoration: const InputDecoration(
                   labelText: 'Category (optional)',
                   border: OutlineInputBorder(),
@@ -667,9 +713,7 @@ class _AdminAwarenessPageState extends State<AdminAwarenessPage>
               if (!context.mounted) return;
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Content updated successfully!'),
-                ),
+                const SnackBar(content: Text('Content updated successfully!')),
               );
             },
             child: const Text('Save Changes'),

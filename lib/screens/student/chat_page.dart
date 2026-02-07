@@ -204,7 +204,9 @@ class _StudentChatPageState extends State<StudentChatPage>
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -237,7 +239,9 @@ class _StudentChatPageState extends State<StudentChatPage>
           Text(
             'Start a conversation with our support team',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -374,9 +378,8 @@ class _StudentChatPageState extends State<StudentChatPage>
                                 : '',
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurface.withValues(alpha: 0.6),
+                                  color: Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.6),
                                 ),
                           ),
                         ],
@@ -384,9 +387,9 @@ class _StudentChatPageState extends State<StudentChatPage>
                       const SizedBox(height: 4),
                       Text(
                         conversation.counselorRole != null &&
-                                    conversation.counselorRole!.isNotEmpty
-                                ? _formatRole(conversation.counselorRole!)
-                                : 'Staff',
+                                conversation.counselorRole!.isNotEmpty
+                            ? _formatRole(conversation.counselorRole!)
+                            : 'Staff',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w500,
@@ -400,9 +403,10 @@ class _StudentChatPageState extends State<StudentChatPage>
                               conversation.lastMessage ?? 'No messages yet',
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface.withValues(alpha: 0.7),
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.7),
                                     fontWeight: unread > 0
                                         ? FontWeight.w600
                                         : FontWeight.normal,
@@ -658,10 +662,10 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                     ),
                   ),
                   Text(
-                      widget.conversation.counselorRole != null &&
-                              widget.conversation.counselorRole!.isNotEmpty
-                          ? _formatRole(widget.conversation.counselorRole!)
-                          : 'Staff',
+                    widget.conversation.counselorRole != null &&
+                            widget.conversation.counselorRole!.isNotEmpty
+                        ? _formatRole(widget.conversation.counselorRole!)
+                        : 'Staff',
                     style: TextStyle(
                       fontSize: 12,
                       color: Theme.of(
@@ -842,7 +846,8 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                   vertical: 12,
                 ),
               ),
-              maxLines: null,
+              textInputAction: TextInputAction.send,
+              onSubmitted: (_) => _sendMessage(),
             ),
           ),
           const SizedBox(width: 12),
@@ -883,17 +888,17 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
           curve: Curves.easeOut,
         );
       }
-      } catch (e) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error sending message: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        // Restore message on error
-        _messageController.text = messageText;
-      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error sending message: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      // Restore message on error
+      _messageController.text = messageText;
+    }
   }
 
   void _showChatOptions(BuildContext context) {
@@ -956,7 +961,8 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
           children: [
             Text('Name: ${widget.conversation.counselorName ?? 'Staff'}'),
             Text(
-                'Role: ${widget.conversation.counselorRole != null ? _formatRole(widget.conversation.counselorRole!) : 'Staff'}'),
+              'Role: ${widget.conversation.counselorRole != null ? _formatRole(widget.conversation.counselorRole!) : 'Staff'}',
+            ),
             Text('Chat ID: ${widget.conversation.id}'),
           ],
         ),

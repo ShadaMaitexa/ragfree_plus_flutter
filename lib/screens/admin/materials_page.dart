@@ -32,7 +32,10 @@ class _AdminMaterialsPageState extends State<AdminMaterialsPage> {
                 child: SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             )
@@ -53,12 +56,12 @@ class _AdminMaterialsPageState extends State<AdminMaterialsPage> {
             const SizedBox(height: 24),
             Text(
               'Available Materials',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            Expanded(
-              child: _buildMaterialsList(context),
-            ),
+            Expanded(child: _buildMaterialsList(context)),
           ],
         ),
       ),
@@ -70,7 +73,9 @@ class _AdminMaterialsPageState extends State<AdminMaterialsPage> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: categories.map((cat) => _buildCategoryChip(cat, _selectedCategory == cat)).toList(),
+        children: categories
+            .map((cat) => _buildCategoryChip(cat, _selectedCategory == cat))
+            .toList(),
       ),
     );
   }
@@ -86,7 +91,9 @@ class _AdminMaterialsPageState extends State<AdminMaterialsPage> {
             _selectedCategory = label;
           });
         },
-        selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+        selectedColor: Theme.of(
+          context,
+        ).colorScheme.primary.withValues(alpha: 0.2),
         checkmarkColor: Theme.of(context).colorScheme.primary,
       ),
     );
@@ -105,7 +112,9 @@ class _AdminMaterialsPageState extends State<AdminMaterialsPage> {
 
         final filtered = _selectedCategory == 'All'
             ? snapshot.data!
-            : snapshot.data!.where((m) => m.category == _selectedCategory).toList();
+            : snapshot.data!
+                  .where((m) => m.category == _selectedCategory)
+                  .toList();
 
         if (filtered.isEmpty) {
           return const Center(child: Text('No materials in this category'));
@@ -117,7 +126,9 @@ class _AdminMaterialsPageState extends State<AdminMaterialsPage> {
             final material = filtered[index];
             return Card(
               margin: const EdgeInsets.only(bottom: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: ListTile(
                 leading: Container(
                   width: 50,
@@ -126,9 +137,15 @@ class _AdminMaterialsPageState extends State<AdminMaterialsPage> {
                     color: _getIconColor(material.type).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(_getIcon(material.type), color: _getIconColor(material.type)),
+                  child: Icon(
+                    _getIcon(material.type),
+                    color: _getIconColor(material.type),
+                  ),
                 ),
-                title: Text(material.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text(
+                  material.title,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 subtitle: Text(
                   '${material.type} • ${material.size} • ${DateFormat('yyyy-MM-dd').format(material.updatedAt)}',
                   style: const TextStyle(fontSize: 12),
@@ -159,17 +176,23 @@ class _AdminMaterialsPageState extends State<AdminMaterialsPage> {
 
   IconData _getIcon(String type) {
     switch (type) {
-      case 'Document': return Icons.description;
-      case 'Video': return Icons.movie;
-      default: return Icons.insert_drive_file;
+      case 'Document':
+        return Icons.description;
+      case 'Video':
+        return Icons.movie;
+      default:
+        return Icons.insert_drive_file;
     }
   }
 
   Color _getIconColor(String type) {
     switch (type) {
-      case 'Document': return Colors.red;
-      case 'Video': return Colors.blue;
-      default: return Colors.grey;
+      case 'Document':
+        return Colors.red;
+      case 'Video':
+        return Colors.blue;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -188,6 +211,13 @@ class _AdminMaterialsPageState extends State<AdminMaterialsPage> {
             children: [
               TextField(
                 controller: titleController,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) {
+                  if (titleController.text.isNotEmpty && pickedFile != null) {
+                    Navigator.pop(context);
+                    _performUpload(titleController.text, category, pickedFile!);
+                  }
+                },
                 decoration: const InputDecoration(labelText: 'Title'),
               ),
               const SizedBox(height: 16),
@@ -213,7 +243,10 @@ class _AdminMaterialsPageState extends State<AdminMaterialsPage> {
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
             FilledButton(
               onPressed: () {
                 if (titleController.text.isNotEmpty && pickedFile != null) {
@@ -229,7 +262,11 @@ class _AdminMaterialsPageState extends State<AdminMaterialsPage> {
     );
   }
 
-  Future<void> _performUpload(String title, String category, PlatformFile file) async {
+  Future<void> _performUpload(
+    String title,
+    String category,
+    PlatformFile file,
+  ) async {
     setState(() => _isUploading = true);
     try {
       final uploadUrl = await _cloudinaryService.uploadFile(
@@ -250,7 +287,10 @@ class _AdminMaterialsPageState extends State<AdminMaterialsPage> {
         await _materialService.addMaterial(material);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Material uploaded successfully'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Material uploaded successfully'),
+            backgroundColor: Colors.green,
+          ),
         );
       } else {
         throw Exception('Upload failed');

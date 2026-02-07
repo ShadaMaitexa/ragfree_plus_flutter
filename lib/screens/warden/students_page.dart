@@ -466,6 +466,8 @@ class _WardenChatDetailPageState extends State<WardenChatDetailPage> {
                 Expanded(
                   child: TextField(
                     controller: _messageController,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => _sendMessage(user),
                     decoration: const InputDecoration(
                       hintText: 'Type a message...',
                     ),
@@ -473,23 +475,27 @@ class _WardenChatDetailPageState extends State<WardenChatDetailPage> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.send),
-                  onPressed: () async {
-                    if (_messageController.text.isEmpty) return;
-                    await _chatService.sendMessage(
-                      chatId: widget.chatId,
-                      senderId: user.uid,
-                      senderName: user.name,
-                      senderRole: user.role,
-                      message: _messageController.text,
-                    );
-                    _messageController.clear();
-                  },
+                  onPressed: () => _sendMessage(user),
                 ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _sendMessage(dynamic user) async {
+    if (_messageController.text.trim().isEmpty) return;
+    final message = _messageController.text;
+    _messageController.clear();
+
+    await _chatService.sendMessage(
+      chatId: widget.chatId,
+      senderId: user.uid,
+      senderName: user.name,
+      senderRole: user.role,
+      message: message,
     );
   }
 }

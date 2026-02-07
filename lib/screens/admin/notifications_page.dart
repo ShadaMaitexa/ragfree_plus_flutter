@@ -81,7 +81,9 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                       color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(25),
                       border: Border.all(
-                        color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+                        color: Theme.of(
+                          context,
+                        ).dividerColor.withValues(alpha: 0.1),
                       ),
                     ),
                     child: TabBar(
@@ -132,7 +134,11 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
         final notifications = snapshot.data ?? [];
 
         if (notifications.isEmpty) {
-          return _buildEmptyState(context, 'No Notifications', 'You have no new notifications');
+          return _buildEmptyState(
+            context,
+            'No Notifications',
+            'You have no new notifications',
+          );
         }
 
         return ListView.builder(
@@ -153,10 +159,14 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         final alerts = snapshot.data ?? [];
         if (alerts.isEmpty) {
-          return _buildEmptyState(context, 'No Sent Alerts', 'You haven\'t sent any global alerts yet');
+          return _buildEmptyState(
+            context,
+            'No Sent Alerts',
+            'You haven\'t sent any global alerts yet',
+          );
         }
 
         return ListView.builder(
@@ -167,7 +177,9 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: ListTile(
                 contentPadding: const EdgeInsets.all(16),
                 leading: Container(
@@ -176,7 +188,10 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                     color: Colors.orange.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.campaign_rounded, color: Colors.orange),
+                  child: const Icon(
+                    Icons.campaign_rounded,
+                    color: Colors.orange,
+                  ),
                 ),
                 title: Text(
                   alert['title'] ?? 'Global Alert',
@@ -191,20 +206,29 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.grey.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             'To: ${(alert['targetRoles'] as List<dynamic>?)?.join(", ") ?? "All"}',
-                            style: TextStyle(fontSize: 10, color: Theme.of(context).hintColor),
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Theme.of(context).hintColor,
+                            ),
                           ),
                         ),
                         const Spacer(),
                         Text(
                           _formatDate(alert['createdAt'] as Timestamp?),
-                          style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).hintColor,
+                          ),
                         ),
                       ],
                     ),
@@ -223,14 +247,20 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.notifications_off_outlined, size: 64, color: Colors.grey),
+          const Icon(
+            Icons.notifications_off_outlined,
+            size: 64,
+            color: Colors.grey,
+          ),
           const SizedBox(height: 16),
           Text(title, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(
             subtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -263,19 +293,18 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
               children: [
                 Text(
                   'Notifications',
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.w700, color: color),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
                 ),
                 Text(
                   'View your latest alerts and updates',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.7),
-                      ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
                 ),
               ],
             ),
@@ -300,7 +329,6 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
     String selectedPriority = 'medium';
     List<String> selectedRoles = ['all'];
 
-
     final availableRoles = [
       {'value': 'all', 'label': 'All Users'},
       {'value': 'student', 'label': 'Students'},
@@ -316,8 +344,9 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             title: const Row(
               children: [
                 Icon(Icons.dashboard_customize_rounded, color: Colors.orange),
@@ -332,6 +361,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                 children: [
                   TextField(
                     controller: titleController,
+                    textInputAction: TextInputAction.next,
                     decoration: const InputDecoration(
                       labelText: 'Title',
                       border: OutlineInputBorder(),
@@ -387,8 +417,9 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                         checkmarkColor: Colors.orange,
                         labelStyle: TextStyle(
                           color: isSelected ? Colors.orange : Colors.grey[700],
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                         ),
                       );
                     }).toList(),
@@ -421,7 +452,9 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                   if (selectedRoles.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Please select at least one recipient type'),
+                        content: Text(
+                          'Please select at least one recipient type',
+                        ),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -452,7 +485,8 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
-                              'Global notification sent successfully!'),
+                              'Global notification sent successfully!',
+                            ),
                             backgroundColor: Colors.green,
                           ),
                         );
@@ -482,7 +516,9 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
   }
 
   Widget _buildNotificationCard(
-      BuildContext context, NotificationModel notification) {
+    BuildContext context,
+    NotificationModel notification,
+  ) {
     Color typeColor;
     IconData icon;
 
@@ -559,9 +595,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                           Expanded(
                             child: Text(
                               notification.title,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
+                              style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(
                                     fontWeight: notification.isRead
                                         ? FontWeight.normal
@@ -584,22 +618,21 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage>
                       Text(
                         notification.message,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.7),
-                            ),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.7),
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        DateFormat('MMM dd, HH:mm')
-                            .format(notification.createdAt),
+                        DateFormat(
+                          'MMM dd, HH:mm',
+                        ).format(notification.createdAt),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.5),
-                            ),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.5),
+                        ),
                       ),
                     ],
                   ),

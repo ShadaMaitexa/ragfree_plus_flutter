@@ -166,7 +166,9 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
     final department = user?.department ?? '';
 
     return StreamBuilder<List<ComplaintModel>>(
-      stream: _complaintService.getComplaintsByInstitution(institutionNormalized),
+      stream: _complaintService.getComplaintsByInstitution(
+        institutionNormalized,
+      ),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -174,25 +176,28 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
         if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         }
-        
+
         final complaints = snapshot.data ?? [];
-        
+
         // Filter complaints based on selected filter
         final filteredComplaints = complaints.where((c) {
           // 1. Handle Department filtering
           if (_selectedFilter == 'My Department') {
             if (department.isEmpty) return false;
             // Case-insensitive and trimmed comparison for robustness
-            return (c.studentDepartment ?? '').trim().toLowerCase() == department.trim().toLowerCase();
+            return (c.studentDepartment ?? '').trim().toLowerCase() ==
+                department.trim().toLowerCase();
           }
-          
+
           // 2. Handle Status filters
           if (_selectedFilter == 'Pending') return c.status == 'Pending';
           if (_selectedFilter == 'In Progress') {
-            return c.status == 'In Progress' || c.status == 'Verified' || c.status == 'Accepted';
+            return c.status == 'In Progress' ||
+                c.status == 'Verified' ||
+                c.status == 'Accepted';
           }
           if (_selectedFilter == 'Resolved') return c.status == 'Resolved';
-          
+
           // 3. 'All' filter returns everything
           return true;
         }).toList();
@@ -440,8 +445,6 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
     }
   }
 
-
-
   void _showVerifyDialog(BuildContext context, ComplaintModel complaint) {
     showDialog(
       context: context,
@@ -534,6 +537,44 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
               const SizedBox(height: 16),
               TextField(
                 controller: descriptionController,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) async {
+                  try {
+                    final appState = Provider.of<AppState>(
+                      context,
+                      listen: false,
+                    );
+                    final user = appState.currentUser;
+                    if (user == null) throw Exception('User not logged in');
+
+                    await _complaintService.forwardToRole(
+                      complaintId: complaint.id,
+                      forwardToRole: selectedRole,
+                      forwarderId: user.uid,
+                      forwarderName: user.name,
+                      description: descriptionController.text.trim(),
+                    );
+
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Forwarded to $selectedRole'),
+                          backgroundColor: Colors.blue,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error: ${e.toString()}'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
                 decoration: const InputDecoration(
                   labelText: 'Forward Description',
                   hintText: 'Add a note for the recipient...',

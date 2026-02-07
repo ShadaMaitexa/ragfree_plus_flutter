@@ -38,7 +38,7 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
   bool _isSubmitting = false;
   String? _selectedChildId;
   String? _selectedChildName;
-  
+
   final ComplaintService _complaintService = ComplaintService();
   final ParentStudentService _parentStudentService = ParentStudentService();
   final ImagePicker _picker = ImagePicker();
@@ -112,7 +112,9 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                   if (!widget.isParent)
                     CheckboxListTile(
                       title: const Text('Submit anonymously'),
-                      subtitle: const Text('Your identity will be kept confidential'),
+                      subtitle: const Text(
+                        'Your identity will be kept confidential',
+                      ),
                       value: _isAnonymous,
                       onChanged: (value) {
                         setState(() {
@@ -130,10 +132,12 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                     StreamBuilder<List<ParentStudentLinkModel>>(
                       stream: _getLinkedStudentsStream(),
                       builder: (context, snapshot) {
-                        if (!snapshot.hasData) return const LinearProgressIndicator();
+                        if (!snapshot.hasData)
+                          return const LinearProgressIndicator();
                         final links = snapshot.data!;
-                        if (links.isEmpty) return const Text('No linked children found');
-                        
+                        if (links.isEmpty)
+                          return const Text('No linked children found');
+
                         return DropdownButtonFormField<String>(
                           initialValue: _selectedChildId,
                           decoration: const InputDecoration(
@@ -150,12 +154,15 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                             if (value != null) {
                               setState(() {
                                 _selectedChildId = value;
-                                _selectedChildName = links.firstWhere((l) => l.studentId == value).studentName;
+                                _selectedChildName = links
+                                    .firstWhere((l) => l.studentId == value)
+                                    .studentName;
                               });
                             }
                           },
                           validator: (value) {
-                            if (!_isAnonymous && value == null) return 'Please select a child';
+                            if (!_isAnonymous && value == null)
+                              return 'Please select a child';
                             return null;
                           },
                         );
@@ -167,6 +174,7 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _titleController,
+                    textInputAction: TextInputAction.next,
                     decoration: const InputDecoration(
                       labelText: 'Title',
                       hintText: 'Brief description of the incident',
@@ -206,10 +214,7 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                       border: OutlineInputBorder(),
                     ),
                     items: _incidentTypes.map((type) {
-                      return DropdownMenuItem(
-                        value: type,
-                        child: Text(type),
-                      );
+                      return DropdownMenuItem(value: type, child: Text(type));
                     }).toList(),
                     onChanged: (value) {
                       setState(() {
@@ -236,6 +241,8 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _locationController,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) => _submitComplaint(),
                     decoration: const InputDecoration(
                       labelText: 'Location (Optional)',
                       hintText: 'Where did this incident occur?',
@@ -244,7 +251,9 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  if (_selectedImages.isNotEmpty || _selectedVideo != null || _selectedAudio != null)
+                  if (_selectedImages.isNotEmpty ||
+                      _selectedVideo != null ||
+                      _selectedAudio != null)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -260,7 +269,9 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                                   width: 100,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.grey.shade300),
+                                    border: Border.all(
+                                      color: Colors.grey.shade300,
+                                    ),
                                   ),
                                   child: Stack(
                                     children: [
@@ -277,7 +288,10 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                                         top: 4,
                                         right: 4,
                                         child: IconButton(
-                                          icon: const Icon(Icons.close, size: 20),
+                                          icon: const Icon(
+                                            Icons.close,
+                                            size: 20,
+                                          ),
                                           color: Colors.red,
                                           onPressed: () {
                                             setState(() {
@@ -307,7 +321,9 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                                 Expanded(
                                   child: Text(
                                     'Video selected: ${_selectedVideo!.path.split('/').last}',
-                                    style: Theme.of(context).textTheme.bodySmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -334,12 +350,17 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.audiotrack, color: Colors.blue),
+                                const Icon(
+                                  Icons.audiotrack,
+                                  color: Colors.blue,
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     'Audio selected: ${_selectedAudio!.path.split('/').last}',
-                                    style: Theme.of(context).textTheme.bodySmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -397,9 +418,11 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
                               width: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : Text(widget.editComplaint != null
-                              ? 'Update Report'
-                              : 'Submit Report'),
+                          : Text(
+                              widget.editComplaint != null
+                                  ? 'Update Report'
+                                  : 'Submit Report',
+                            ),
                     ),
                   ),
                 ],
@@ -514,8 +537,8 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
               ? null
               : _locationController.text.trim(),
           isAnonymous: _isAnonymous,
-          metadata: widget.isParent 
-              ? {'submittedByParent': user.uid, 'parentName': user.name} 
+          metadata: widget.isParent
+              ? {'submittedByParent': user.uid, 'parentName': user.name}
               : null,
         );
 

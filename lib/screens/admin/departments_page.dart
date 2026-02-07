@@ -61,7 +61,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
               stream: _departmentService.getDepartments(),
               builder: (context, snapshot) {
                 final departments = snapshot.data ?? [];
-                
+
                 return SingleChildScrollView(
                   padding: Responsive.getPadding(context),
                   child: Column(
@@ -90,7 +90,11 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
     );
   }
 
-  Widget _buildHeader(BuildContext context, Color color, List<Map<String, dynamic>> departments) {
+  Widget _buildHeader(
+    BuildContext context,
+    Color color,
+    List<Map<String, dynamic>> departments,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -201,7 +205,9 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -234,7 +240,9 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
           Text(
             'Add departments to organize students and staff',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -253,7 +261,10 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
     );
   }
 
-  Widget _buildDepartmentsList(BuildContext context, List<Map<String, dynamic>> departments) {
+  Widget _buildDepartmentsList(
+    BuildContext context,
+    List<Map<String, dynamic>> departments,
+  ) {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -303,11 +314,7 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                         shape: BoxShape.circle,
                         color: deptColor.withValues(alpha: 0.1),
                       ),
-                      child: Icon(
-                        Icons.apartment,
-                        color: deptColor,
-                        size: 24,
-                      ),
+                      child: Icon(Icons.apartment, color: deptColor, size: 24),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -457,7 +464,9 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
       ],
@@ -476,6 +485,26 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
           children: [
             TextField(
               controller: nameController,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) async {
+                if (nameController.text.isNotEmpty) {
+                  await _departmentService.addDepartment({
+                    'name': nameController.text,
+                    'students': 0,
+                    'staff': 0,
+                    'colorValue': Colors.blue.toARGB32(),
+                  });
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Department added successfully!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                }
+              },
               decoration: const InputDecoration(
                 labelText: 'Department Name',
                 border: OutlineInputBorder(),
@@ -495,7 +524,8 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
                   'name': nameController.text,
                   'students': 0,
                   'staff': 0,
-                  'colorValue': Colors.blue.toARGB32(), // Default color or from picker
+                  'colorValue': Colors.blue
+                      .toARGB32(), // Default color or from picker
                 });
                 if (context.mounted) {
                   Navigator.pop(context);
@@ -527,6 +557,20 @@ class _AdminDepartmentsPageState extends State<AdminDepartmentsPage>
           children: [
             TextField(
               controller: nameController,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) async {
+                await _departmentService.updateDepartment(department['id'], {
+                  'name': nameController.text,
+                });
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Department updated successfully!'),
+                    ),
+                  );
+                }
+              },
               decoration: const InputDecoration(
                 labelText: 'Department Name',
                 border: OutlineInputBorder(),
