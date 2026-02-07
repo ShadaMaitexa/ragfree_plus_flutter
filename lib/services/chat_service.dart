@@ -25,7 +25,7 @@ class ChatService {
       } else {
         // Handle cases where counselorId is not provided
       }
-      
+
       if (complaintId != null && complaintId.isNotEmpty) {
         query = query.where('complaintId', isEqualTo: complaintId);
       }
@@ -50,8 +50,10 @@ class ChatService {
                 (counselorName != null || counselorRole != null)) {
               final docRef = generalConvo.first.reference;
               final updates = <String, dynamic>{};
-              if (counselorName != null) updates['counselorName'] = counselorName;
-              if (counselorRole != null) updates['counselorRole'] = counselorRole;
+              if (counselorName != null)
+                updates['counselorName'] = counselorName;
+              if (counselorRole != null)
+                updates['counselorRole'] = counselorRole;
               if (updates.isNotEmpty) {
                 await docRef.update(updates);
               }
@@ -63,7 +65,7 @@ class ChatService {
 
       // Create new conversation document reference to get ID
       final docRef = _firestore.collection('chat_conversations').doc();
-      
+
       final conversation = ChatConversationModel(
         id: docRef.id,
         studentId: studentId,
@@ -130,50 +132,114 @@ class ChatService {
         .doc(chatId)
         .collection('messages')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ChatMessageModel.fromMap({...doc.data(), 'id': doc.id}))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) =>
+                    ChatMessageModel.fromMap({...doc.data(), 'id': doc.id}),
+              )
+              .toList(),
+        );
   }
 
   // Get conversations for a student
-  Stream<List<ChatConversationModel>> getStudentConversations(String studentId) {
+  Stream<List<ChatConversationModel>> getStudentConversations(
+    String studentId,
+  ) {
     return _firestore
         .collection('chat_conversations')
         .where('studentId', isEqualTo: studentId)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ChatConversationModel.fromMap({
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => ChatConversationModel.fromMap({
                   ...doc.data(),
                   'id': doc.id,
-                }))
-            .toList());
+                }),
+              )
+              .toList(),
+        );
   }
 
   // Get conversations for a counselor
-  Stream<List<ChatConversationModel>> getCounselorConversations(String counselorId) {
+  Stream<List<ChatConversationModel>> getCounselorConversations(
+    String counselorId,
+  ) {
     return _firestore
         .collection('chat_conversations')
         .where('counselorId', isEqualTo: counselorId)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ChatConversationModel.fromMap({
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => ChatConversationModel.fromMap({
                   ...doc.data(),
                   'id': doc.id,
-                }))
-            .toList());
+                }),
+              )
+              .toList(),
+        );
   }
 
-  // Get conversations for a teacher (can see all student conversations)
-  Stream<List<ChatConversationModel>> getTeacherConversations(String teacherId) {
+  // Get a single conversation
+  Future<ChatConversationModel> getConversation(String chatId) async {
+    final doc = await _firestore
+        .collection('chat_conversations')
+        .doc(chatId)
+        .get();
+    if (!doc.exists) throw Exception('Conversation not found');
+    return ChatConversationModel.fromMap({...doc.data()!, 'id': doc.id});
+  }
+
+  // Get conversations for a teacher (only those they are participating in)
+  Stream<List<ChatConversationModel>> getTeacherConversations(
+    String teacherId,
+  ) {
     return _firestore
         .collection('chat_conversations')
+        .where('counselorId', isEqualTo: teacherId)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ChatConversationModel.fromMap({
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => ChatConversationModel.fromMap({
                   ...doc.data(),
                   'id': doc.id,
-                }))
-            .toList());
+                }),
+              )
+              .toList(),
+        );
+  }
+
+  // Get all students in an institution to start a new chat
+  Future<List<Map<String, dynamic>>> getInstitutionStudents(
+    String institution,
+  ) async {
+    try {
+      final institutionNormalized = institution
+          .trim()
+          .replaceAll(RegExp(r'\s+'), '')
+          .toLowerCase();
+      final students = await _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'student')
+          .where('institutionNormalized', isEqualTo: institutionNormalized)
+          .where('isApproved', isEqualTo: true)
+          .get();
+
+      return students.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'id': doc.id,
+          'name': data['name'] ?? 'Student',
+          'department': data['department'] ?? 'General',
+          'email': data['email'],
+        };
+      }).toList();
+    } catch (e) {
+      throw Exception('Failed to get students: ${e.toString()}');
+    }
   }
 
   // Mark messages as read
@@ -222,7 +288,9 @@ class ChatService {
   }
 
   // Get available chat recipients (Counselors + Teachers in student's department)
-  Future<List<Map<String, dynamic>>> getAvailableChatRecipients(String? department) async {
+  Future<List<Map<String, dynamic>>> getAvailableChatRecipients(
+    String? department,
+  ) async {
     try {
       // 1. Get all Counselors (independent of department)
       final counselorsQuery = await _firestore
@@ -270,6 +338,7 @@ class ChatService {
       throw Exception('Failed to get chat recipients: ${e.toString()}');
     }
   }
+
   // Clear chat messages
   Future<void> clearChat(String chatId) async {
     try {
@@ -283,13 +352,13 @@ class ChatService {
       for (var doc in messages.docs) {
         batch.delete(doc.reference);
       }
-      
+
       // Update conversation last message
       batch.update(_firestore.collection('chat_conversations').doc(chatId), {
         'lastMessage': 'Chat cleared',
         'lastMessageAt': Timestamp.now(),
       });
-      
+
       await batch.commit();
     } catch (e) {
       throw Exception('Failed to clear chat: ${e.toString()}');
