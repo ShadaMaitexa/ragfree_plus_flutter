@@ -292,7 +292,7 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Therapeutic Tools',
+          'Quick Actions',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 20),
