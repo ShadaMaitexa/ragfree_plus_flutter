@@ -363,7 +363,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
       },
       {
         'icon': Icons.chat_rounded,
-        'title': 'Chat Hub',
+        'title': 'Chats',
         'color': Colors.green,
         'target': 2,
       },
@@ -385,7 +385,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'System Shortcuts',
+          'Quick  Actions',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 20),

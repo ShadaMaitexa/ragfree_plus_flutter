@@ -72,10 +72,10 @@ class _TeacherAwarenessPageState extends State<TeacherAwarenessPage>
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddAwarenessDialog(context),
-        label: const Text('Post Awareness'),
-        icon: const Icon(Icons.add_moderator_rounded),
+
+        child: const Icon(Icons.add_moderator_rounded),
       ),
     );
   }
