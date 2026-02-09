@@ -22,7 +22,6 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
   late Animation<double> _fadeAnimation;
   final ComplaintService _complaintService = ComplaintService();
   final ParentStudentService _parentStudentService = ParentStudentService();
-  int _currentTab = 0;
 
   @override
   void initState() {
@@ -50,59 +49,38 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
     final color = Theme.of(context).colorScheme.primary;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return FadeTransition(
-              opacity: _fadeAnimation,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: isDark
-                        ? [color.withValues(alpha: 0.05), Colors.transparent]
-                        : [Colors.grey.shade50, Colors.white],
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    _buildHeader(context, color),
-                    TabBar(
-                      onTap: (index) => setState(() => _currentTab = index),
-                      tabs: const [
-                        Tab(text: 'My Children', icon: Icon(Icons.family_restroom)),
-                        Tab(text: 'Campus Feed', icon: Icon(Icons.public)),
-                      ],
-                      indicatorColor: color,
-                      labelColor: color,
-                      unselectedLabelColor: Colors.grey,
-                    ),
-                    Expanded(
-                      child: TabBarView(
-                        physics: const NeverScrollableScrollPhysics(),
-                        children: [
-                          _buildComplaintsContent(context),
-                          _buildCampusFeedContent(context),
-                        ],
-                      ),
-                    ),
-                  ],
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: AnimatedBuilder(
+        animation: _animationController,
+        builder: (context, child) {
+          return FadeTransition(
+            opacity: _fadeAnimation,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [color.withValues(alpha: 0.05), Colors.transparent]
+                      : [Colors.grey.shade50, Colors.white],
                 ),
               ),
-            );
-          },
-        ),
-        floatingActionButton: _currentTab == 0 ? FloatingActionButton(
-          onPressed: () => _showAddComplaintDialog(context),
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          child: const Icon(Icons.add),
-        ) : null,
+              child: Column(
+                children: [
+                  _buildHeader(context, color),
+                  Expanded(child: _buildComplaintsContent(context)),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddComplaintDialog(context),
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -132,14 +110,12 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _currentTab == 0 ? 'Child Complaints' : 'Campus Safety Feed',
+                      'Child Complaints',
                       style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(fontWeight: FontWeight.w700, color: color),
                     ),
                     Text(
-                      _currentTab == 0 
-                          ? 'Monitor your children\'s safety reports'
-                          : 'Recent reports from other students in your campus',
+                      'Monitor your children\'s safety reports',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(
                           context,
@@ -152,79 +128,59 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
             ],
           ),
           const SizedBox(height: 20),
-          if (_currentTab == 0)
-            StreamBuilder<List<UserModel>>(
-              stream: _parentStudentService.getStudentsByParentEmail(user.email),
-              builder: (context, studentsSnapshot) {
-                final students = studentsSnapshot.data ?? [];
-                if (students.isEmpty) return const SizedBox.shrink();
-                
-                final List<String> studentIds = students.map((s) => s.uid).toList().cast<String>();
-                return StreamBuilder<List<ComplaintModel>>(
-                  stream: _complaintService.getParentChildComplaints(studentIds),
-                  builder: (context, snapshot) {
-                    final complaints = snapshot.data ?? [];
-                    return Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatCard(context, 'Total Reports', '${complaints.length}', Icons.assignment, Colors.blue),
+          StreamBuilder<List<UserModel>>(
+            stream: _parentStudentService.getStudentsByParentEmail(user.email),
+            builder: (context, studentsSnapshot) {
+              final students = studentsSnapshot.data ?? [];
+              if (students.isEmpty) return const SizedBox.shrink();
+
+              final List<String> studentIds = students
+                  .map((s) => s.uid)
+                  .toList()
+                  .cast<String>();
+              return StreamBuilder<List<ComplaintModel>>(
+                stream: _complaintService.getParentChildComplaints(studentIds),
+                builder: (context, snapshot) {
+                  final complaints = snapshot.data ?? [];
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          'Total Reports',
+                          '${complaints.length}',
+                          Icons.assignment,
+                          Colors.blue,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildStatCard(context, 'Resolved', '${complaints.where((c) => c.status == 'Resolved').length}', Icons.check_circle, Colors.green),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          'Resolved',
+                          '${complaints.where((c) => c.status == 'Resolved').length}',
+                          Icons.check_circle,
+                          Colors.green,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildStatCard(context, 'Pending', '${complaints.where((c) => c.status == 'Pending').length}', Icons.pending, Colors.orange),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          'Pending',
+                          '${complaints.where((c) => c.status == 'Pending').length}',
+                          Icons.pending,
+                          Colors.orange,
                         ),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildCampusFeedContent(BuildContext context) {
-    final user = Provider.of<AppState>(context).currentUser;
-    if (user == null || user.institutionNormalized == null) {
-      return _buildEmptyState(context, Colors.grey, text: 'No institution data found');
-    }
-
-    return StreamBuilder<List<ComplaintModel>>(
-      stream: _complaintService.getComplaintsByInstitution(user.institutionNormalized!),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
-        final complaints = snapshot.data ?? [];
-        if (complaints.isEmpty) {
-          return _buildEmptyState(context, Colors.grey, text: 'No reports from your campus yet');
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(20),
-          itemCount: complaints.length,
-          itemBuilder: (context, index) {
-            final complaint = complaints[index];
-            // Anonymize for campus feed
-            return _buildComplaintCard(
-              context, 
-              complaint, 
-              'Student at ${user.institution}', 
-              index, 
-              {},
-              isPublic: true,
-            );
-          },
-        );
-      },
     );
   }
 
@@ -239,7 +195,6 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
       ),
     );
   }
-
 
   Widget _buildStatCard(
     BuildContext context,
@@ -269,7 +224,9 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -302,7 +259,9 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
           Text(
             text ?? 'Your children\'s safety reports will appear here',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -310,7 +269,6 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
       ),
     );
   }
-
 
   Widget _buildComplaintsContent(BuildContext context) {
     final user = Provider.of<AppState>(context).currentUser;
@@ -322,14 +280,17 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
         if (studentsSnapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         final students = studentsSnapshot.data ?? [];
         if (students.isEmpty) {
           return _buildNoLinkedStudentsState(context);
         }
 
-        final List<String> studentIds = students.map((s) => s.uid).toList().cast<String>();
-        
+        final List<String> studentIds = students
+            .map((s) => s.uid)
+            .toList()
+            .cast<String>();
+
         return StreamBuilder<List<ComplaintModel>>(
           stream: _complaintService.getParentChildComplaints(studentIds),
           builder: (context, snapshot) {
@@ -341,7 +302,10 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
             }
             final complaints = snapshot.data ?? [];
             if (complaints.isEmpty) {
-              return _buildEmptyState(context, Theme.of(context).colorScheme.primary);
+              return _buildEmptyState(
+                context,
+                Theme.of(context).colorScheme.primary,
+              );
             }
             return _buildComplaintsList(context, complaints, students);
           },
@@ -350,11 +314,10 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
     );
   }
 
-
-
   Widget _buildNoLinkedStudentsState(BuildContext context) {
     final color = Theme.of(context).colorScheme.primary;
-    final parentEmail = Provider.of<AppState>(context, listen: false).currentUser?.email ?? '';
+    final parentEmail =
+        Provider.of<AppState>(context, listen: false).currentUser?.email ?? '';
 
     return Center(
       child: Column(
@@ -371,16 +334,18 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
           const SizedBox(height: 24),
           Text(
             'No Linked Students',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Text(
             'Students linked to your email ($parentEmail) will appear here. Ask your child to provide your email in their profile.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -394,8 +359,10 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
     List<UserModel> students,
   ) {
     // Create a map of uid to name
-    final Map<String, String> studentMap = {for (var s in students) s.uid: s.name};
-    
+    final Map<String, String> studentMap = {
+      for (var s in students) s.uid: s.name,
+    };
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return ListView.builder(
@@ -406,9 +373,17 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
           itemBuilder: (context, index) {
             final complaint = complaints[index];
             final childName = complaint.studentId != null
-                ? (studentMap[complaint.studentId!] ?? complaint.studentName ?? 'Anonymous')
+                ? (studentMap[complaint.studentId!] ??
+                      complaint.studentName ??
+                      'Anonymous')
                 : 'Anonymous';
-            return _buildComplaintCard(context, complaint, childName, index, studentMap);
+            return _buildComplaintCard(
+              context,
+              complaint,
+              childName,
+              index,
+              studentMap,
+            );
           },
         );
       },
@@ -420,9 +395,8 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
     ComplaintModel complaint,
     String childName,
     int index,
-    Map<String, String> studentMap, {
-    bool isPublic = false,
-  }) {
+    Map<String, String> studentMap,
+  ) {
     final status = complaint.status;
 
     Color statusColor;
@@ -448,7 +422,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: InkWell(
-          onTap: () => _showComplaintDetails(context, complaint, childName, isPublic: isPublic),
+          onTap: () => _showComplaintDetails(context, complaint, childName),
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -465,7 +439,9 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                       decoration: BoxDecoration(
                         color: statusColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: statusColor.withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Text(
                         status,
@@ -483,10 +459,14 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Text(
@@ -534,10 +514,11 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                     Expanded(
                       child: Text(
                         childName,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -545,7 +526,10 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                     if (complaint.isAnonymous)
                       Container(
                         margin: const EdgeInsets.only(left: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.grey.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
@@ -553,11 +537,18 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.visibility_off, size: 12, color: Colors.grey),
+                            Icon(
+                              Icons.visibility_off,
+                              size: 12,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               'Anonymous',
-                              style: TextStyle(fontSize: 10, color: Colors.grey),
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey,
+                              ),
                             ),
                           ],
                         ),
@@ -649,11 +640,12 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                       Flexible(
                         child: Text(
                           complaint.assignedToName!,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.6),
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.6),
+                              ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -692,12 +684,11 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
     );
   }
 
-   void _showComplaintDetails(
+  void _showComplaintDetails(
     BuildContext context,
     ComplaintModel complaint,
-    String childName, {
-    bool isPublic = false,
-  }) {
+    String childName,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -710,7 +701,11 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                 context,
               ).colorScheme.primary.withValues(alpha: 0.1),
               child: Text(
-                childName.split(' ').map((n) => n.isNotEmpty ? n[0] : '').join().toUpperCase(),
+                childName
+                    .split(' ')
+                    .map((n) => n.isNotEmpty ? n[0] : '')
+                    .join()
+                    .toUpperCase(),
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,
@@ -757,10 +752,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Text(
-                    'Type: ',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
+                  Text('Type: ', style: Theme.of(context).textTheme.titleSmall),
                   Text(
                     complaint.incidentType,
                     style: const TextStyle(fontWeight: FontWeight.w600),
@@ -844,7 +836,7 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
           ),
-          if (!isPublic && complaint.assignedToName != null)
+          if (complaint.assignedToName != null)
             FilledButton(
               onPressed: () {
                 Navigator.pop(context);
@@ -887,5 +879,4 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
       ),
     );
   }
-
 }

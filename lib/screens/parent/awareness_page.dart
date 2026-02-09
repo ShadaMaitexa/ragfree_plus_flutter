@@ -94,7 +94,7 @@ class _ParentAwarenessPageState extends State<ParentAwarenessPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Parent Awareness Center',
+                      ' Awareness ',
                       style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(fontWeight: FontWeight.w700, color: color),
                     ),
