@@ -137,7 +137,7 @@ class _ParentHomePageState extends State<ParentHomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Monitored Students', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        const Text('Linked Child', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
         const SizedBox(height: 20),
         StreamBuilder<List<UserModel>>(
           stream: _parentStudentService.getStudentsByParentEmail(user.email),
@@ -199,7 +199,7 @@ class _ParentHomePageState extends State<ParentHomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Proactive Safety', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        const Text('Active Tools', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
         const SizedBox(height: 20),
         GridView.builder(
           shrinkWrap: true,
