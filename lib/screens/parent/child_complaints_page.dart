@@ -4,7 +4,8 @@ import '../../services/complaint_service.dart';
 import '../../services/parent_student_service.dart';
 import '../../services/app_state.dart';
 import '../../models/complaint_model.dart';
-import '../../models/user_model.dart';
+
+import '../../models/parent_student_link_model.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/add_complaint_dialog.dart';
 
@@ -128,16 +129,15 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
             ],
           ),
           const SizedBox(height: 20),
-          StreamBuilder<List<UserModel>>(
-            stream: _parentStudentService.getStudentsByParentEmail(user.email),
+          StreamBuilder<List<ParentStudentLinkModel>>(
+            stream: _parentStudentService.getLinkedStudents(user.uid),
             builder: (context, studentsSnapshot) {
               final students = studentsSnapshot.data ?? [];
               if (students.isEmpty) return const SizedBox.shrink();
 
               final List<String> studentIds = students
-                  .map((s) => s.uid)
-                  .toList()
-                  .cast<String>();
+                  .map((s) => s.studentId)
+                  .toList();
               return StreamBuilder<List<ComplaintModel>>(
                 stream: _complaintService.getParentChildComplaints(studentIds),
                 builder: (context, snapshot) {
@@ -274,22 +274,21 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
     final user = Provider.of<AppState>(context).currentUser;
     if (user == null) return const Center(child: Text('User not found'));
 
-    return StreamBuilder<List<UserModel>>(
-      stream: _parentStudentService.getStudentsByParentEmail(user.email),
-      builder: (context, studentsSnapshot) {
-        if (studentsSnapshot.connectionState == ConnectionState.waiting) {
+    return StreamBuilder<List<ParentStudentLinkModel>>(
+      stream: _parentStudentService.getLinkedStudents(user.uid),
+      builder: (context, studentsLinkSnapshot) {
+        if (studentsLinkSnapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final students = studentsSnapshot.data ?? [];
-        if (students.isEmpty) {
+        final linkedStudents = studentsLinkSnapshot.data ?? [];
+        if (linkedStudents.isEmpty) {
           return _buildNoLinkedStudentsState(context);
         }
 
-        final List<String> studentIds = students
-            .map((s) => s.uid)
-            .toList()
-            .cast<String>();
+        final List<String> studentIds = linkedStudents
+            .map((s) => s.studentId)
+            .toList();
 
         return StreamBuilder<List<ComplaintModel>>(
           stream: _complaintService.getParentChildComplaints(studentIds),
@@ -307,7 +306,13 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
                 Theme.of(context).colorScheme.primary,
               );
             }
-            return _buildComplaintsList(context, complaints, students);
+
+            // Map link models to a format the list builder expects
+            final Map<String, String> studentMap = {
+              for (var s in linkedStudents) s.studentId: s.studentName,
+            };
+
+            return _buildComplaintsListByMap(context, complaints, studentMap);
           },
         );
       },
@@ -353,16 +358,11 @@ class _ParentChildComplaintsPageState extends State<ParentChildComplaintsPage>
     );
   }
 
-  Widget _buildComplaintsList(
+  Widget _buildComplaintsListByMap(
     BuildContext context,
     List<ComplaintModel> complaints,
-    List<UserModel> students,
+    Map<String, String> studentMap,
   ) {
-    // Create a map of uid to name
-    final Map<String, String> studentMap = {
-      for (var s in students) s.uid: s.name,
-    };
-
     return LayoutBuilder(
       builder: (context, constraints) {
         return ListView.builder(

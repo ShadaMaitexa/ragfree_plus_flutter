@@ -5,6 +5,7 @@ import '../../services/activity_service.dart';
 import '../../services/emergency_alert_service.dart';
 import '../../services/complaint_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/department_service.dart';
 import '../../models/activity_model.dart';
 import '../../models/complaint_model.dart';
 import '../../models/user_model.dart';
@@ -23,6 +24,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   final EmergencyAlertService _emergencyAlertService = EmergencyAlertService();
   final ComplaintService _complaintService = ComplaintService();
   final AuthService _authService = AuthService();
+  final DepartmentService _departmentService = DepartmentService();
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +79,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 child: _buildRecentActivity(context),
               ),
               const SizedBox(height: 32),
-
             ],
           ),
         ),
@@ -250,19 +251,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             return StreamBuilder<List<UserModel>>(
               stream: _authService.getUsersByRole('student'),
               builder: (context, studentsSnapshot) {
-                return StreamBuilder<List<UserModel>>(
-                  stream: _authService.getUsersByRole('counsellor'),
-                  builder: (context, counsellorsSnapshot) {
+                return StreamBuilder<List<String>>(
+                  stream: _departmentService.getDepartmentNames(),
+                  builder: (context, deptsSnapshot) {
                     final complaints = complaintsSnapshot.data ?? [];
                     final students = studentsSnapshot.data ?? [];
-                    
-                    // Calculate unique departments from students
-                    final uniqueDepartments = students
-                        .map((s) => s.department)
-                        .where((d) => d != null && d.trim().isNotEmpty)
-                        .map((d) => d!.trim().toUpperCase())
-                        .toSet()
-                        .length;
+                    final departmentCount = deptsSnapshot.data?.length ?? 0;
 
                     final stats = [
                       {
@@ -273,7 +267,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       },
                       {
                         'label': 'Departments',
-                        'value': '$uniqueDepartments',
+                        'value': '$departmentCount',
                         'icon': Icons.apartment_rounded,
                         'color': Colors.teal,
                       },
@@ -449,7 +443,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)],
+              colors: [
+                color.withValues(alpha: 0.15),
+                color.withValues(alpha: 0.05),
+              ],
             ),
           ),
           child: Column(
@@ -640,8 +637,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     }
   }
 
-
-
   void _navigateToUsers(BuildContext context) {
     Provider.of<AppState>(context, listen: false).setNavIndex(1);
   }
@@ -655,7 +650,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     final messageController = TextEditingController();
     String selectedPriority = 'medium';
     List<String> selectedRoles = ['all'];
-
 
     final availableRoles = [
       {'value': 'all', 'label': 'All Users'},
@@ -672,8 +666,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             title: const Row(
               children: [
                 Icon(Icons.dashboard_customize_rounded, color: Colors.orange),
@@ -744,8 +739,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         checkmarkColor: Colors.orange,
                         labelStyle: TextStyle(
                           color: isSelected ? Colors.orange : Colors.grey[700],
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                         ),
                       );
                     }).toList(),
@@ -778,7 +774,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   if (selectedRoles.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Please select at least one recipient type'),
+                        content: Text(
+                          'Please select at least one recipient type',
+                        ),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -838,5 +836,4 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       ),
     );
   }
-
 }

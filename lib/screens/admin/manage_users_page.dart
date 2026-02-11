@@ -18,7 +18,7 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 7, vsync: this);
+    _tabController = TabController(length: 8, vsync: this);
   }
 
   @override
@@ -64,29 +64,36 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
                 controller: _tabController,
                 children: [
                   _buildAllUsersTab(),
+                  _buildPendingUsersTab(),
                   _buildUserListStream(
                     _authService.getUsersByRole('student'),
                     'No students found',
+                    onlyApproved: true,
                   ),
                   _buildUserListStream(
                     _authService.getUsersByRole('parent'),
                     'No parents found',
+                    onlyApproved: true,
                   ),
                   _buildUserListStream(
                     _authService.getUsersByRole('teacher'),
                     'No teachers found',
+                    onlyApproved: true,
                   ),
                   _buildUserListStream(
                     _authService.getUsersByRole('counsellor'),
                     'No counsellors found',
+                    onlyApproved: true,
                   ),
                   _buildUserListStream(
                     _authService.getUsersByRole('warden'),
                     'No wardens found',
+                    onlyApproved: true,
                   ),
                   _buildUserListStream(
                     _authService.getUsersByRole('police'),
                     'No police officers found',
+                    onlyApproved: true,
                   ),
                 ],
               ),
@@ -130,7 +137,7 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
               ],
             ),
           ),
-// Button removed as per requirement
+          // Button removed as per requirement
         ],
       ),
     );
@@ -161,6 +168,7 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
         dividerColor: Colors.transparent,
         tabs: const [
           Tab(text: 'All'),
+          Tab(text: 'Pending'),
           Tab(text: 'Students'),
           Tab(text: 'Parents'),
           Tab(text: 'Teachers'),
@@ -179,11 +187,11 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         // Filter out administrators
         final allUsers = snapshot.data ?? [];
         final users = allUsers.where((user) => user.role != 'admin').toList();
-        
+
         if (users.isEmpty) {
           return _buildEmptyState(
             context,
@@ -205,17 +213,55 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
     );
   }
 
+  Widget _buildPendingUsersTab() {
+    return StreamBuilder<List<UserModel>>(
+      stream: _authService.getAllUsers(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final allUsers = snapshot.data ?? [];
+        final pendingUsers = allUsers
+            .where((user) => !user.isApproved && user.role != 'admin')
+            .toList();
+
+        if (pendingUsers.isEmpty) {
+          return _buildEmptyState(
+            context,
+            Icons.check_circle_outline_rounded,
+            'No pending approvals',
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          itemCount: pendingUsers.length,
+          itemBuilder: (context, index) => AnimatedWidgets.slideIn(
+            beginOffset: const Offset(0, 0.1),
+            delay: Duration(milliseconds: index * 50),
+            child: _buildUserCard(context, pendingUsers[index]),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildUserListStream(
     Stream<List<UserModel>> stream,
-    String emptyMessage,
-  ) {
+    String emptyMessage, {
+    bool onlyApproved = false,
+  }) {
     return StreamBuilder<List<UserModel>>(
       stream: stream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        final users = snapshot.data ?? [];
+        var users = snapshot.data ?? [];
+        if (onlyApproved) {
+          users = users.where((u) => u.isApproved).toList();
+        }
         if (users.isEmpty) {
           return _buildEmptyState(
             context,
@@ -280,15 +326,45 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
                         fontSize: 13,
                       ),
                     ),
-                    if (user.role == 'student' || user.role == 'teacher')
-                      Text(
-                        'Dept: ${user.department ?? 'Not assigned'}',
-                        style: TextStyle(
-                          color: color,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                    Row(
+                      children: [
+                        Text(
+                          user.role.toUpperCase(),
+                          style: TextStyle(
+                            color: color,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
                         ),
-                      ),
+                        if (user.department != null &&
+                            user.department!.isNotEmpty) ...[
+                          Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 6),
+                            width: 3,
+                            height: 3,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Theme.of(
+                                context,
+                              ).hintColor.withValues(alpha: 0.4),
+                            ),
+                          ),
+                          Flexible(
+                            child: Text(
+                              user.department!,
+                              style: TextStyle(
+                                color: Theme.of(context).hintColor,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -450,8 +526,6 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
       }
     }
   }
-
-
 }
 
 class _UserDetailSheet extends StatelessWidget {
