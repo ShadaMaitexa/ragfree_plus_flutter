@@ -153,6 +153,8 @@ class _AdminManageUsersPageState extends State<AdminManageUsersPage>
       child: TabBar(
         controller: _tabController,
         isScrollable: true,
+        tabAlignment: TabAlignment.start,
+        padding: EdgeInsets.zero,
         indicator: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           color: color,
