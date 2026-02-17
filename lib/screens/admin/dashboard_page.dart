@@ -376,7 +376,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       },
       {
         'icon': Icons.apartment_rounded,
-        'title': 'Divisions',
+        'title': 'Departments',
         'color': Colors.green,
         'onTap': () => _navigateToDepartments(context),
       },
