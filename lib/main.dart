@@ -1372,6 +1372,7 @@ class TeacherDashboard extends StatelessWidget {
         onDestinationSelected: (i) => appState.setNavIndex(i),
         destinations: destinations,
         pages: pages,
+        showBottomNavigation: false,
       ),
     );
   }
