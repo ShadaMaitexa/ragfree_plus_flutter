@@ -568,8 +568,8 @@ class AdminDashboard extends StatelessWidget {
       ),
       NavigationDestinationData(icon: Icons.receipt_long, label: 'Reports'),
       NavigationDestinationData(icon: Icons.analytics, label: 'Analytics'),
-      NavigationDestinationData(icon: Icons.person, label: 'Profile'),
       NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
+      NavigationDestinationData(icon: Icons.person, label: 'Profile'),
     ];
 
     final pages = const <Widget>[
@@ -581,8 +581,8 @@ class AdminDashboard extends StatelessWidget {
       _AdminPages.notifications,
       _AdminPages.reports,
       _AdminPages.analytics,
-      _AdminPages.profile,
       _AdminPages.feedback,
+      _AdminPages.profile,
     ];
 
     return PopScope(

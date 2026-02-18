@@ -652,7 +652,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   void _navigateToFeedback(BuildContext context) {
-    Provider.of<AppState>(context, listen: false).setNavIndex(9);
+    Provider.of<AppState>(context, listen: false).setNavIndex(8);
   }
 
   void _sendAlert(BuildContext context) {
