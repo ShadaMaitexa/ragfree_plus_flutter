@@ -381,6 +381,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         'onTap': () => _navigateToDepartments(context),
       },
       {
+        'icon': Icons.feedback_rounded,
+        'title': 'User Feedback',
+        'color': Colors.teal,
+        'onTap': () => _navigateToFeedback(context),
+      },
+      {
         'icon': Icons.notifications_active_rounded,
         'title': 'Global Notification',
         'color': Colors.orange,
@@ -643,6 +649,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   void _navigateToDepartments(BuildContext context) {
     Provider.of<AppState>(context, listen: false).setNavIndex(3);
+  }
+
+  void _navigateToFeedback(BuildContext context) {
+    Provider.of<AppState>(context, listen: false).setNavIndex(9);
   }
 
   void _sendAlert(BuildContext context) {

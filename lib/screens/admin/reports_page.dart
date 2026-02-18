@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/pdf_service.dart';
+import '../../services/complaint_service.dart';
+import '../../models/complaint_model.dart';
+import '../../services/app_state.dart';
+import 'package:provider/provider.dart';
 
 class AdminReportsPage extends StatefulWidget {
   const AdminReportsPage({super.key});
@@ -12,6 +16,7 @@ class AdminReportsPage extends StatefulWidget {
 class _AdminReportsPageState extends State<AdminReportsPage> {
   final PdfService _pdfService = PdfService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ComplaintService _complaintService = ComplaintService();
   bool _isGenerating = false;
 
   @override
@@ -25,10 +30,6 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionTitle(context, 'Standard Reports'),
-                const SizedBox(height: 16),
-                _buildReportGrid(context),
-                const SizedBox(height: 32),
                 _buildSectionTitle(context, 'Recent Activity Insights'),
                 const SizedBox(height: 16),
                 _buildInsightsCard(context),
@@ -62,16 +63,38 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Text(
       title,
-      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+      style: Theme.of(
+        context,
+      ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
     );
   }
 
   Widget _buildReportGrid(BuildContext context) {
     final reports = [
-      {'title': 'Annual Safety Audit', 'icon': Icons.security, 'color': Colors.blue, 'type': 'complaints'},
-      {'title': 'Complaint Analytics', 'icon': Icons.analytics, 'color': Colors.purple, 'type': 'analytics'},
-      {'title': 'User Directory Report', 'icon': Icons.group, 'color': Colors.green, 'type': 'users'},
-      {'title': 'Incident Hotspots', 'icon': Icons.map, 'color': Colors.red, 'type': 'incidents'},
+      {
+        'title': 'Annual Safety Audit',
+        'icon': Icons.security,
+        'color': Colors.blue,
+        'type': 'complaints',
+      },
+      {
+        'title': 'Complaint Analytics',
+        'icon': Icons.analytics,
+        'color': Colors.purple,
+        'type': 'analytics',
+      },
+      {
+        'title': 'User Directory Report',
+        'icon': Icons.group,
+        'color': Colors.green,
+        'type': 'users',
+      },
+      {
+        'title': 'Incident Hotspots',
+        'icon': Icons.map,
+        'color': Colors.red,
+        'type': 'incidents',
+      },
     ];
 
     return GridView.builder(
@@ -88,16 +111,25 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
         final report = reports[index];
         return Card(
           elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: InkWell(
-            onTap: () => _generateReport(report['type'] as String, report['title'] as String),
+            onTap: () => _generateReport(
+              report['type'] as String,
+              report['title'] as String,
+            ),
             borderRadius: BorderRadius.circular(16),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(report['icon'] as IconData, color: report['color'] as Color, size: 32),
+                  Icon(
+                    report['icon'] as IconData,
+                    color: report['color'] as Color,
+                    size: 32,
+                  ),
                   const SizedBox(height: 12),
                   Text(
                     report['title'] as String,
@@ -114,28 +146,108 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
   }
 
   Widget _buildInsightsCard(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+    return StreamBuilder<List<ComplaintModel>>(
+      stream: _complaintService.getAllComplaints(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final complaints = snapshot.data ?? [];
+
+        // Resolution Rate
+        final total = complaints.length;
+        final resolved = complaints.where((c) => c.status == 'Resolved').length;
+        final resolutionRate = total > 0 ? (resolved / total * 100).toInt() : 0;
+
+        // High Priority Tasks
+        final highPriority = complaints
+            .where((c) => c.priority == 'High' && c.status != 'Resolved')
+            .length;
+
+        // Average Response Time
+        double avgResponseTime = 0;
+        final resolvedWithTime = complaints
+            .where((c) => c.status == 'Resolved' && c.updatedAt != null)
+            .toList();
+        if (resolvedWithTime.isNotEmpty) {
+          final totalHours = resolvedWithTime.fold<int>(
+            0,
+            (sum, c) => sum + c.updatedAt!.difference(c.createdAt).inHours,
+          );
+          avgResponseTime = totalHours / resolvedWithTime.length;
+        }
+
+        return Column(
           children: [
-            _buildInsightItem(Icons.trending_up, '85% Resolution Rate', Colors.green),
-            const Divider(),
-            _buildInsightItem(Icons.warning_amber, '12 High Priority Tasks', Colors.orange),
-            const Divider(),
-            _buildInsightItem(Icons.access_time, 'Average 2hr response time', Colors.blue),
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _buildInsightItem(
+                      Icons.trending_up,
+                      '$resolutionRate% Resolution Rate',
+                      Colors.green,
+                      onTap: () => _generateReport(
+                        'analytics',
+                        'Resolution Rate Report',
+                      ),
+                    ),
+                    const Divider(),
+                    _buildInsightItem(
+                      Icons.warning_amber,
+                      '$highPriority High Priority Tasks',
+                      Colors.orange,
+                      onTap: () => Provider.of<AppState>(
+                        context,
+                        listen: false,
+                      ).setNavIndex(2),
+                    ),
+                    const Divider(),
+                    _buildInsightItem(
+                      Icons.access_time,
+                      'Average ${avgResponseTime.toStringAsFixed(1)}hr response time',
+                      Colors.blue,
+                      onTap: () =>
+                          _generateReport('analytics', 'Performance Audit'),
+                    ),
+                    const Divider(),
+                    _buildInsightItem(
+                      Icons.description_outlined,
+                      'Detailed Student Complaint Report',
+                      Colors.indigo,
+                      onTap: () =>
+                          _generateReport('complaints', 'Full Complaint Logs'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+            _buildSectionTitle(context, 'Standard Reports'),
+            const SizedBox(height: 16),
+            _buildReportGrid(context),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildInsightItem(IconData icon, String text, Color color) {
+  Widget _buildInsightItem(
+    IconData icon,
+    String text,
+    Color color, {
+    VoidCallback? onTap,
+  }) {
     return ListTile(
       leading: Icon(icon, color: color),
       title: Text(text),
       trailing: const Icon(Icons.chevron_right, size: 16),
+      onTap: onTap,
     );
   }
 
@@ -147,26 +259,40 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
 
       if (type == 'users') {
         final query = await _firestore.collection('users').limit(100).get();
-        data = query.docs.map((doc) => {
-          'Name': doc.data()['name'] ?? 'N/A',
-          'Email': doc.data()['email'] ?? 'N/A',
-          'Role': doc.data()['role'] ?? 'N/A',
-        }).toList();
+        data = query.docs
+            .map(
+              (doc) => {
+                'Name': doc.data()['name'] ?? 'N/A',
+                'Email': doc.data()['email'] ?? 'N/A',
+                'Role': doc.data()['role'] ?? 'N/A',
+              },
+            )
+            .toList();
         category = 'User Management';
       } else if (type == 'complaints' || type == 'analytics') {
-        final query = await _firestore.collection('complaints').limit(100).get();
-        data = query.docs.map((doc) => {
-          'Title': doc.data()['title'] ?? 'N/A',
-          'Student': doc.data()['studentName'] ?? 'Anonymous',
-          'Status': doc.data()['status'] ?? 'Pending',
-          'Priority': doc.data()['priority'] ?? 'Medium',
-        }).toList();
+        final query = await _firestore
+            .collection('complaints')
+            .limit(100)
+            .get();
+        data = query.docs
+            .map(
+              (doc) => {
+                'Title': doc.data()['title'] ?? 'N/A',
+                'Student': doc.data()['studentName'] ?? 'Anonymous',
+                'Status': doc.data()['status'] ?? 'Pending',
+                'Priority': doc.data()['priority'] ?? 'Medium',
+              },
+            )
+            .toList();
         category = 'safety & Complaints';
       } else {
         // Fetch real data for hotspots analysis
-        final query = await _firestore.collection('complaints').limit(100).get();
+        final query = await _firestore
+            .collection('complaints')
+            .limit(100)
+            .get();
         final Map<String, int> locationCounts = {};
-        
+
         for (var doc in query.docs) {
           final data = doc.data();
           // Use location if available, otherwise fall back to incidentType
@@ -174,14 +300,14 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
           if (area.trim().isEmpty) {
             area = data['incidentType']?.toString() ?? 'Unknown';
           }
-          
+
           // Normalize area name
           area = area.trim();
           if (area.isEmpty) area = 'Unknown Area';
-          
+
           locationCounts[area] = (locationCounts[area] ?? 0) + 1;
         }
-        
+
         data = locationCounts.entries.map((entry) {
           int count = entry.value;
           String status = 'Safe';
@@ -190,24 +316,28 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
           } else if (count >= 2) {
             status = 'Validation Required';
           }
-          
+
           return {
             'Area': entry.key,
             'Total Incidents': count.toString(),
             'Status': status,
           };
         }).toList();
-        
+
         // Sort by incident count descending
-        data.sort((a, b) => 
-          int.parse(b['Total Incidents']).compareTo(int.parse(a['Total Incidents']))
+        data.sort(
+          (a, b) => int.parse(
+            b['Total Incidents'],
+          ).compareTo(int.parse(a['Total Incidents'])),
         );
-        
+
         category = 'Safety Hotspots Analysis';
       }
 
       if (data.isEmpty) {
-        data = [{'Message': 'No data available for this report'}];
+        data = [
+          {'Message': 'No data available for this report'},
+        ];
       }
 
       await _pdfService.generateReport(
@@ -218,7 +348,10 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error generating report: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Error generating report: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       if (mounted) setState(() => _isGenerating = false);

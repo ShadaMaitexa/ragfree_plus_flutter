@@ -281,10 +281,10 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
         'target': 3,
       },
       {
-        'icon': Icons.assessment_rounded,
-        'title': 'Log Progress',
-        'color': Colors.purple,
-        'target': 5,
+        'icon': Icons.feedback_rounded,
+        'title': 'Feedback',
+        'color': Colors.teal,
+        'target': 6,
       },
     ];
 
@@ -346,7 +346,10 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)],
+              colors: [
+                color.withValues(alpha: 0.15),
+                color.withValues(alpha: 0.05),
+              ],
             ),
           ),
           child: Column(
@@ -392,12 +395,12 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
             ),
             if (user.role == 'counsellor') // Check just in case
-            IconButton(
-              icon: const Icon(Icons.refresh),
-               onPressed: () {
-                 setState(() {});
-               },
-            )
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () {
+                  setState(() {});
+                },
+              ),
           ],
         ),
         const SizedBox(height: 20),
@@ -415,7 +418,9 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
                   side: BorderSide(
-                    color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+                    color: Theme.of(
+                      context,
+                    ).dividerColor.withValues(alpha: 0.1),
                   ),
                 ),
                 child: Padding(
@@ -423,7 +428,7 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
                   child: Center(
                     child: Text(
                       'No recent interactions',
-                      style: TextStyle( color: Theme.of(context).disabledColor),
+                      style: TextStyle(color: Theme.of(context).disabledColor),
                     ),
                   ),
                 ),
@@ -447,7 +452,7 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
                   final activity = activities[index];
                   IconData icon;
                   Color color;
-                  
+
                   switch (activity.type) {
                     case 'complaint':
                       icon = Icons.assignment_rounded;
@@ -473,11 +478,7 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
                         color: color.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        icon,
-                        color: color,
-                        size: 20,
-                      ),
+                      child: Icon(icon, color: color, size: 20),
                     ),
                     title: Text(
                       activity.title,
@@ -504,5 +505,4 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}';
   }
-
 }

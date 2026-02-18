@@ -17,7 +17,6 @@ import 'screens/student/profile_page.dart';
 import 'screens/parent/home_page.dart' as parent;
 import 'screens/parent/child_complaints_page.dart' as parent;
 import 'screens/parent/chat_page.dart' as parent;
-import 'screens/parent/feedback_page.dart' as parent;
 import 'screens/parent/awareness_page.dart' as parent;
 import 'screens/parent/profile_page.dart' as parent;
 import 'screens/warden/dashboard_page.dart' as warden_pages;
@@ -25,7 +24,6 @@ import 'screens/warden/view_complaints_page.dart' as warden_pages;
 import 'screens/warden/forward_complaints_page.dart' as warden_pages;
 import 'screens/warden/students_page.dart' as warden_pages;
 import 'screens/warden/awareness_page.dart' as warden_pages;
-import 'screens/warden/feedback_page.dart' as warden_pages;
 import 'screens/warden/profile_page.dart' as warden_pages;
 import 'screens/warden/notifications_page.dart' as warden_pages;
 import 'screens/counsellor/dashboard_page.dart' as counsellor_pages;
@@ -55,8 +53,10 @@ import 'screens/admin/notifications_page.dart' as admin_pages;
 import 'screens/admin/reports_page.dart' as admin_pages;
 import 'screens/admin/analytics_page.dart' as admin_pages;
 import 'screens/admin/profile_page.dart' as admin_pages;
+import 'screens/admin/feedback_page.dart' as admin_pages;
 import 'services/emailjs_service.dart';
 import 'services/cloudinary_service.dart';
+import 'screens/common/feedback_page.dart';
 import 'widgets/responsive_scaffold.dart';
 import 'package:flutter/services.dart';
 import 'models/user_model.dart';
@@ -428,6 +428,11 @@ class StudentDashboard extends StatelessWidget {
         label: 'Profile',
         showInBottomNav: false,
       ),
+      NavigationDestinationData(
+        icon: Icons.feedback,
+        label: 'Feedback',
+        showInBottomNav: false,
+      ),
     ];
 
     final pages = <Widget>[
@@ -436,6 +441,7 @@ class StudentDashboard extends StatelessWidget {
       const StudentChatPage(),
       const StudentAwarenessPage(),
       const StudentProfilePage(),
+      const UserFeedbackPage(),
     ];
 
     return PopScope(
@@ -500,7 +506,7 @@ class ParentDashboard extends StatelessWidget {
       const parent.ParentChildComplaintsPage(),
       const parent.ParentChatPage(),
       const parent.ParentAwarenessPage(),
-      const parent.ParentFeedbackPage(),
+      const UserFeedbackPage(),
       const parent.ParentProfilePage(),
     ];
 
@@ -563,6 +569,7 @@ class AdminDashboard extends StatelessWidget {
       NavigationDestinationData(icon: Icons.receipt_long, label: 'Reports'),
       NavigationDestinationData(icon: Icons.analytics, label: 'Analytics'),
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
+      NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
     ];
 
     final pages = const <Widget>[
@@ -575,6 +582,7 @@ class AdminDashboard extends StatelessWidget {
       _AdminPages.reports,
       _AdminPages.analytics,
       _AdminPages.profile,
+      _AdminPages.feedback,
     ];
 
     return PopScope(
@@ -627,6 +635,7 @@ class _AdminPages {
   static const Widget reports = _AdminLazy(page: _AdminPage.reports);
   static const Widget analytics = _AdminLazy(page: _AdminPage.analytics);
   static const Widget profile = _AdminLazy(page: _AdminPage.profile);
+  static const Widget feedback = _AdminLazy(page: _AdminPage.feedback);
 }
 
 enum _AdminPage {
@@ -639,6 +648,7 @@ enum _AdminPage {
   reports,
   analytics,
   profile,
+  feedback,
 }
 
 class _AdminLazy extends StatelessWidget {
@@ -666,6 +676,8 @@ class _AdminLazy extends StatelessWidget {
         return const _AdminAnalyticsProxy();
       case _AdminPage.profile:
         return const _AdminProfileProxy();
+      case _AdminPage.feedback:
+        return const _AdminFeedbackProxy();
     }
   }
 }
@@ -727,6 +739,12 @@ class _AdminProfileProxy extends StatelessWidget {
   Widget build(BuildContext context) => const admin_pages.AdminProfilePage();
 }
 
+class _AdminFeedbackProxy extends StatelessWidget {
+  const _AdminFeedbackProxy();
+  @override
+  Widget build(BuildContext context) => const admin_pages.AdminFeedbackPage();
+}
+
 class CounsellorDashboard extends StatelessWidget {
   const CounsellorDashboard({super.key});
 
@@ -742,6 +760,7 @@ class CounsellorDashboard extends StatelessWidget {
       NavigationDestinationData(icon: Icons.chat_bubble, label: 'Chat'),
       NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
+      NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
     ];
 
     final pages = [
@@ -751,6 +770,7 @@ class CounsellorDashboard extends StatelessWidget {
       _CounsellorPages.chat,
       _CounsellorPages.awareness,
       _CounsellorPages.profile,
+      const UserFeedbackPage(),
     ];
 
     return PopScope(
@@ -1122,7 +1142,7 @@ class _WardenAwarenessProxy extends StatelessWidget {
 class _WardenFeedbackProxy extends StatelessWidget {
   const _WardenFeedbackProxy();
   @override
-  Widget build(BuildContext context) => const warden_pages.WardenFeedbackPage();
+  Widget build(BuildContext context) => const UserFeedbackPage();
 }
 
 class _WardenNotificationsProxy extends StatelessWidget {
@@ -1150,6 +1170,7 @@ class PoliceDashboard extends StatelessWidget {
         label: 'Notify',
       ),
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
+      NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
     ];
 
     final pages = const <Widget>[
@@ -1159,6 +1180,7 @@ class PoliceDashboard extends StatelessWidget {
       _PolicePages.generateReport,
       _PolicePages.sendNotification,
       _PolicePages.profile,
+      UserFeedbackPage(),
     ];
 
     return PopScope(
@@ -1304,6 +1326,7 @@ class TeacherDashboard extends StatelessWidget {
       ),
       NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
+      NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
     ];
 
     final pages = <Widget>[
@@ -1313,6 +1336,7 @@ class TeacherDashboard extends StatelessWidget {
       _TeacherDashboardPages.notifications,
       _TeacherDashboardPages.awareness,
       _TeacherDashboardPages.profile,
+      const UserFeedbackPage(),
     ];
 
     return PopScope(

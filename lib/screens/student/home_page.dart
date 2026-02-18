@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'book_appointment_page.dart';
-import 'feedback_page.dart';
 import '../../services/app_state.dart';
 import '../../services/complaint_service.dart';
 import '../../services/activity_service.dart';
@@ -34,8 +33,16 @@ class _StudentHomePageState extends State<StudentHomePage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDark
-              ? [color.withValues(alpha: 0.08), Colors.transparent, color.withValues(alpha: 0.04)]
-              : [Colors.white, color.withValues(alpha: 0.02), color.withValues(alpha: 0.05)],
+              ? [
+                  color.withValues(alpha: 0.08),
+                  Colors.transparent,
+                  color.withValues(alpha: 0.04),
+                ]
+              : [
+                  Colors.white,
+                  color.withValues(alpha: 0.02),
+                  color.withValues(alpha: 0.05),
+                ],
         ),
       ),
       child: SafeArea(
@@ -73,7 +80,9 @@ class _StudentHomePageState extends State<StudentHomePage> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [Colors.red, Colors.deepOrange]),
+                    gradient: const LinearGradient(
+                      colors: [Colors.red, Colors.deepOrange],
+                    ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
@@ -90,7 +99,11 @@ class _StudentHomePageState extends State<StudentHomePage> {
                       SizedBox(width: 12),
                       Text(
                         'EMERGENCY SOS',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 1.2),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                        ),
                       ),
                     ],
                   ),
@@ -130,7 +143,11 @@ class _StudentHomePageState extends State<StudentHomePage> {
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(Icons.stars_rounded, color: Colors.white, size: 28),
+                  child: const Icon(
+                    Icons.stars_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
                 ),
                 const SizedBox(width: 20),
                 Expanded(
@@ -139,17 +156,21 @@ class _StudentHomePageState extends State<StudentHomePage> {
                     children: [
                       Text(
                         'Member of RagFree+',
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       Consumer<AppState>(
                         builder: (context, appState, _) {
                           final userName = appState.currentUser?.name ?? 'User';
                           return Text(
                             'Hello, $userName',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
-                            ),
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
                           );
                         },
                       ),
@@ -158,7 +179,10 @@ class _StudentHomePageState extends State<StudentHomePage> {
                 ),
                 IconButton(
                   onPressed: () {},
-                  icon: const Icon(Icons.notifications_active, color: Colors.white),
+                  icon: const Icon(
+                    Icons.notifications_active,
+                    color: Colors.white,
+                  ),
                   style: IconButton.styleFrom(backgroundColor: Colors.white24),
                 ),
               ],
@@ -172,12 +196,19 @@ class _StudentHomePageState extends State<StudentHomePage> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.security_update_good, color: Colors.white70, size: 20),
+                  const Icon(
+                    Icons.security_update_good,
+                    color: Colors.white70,
+                    size: 20,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Your safety is our priority. Report any concern instantly.',
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 13),
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ],
@@ -191,10 +222,30 @@ class _StudentHomePageState extends State<StudentHomePage> {
 
   Widget _buildQuickActions(BuildContext context, Color color) {
     final actions = [
-      {'icon': Icons.calendar_month_rounded, 'title': 'Counseling', 'color': Colors.indigo, 'onTap': () => _navigateToBooking(context)},
-      {'icon': Icons.gavel_rounded, 'title': 'Complaints', 'color': Colors.deepOrange, 'onTap': () => _navigateToComplaints(context)},
-      {'icon': Icons.forum_rounded, 'title': 'Live Support', 'color': Colors.blue, 'onTap': () => _navigateToChat(context)},
-      {'icon': Icons.school_rounded, 'title': 'Awareness', 'color': Colors.green, 'onTap': () => _navigateToAwareness(context)},
+      {
+        'icon': Icons.calendar_month_rounded,
+        'title': 'Counseling',
+        'color': Colors.indigo,
+        'onTap': () => _navigateToBooking(context),
+      },
+      {
+        'icon': Icons.gavel_rounded,
+        'title': 'Complaints',
+        'color': Colors.deepOrange,
+        'onTap': () => _navigateToComplaints(context),
+      },
+      {
+        'icon': Icons.forum_rounded,
+        'title': 'Live Support',
+        'color': Colors.blue,
+        'onTap': () => _navigateToChat(context),
+      },
+      {
+        'icon': Icons.school_rounded,
+        'title': 'Awareness',
+        'color': Colors.green,
+        'onTap': () => _navigateToAwareness(context),
+      },
     ];
 
     return Column(
@@ -209,7 +260,12 @@ class _StudentHomePageState extends State<StudentHomePage> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
+            crossAxisCount: Responsive.getGridCrossAxisCount(
+              context,
+              mobile: 2,
+              tablet: 4,
+              desktop: 4,
+            ),
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
             childAspectRatio: 1.1,
@@ -231,7 +287,14 @@ class _StudentHomePageState extends State<StudentHomePage> {
     );
   }
 
-  Widget _buildActionCard(BuildContext context, IconData icon, String title, Color color, VoidCallback onTap, int index) {
+  Widget _buildActionCard(
+    BuildContext context,
+    IconData icon,
+    String title,
+    Color color,
+    VoidCallback onTap,
+    int index,
+  ) {
     return AnimatedWidgets.scaleButton(
       onPressed: onTap,
       child: AnimatedWidgets.hoverCard(
@@ -242,7 +305,10 @@ class _StudentHomePageState extends State<StudentHomePage> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)],
+              colors: [
+                color.withValues(alpha: 0.15),
+                color.withValues(alpha: 0.05),
+              ],
             ),
           ),
           child: Column(
@@ -250,13 +316,20 @@ class _StudentHomePageState extends State<StudentHomePage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: 0.1)),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color.withValues(alpha: 0.1),
+                ),
                 child: Icon(icon, color: color, size: 28),
               ),
               const SizedBox(height: 12),
               Text(
                 title,
-                style: TextStyle(fontWeight: FontWeight.w700, color: color, fontSize: 13),
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                  fontSize: 13,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -272,23 +345,47 @@ class _StudentHomePageState extends State<StudentHomePage> {
     if (user == null) return const SizedBox.shrink();
 
     return StreamBuilder<List<dynamic>>(
-      stream: _complaintService.getStudentComplaints(user.uid).map((c) => [
-            c.length,
-            c.where((x) => x.status == 'Resolved').length,
-            c.where((x) => x.status != 'Resolved').length,
-          ]),
+      stream: _complaintService
+          .getStudentComplaints(user.uid)
+          .map(
+            (c) => [
+              c.length,
+              c.where((x) => x.status == 'Resolved').length,
+              c.where((x) => x.status != 'Resolved').length,
+            ],
+          ),
       builder: (context, snapshot) {
         final stats = [
-          {'label': 'Total Complaints', 'value': '${snapshot.data?[0] ?? 0}', 'icon': Icons.folder_rounded, 'color': Colors.blue},
-          {'label': 'Resolved', 'value': '${snapshot.data?[1] ?? 0}', 'icon': Icons.verified_rounded, 'color': Colors.green},
-          {'label': 'Active', 'value': '${snapshot.data?[2] ?? 0}', 'icon': Icons.hourglass_empty_rounded, 'color': Colors.orange},
+          {
+            'label': 'Total Complaints',
+            'value': '${snapshot.data?[0] ?? 0}',
+            'icon': Icons.folder_rounded,
+            'color': Colors.blue,
+          },
+          {
+            'label': 'Resolved',
+            'value': '${snapshot.data?[1] ?? 0}',
+            'icon': Icons.verified_rounded,
+            'color': Colors.green,
+          },
+          {
+            'label': 'Active',
+            'value': '${snapshot.data?[2] ?? 0}',
+            'icon': Icons.hourglass_empty_rounded,
+            'color': Colors.orange,
+          },
         ];
 
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: Responsive.getGridCrossAxisCount(context, mobile: 2, tablet: 4, desktop: 4),
+            crossAxisCount: Responsive.getGridCrossAxisCount(
+              context,
+              mobile: 2,
+              tablet: 4,
+              desktop: 4,
+            ),
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
             childAspectRatio: 1.3,
@@ -296,18 +393,33 @@ class _StudentHomePageState extends State<StudentHomePage> {
           itemCount: stats.length,
           itemBuilder: (context, index) {
             final stat = stats[index];
-            return _buildStatCard(context, stat['icon'] as IconData, stat['label'] as String, stat['value'] as String, stat['color'] as Color);
+            return _buildStatCard(
+              context,
+              stat['icon'] as IconData,
+              stat['label'] as String,
+              stat['value'] as String,
+              stat['color'] as Color,
+            );
           },
         );
       },
     );
   }
 
-  Widget _buildStatCard(BuildContext context, IconData icon, String label, String value, Color color) {
+  Widget _buildStatCard(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+    Color color,
+  ) {
     return Card(
       elevation: 0,
       color: color.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withValues(alpha: 0.1))),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: color.withValues(alpha: 0.1)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -315,8 +427,22 @@ class _StudentHomePageState extends State<StudentHomePage> {
           children: [
             Icon(icon, color: color, size: 24),
             const Spacer(),
-            Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: color)),
-            Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).hintColor, fontWeight: FontWeight.w600)),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: color,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: Theme.of(context).hintColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
@@ -330,19 +456,32 @@ class _StudentHomePageState extends State<StudentHomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Recent Activity', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        const Text(
+          'Recent Activity',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+        ),
         const SizedBox(height: 16),
         StreamBuilder<List<ActivityModel>>(
           stream: _activityService.getUserActivities(user.uid, limit: 3),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return ShimmerEffect(child: Container(height: 200, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20))));
+              return ShimmerEffect(
+                child: Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              );
             }
             final activities = snapshot.data ?? [];
             if (activities.isEmpty) return _buildEmptyActivity();
 
             return Column(
-              children: activities.map((a) => _buildActivityItemFromModel(context, a)).toList(),
+              children: activities
+                  .map((a) => _buildActivityItemFromModel(context, a))
+                  .toList(),
             );
           },
         ),
@@ -357,18 +496,29 @@ class _StudentHomePageState extends State<StudentHomePage> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
+        ),
       ),
       child: Column(
         children: [
-          Icon(Icons.history_rounded, size: 40, color: Theme.of(context).disabledColor),
+          Icon(
+            Icons.history_rounded,
+            size: 40,
+            color: Theme.of(context).disabledColor,
+          ),
           const SizedBox(height: 12),
-          Text('No recent activity', style: TextStyle(color: Theme.of(context).disabledColor, fontWeight: FontWeight.w600)),
+          Text(
+            'No recent activity',
+            style: TextStyle(
+              color: Theme.of(context).disabledColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
   }
-
 
   Widget _buildActivityItemFromModel(
     BuildContext context,
@@ -442,7 +592,9 @@ class _StudentHomePageState extends State<StudentHomePage> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Row(
             children: [
               Icon(Icons.emergency, color: Colors.red),
@@ -485,8 +637,10 @@ class _StudentHomePageState extends State<StudentHomePage> {
                       if (!context.mounted) return;
                       setDialogState(() => _isSendingSOS = true);
                       try {
-                        final appState =
-                            Provider.of<AppState>(context, listen: false);
+                        final appState = Provider.of<AppState>(
+                          context,
+                          listen: false,
+                        );
                         final user = appState.currentUser;
 
                         if (user != null) {
@@ -503,7 +657,8 @@ class _StudentHomePageState extends State<StudentHomePage> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(
-                                    'Emergency alert sent! Help is on the way.'),
+                                  'Emergency alert sent! Help is on the way.',
+                                ),
                                 backgroundColor: Colors.red,
                                 duration: Duration(seconds: 5),
                               ),
@@ -563,5 +718,4 @@ class _StudentHomePageState extends State<StudentHomePage> {
   void _navigateToAwareness(BuildContext context) {
     Provider.of<AppState>(context, listen: false).setNavIndex(3);
   }
-
 }

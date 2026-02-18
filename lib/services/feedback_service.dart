@@ -21,12 +21,13 @@ class FeedbackService {
         .collection('feedback')
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => FeedbackModel.fromMap({
-                  ...doc.data(),
-                  'id': doc.id,
-                }))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => FeedbackModel.fromMap({...doc.data(), 'id': doc.id}),
+              )
+              .toList(),
+        );
   }
 
   // Get feedback by role
@@ -36,12 +37,13 @@ class FeedbackService {
         .where('userRole', isEqualTo: role)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => FeedbackModel.fromMap({
-                  ...doc.data(),
-                  'id': doc.id,
-                }))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => FeedbackModel.fromMap({...doc.data(), 'id': doc.id}),
+              )
+              .toList(),
+        );
   }
 
   // Get user's own feedback
@@ -51,11 +53,21 @@ class FeedbackService {
         .where('userId', isEqualTo: userId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => FeedbackModel.fromMap({
-                  ...doc.data(),
-                  'id': doc.id,
-                }))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => FeedbackModel.fromMap({...doc.data(), 'id': doc.id}),
+              )
+              .toList(),
+        );
+  }
+
+  // Delete feedback (for admin)
+  Future<void> deleteFeedback(String feedbackId) async {
+    try {
+      await _firestore.collection('feedback').doc(feedbackId).delete();
+    } catch (e) {
+      throw Exception('Failed to delete feedback: ${e.toString()}');
+    }
   }
 }

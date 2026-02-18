@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../services/pdf_service.dart';
 import '../../services/complaint_service.dart';
 import '../../services/auth_service.dart';
 import '../../models/complaint_model.dart';
 import '../../models/user_model.dart';
+import '../../services/app_state.dart';
+import 'package:provider/provider.dart';
 
 class AdminAnalyticsPage extends StatefulWidget {
   const AdminAnalyticsPage({super.key});
@@ -69,7 +69,10 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: isDark
-                            ? [color.withValues(alpha: 0.05), Colors.transparent]
+                            ? [
+                                color.withValues(alpha: 0.05),
+                                Colors.transparent,
+                              ]
                             : [Colors.grey.shade50, Colors.white],
                       ),
                     ),
@@ -99,21 +102,31 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     );
   }
 
-  Widget _buildHeader(BuildContext context, Color color, List<ComplaintModel> complaints) {
+  Widget _buildHeader(
+    BuildContext context,
+    Color color,
+    List<ComplaintModel> complaints,
+  ) {
     final total = complaints.length;
     final resolved = complaints.where((c) => c.status == 'Resolved').length;
-    
+
     // Calculate Response Time
     double avgResponseTime = 0;
-    final resolvedComplaints = complaints.where((c) => c.status == 'Resolved' && c.updatedAt != null).toList();
+    final resolvedComplaints = complaints
+        .where((c) => c.status == 'Resolved' && c.updatedAt != null)
+        .toList();
     if (resolvedComplaints.isNotEmpty) {
-      final totalDiff = resolvedComplaints.fold<int>(0, (totalSum, c) => totalSum + c.updatedAt!.difference(c.createdAt).inHours);
+      final totalDiff = resolvedComplaints.fold<int>(
+        0,
+        (totalSum, c) =>
+            totalSum + c.updatedAt!.difference(c.createdAt).inHours,
+      );
       avgResponseTime = totalDiff / resolvedComplaints.length;
     }
 
     // Rough Change percentages (compare this month vs all time Avg or something)
     // For now, keep them or calculate if we have enough data.
-    
+
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -142,25 +155,34 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
                             Text(
                               'Analytics Dashboard',
                               style: Theme.of(context).textTheme.headlineSmall
-                                  ?.copyWith(fontWeight: FontWeight.w700, color: color, fontSize: isNarrow ? 20 : null),
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: color,
+                                    fontSize: isNarrow ? 20 : null,
+                                  ),
                             ),
                             Text(
                               'Comprehensive insights and reports',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.7),
-                                fontSize: isNarrow ? 12 : null,
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.7),
+                                    fontSize: isNarrow ? 12 : null,
+                                  ),
                             ),
                           ],
                         ),
                       ),
                       if (!isNarrow)
                         FilledButton.icon(
-                          onPressed: () => _exportReport(context),
-                          icon: const Icon(Icons.download),
-                          label: const Text('Export Report'),
+                          onPressed: () => Provider.of<AppState>(
+                            context,
+                            listen: false,
+                          ).setNavIndex(6),
+                          icon: const Icon(Icons.receipt_long),
+                          label: const Text('View Reports'),
                           style: FilledButton.styleFrom(backgroundColor: color),
                         ),
                     ],
@@ -170,9 +192,12 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton.icon(
-                        onPressed: () => _exportReport(context),
-                        icon: const Icon(Icons.download),
-                        label: const Text('Export Report'),
+                        onPressed: () => Provider.of<AppState>(
+                          context,
+                          listen: false,
+                        ).setNavIndex(6),
+                        icon: const Icon(Icons.receipt_long),
+                        label: const Text('View Reports'),
                         style: FilledButton.styleFrom(backgroundColor: color),
                       ),
                     ),
@@ -266,7 +291,6 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
         ],
       ),
     );
-
   }
 
   Widget _buildStatCard(
@@ -298,7 +322,9 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -340,7 +366,11 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     );
   }
 
-  Widget _buildOverviewTab(BuildContext context, List<ComplaintModel> complaints, List<UserModel> users) {
+  Widget _buildOverviewTab(
+    BuildContext context,
+    List<ComplaintModel> complaints,
+    List<UserModel> users,
+  ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -377,19 +407,29 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     );
   }
 
-  Map<String, double> _calculateComplaintsTrend(List<ComplaintModel> complaints) {
+  Map<String, double> _calculateComplaintsTrend(
+    List<ComplaintModel> complaints,
+  ) {
     final months = <String, double>{};
     final now = DateTime.now();
     for (int i = 5; i >= 0; i--) {
       final monthDate = DateTime(now.year, now.month - i, 1);
       final monthName = _getMonthName(monthDate.month);
-      final count = complaints.where((c) => c.createdAt.month == monthDate.month && c.createdAt.year == monthDate.year).length;
+      final count = complaints
+          .where(
+            (c) =>
+                c.createdAt.month == monthDate.month &&
+                c.createdAt.year == monthDate.year,
+          )
+          .length;
       months[monthName] = count.toDouble();
     }
     return months;
   }
 
-  Map<String, double> _calculateResolutionRate(List<ComplaintModel> complaints) {
+  Map<String, double> _calculateResolutionRate(
+    List<ComplaintModel> complaints,
+  ) {
     final categories = <String, double>{};
     for (var c in complaints) {
       if (c.status == 'Resolved') {
@@ -408,11 +448,27 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
   }
 
   String _getMonthName(int month) {
-    const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const names = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return names[month - 1];
   }
 
-  Widget _buildComplaintsTab(BuildContext context, List<ComplaintModel> complaints) {
+  Widget _buildComplaintsTab(
+    BuildContext context,
+    List<ComplaintModel> complaints,
+  ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -428,7 +484,11 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     );
   }
 
-  Widget _buildUsersTab(BuildContext context, List<ComplaintModel> complaints, List<UserModel> users) {
+  Widget _buildUsersTab(
+    BuildContext context,
+    List<ComplaintModel> complaints,
+    List<UserModel> users,
+  ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -452,8 +512,8 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     Color color,
     Map<String, double> data,
   ) {
-    double maxValue = data.isNotEmpty 
-        ? data.values.reduce((a, b) => a > b ? a : b) 
+    double maxValue = data.isNotEmpty
+        ? data.values.reduce((a, b) => a > b ? a : b)
         : 1.0;
     if (maxValue == 0) maxValue = 1.0;
 
@@ -466,7 +526,10 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
+            colors: [
+              color.withValues(alpha: 0.1),
+              color.withValues(alpha: 0.05),
+            ],
           ),
         ),
         child: Padding(
@@ -508,40 +571,52 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
               Container(
                 height: 200,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: data.isEmpty 
-                  ? Center(child: Text('No data distribution available', style: TextStyle(color: color.withValues(alpha: 0.5))))
-                  : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: data.entries.map((entry) {
-                      final percentage = entry.value / maxValue;
-                      return Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 4),
-                              height: 140 * percentage,
-                              decoration: BoxDecoration(
-                                color: color.withValues(alpha: 0.7 + (0.3 * percentage)),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              entry.key,
-                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Text(
-                              entry.value.toInt().toString(),
-                              style: TextStyle(fontSize: 10, color: color),
-                            ),
-                          ],
+                child: data.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No data distribution available',
+                          style: TextStyle(color: color.withValues(alpha: 0.5)),
                         ),
-                      );
-                    }).toList(),
-                  ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: data.entries.map((entry) {
+                          final percentage = entry.value / maxValue;
+                          return Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  height: 140 * percentage,
+                                  decoration: BoxDecoration(
+                                    color: color.withValues(
+                                      alpha: 0.7 + (0.3 * percentage),
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  entry.key,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  entry.value.toInt().toString(),
+                                  style: TextStyle(fontSize: 10, color: color),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
               ),
             ],
           ),
@@ -550,11 +625,14 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     );
   }
 
-  Widget _buildComplaintsStatsStatic(BuildContext context, List<ComplaintModel> complaints) {
+  Widget _buildComplaintsStatsStatic(
+    BuildContext context,
+    List<ComplaintModel> complaints,
+  ) {
     final total = complaints.length;
     final resolved = complaints.where((c) => c.status == 'Resolved').length;
     final pending = complaints.where((c) => c.status == 'Pending').length;
-    
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -565,14 +643,37 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
           children: [
             Text(
               'Complaints Statistics',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(child: _buildStatItem(context, 'Total', total.toString(), Colors.blue)),
-                Expanded(child: _buildStatItem(context, 'Resolved', resolved.toString(), Colors.green)),
-                Expanded(child: _buildStatItem(context, 'Pending', pending.toString(), Colors.orange)),
+                Expanded(
+                  child: _buildStatItem(
+                    context,
+                    'Total',
+                    total.toString(),
+                    Colors.blue,
+                  ),
+                ),
+                Expanded(
+                  child: _buildStatItem(
+                    context,
+                    'Resolved',
+                    resolved.toString(),
+                    Colors.green,
+                  ),
+                ),
+                Expanded(
+                  child: _buildStatItem(
+                    context,
+                    'Pending',
+                    pending.toString(),
+                    Colors.orange,
+                  ),
+                ),
               ],
             ),
           ],
@@ -581,7 +682,10 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     );
   }
 
-  Widget _buildComplaintsByCategoryStatic(BuildContext context, List<ComplaintModel> complaints) {
+  Widget _buildComplaintsByCategoryStatic(
+    BuildContext context,
+    List<ComplaintModel> complaints,
+  ) {
     final categoryCounts = <String, int>{};
     final categoryColors = {
       'Harassment': Colors.red,
@@ -590,19 +694,23 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
       'Cyber Bullying': Colors.blue,
       'Other': Colors.grey,
     };
-    
+
     for (var complaint in complaints) {
-      final category = complaint.category.isEmpty ? 'Other' : complaint.category;
+      final category = complaint.category.isEmpty
+          ? 'Other'
+          : complaint.category;
       categoryCounts[category] = (categoryCounts[category] ?? 0) + 1;
     }
-    
-    final categories = categoryCounts.entries.map((entry) {
-      return {
-        'name': entry.key,
-        'count': entry.value,
-        'color': categoryColors[entry.key] ?? Colors.grey,
-      };
-    }).toList()..sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
+
+    final categories =
+        categoryCounts.entries.map((entry) {
+            return {
+              'name': entry.key,
+              'count': entry.value,
+              'color': categoryColors[entry.key] ?? Colors.grey,
+            };
+          }).toList()
+          ..sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
 
     return Card(
       elevation: 2,
@@ -614,38 +722,53 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
           children: [
             Text(
               'Complaints by Category',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
-            if (categories.isEmpty) 
-               const Center(child: Padding(padding: EdgeInsets.all(16), child: Text('No complaints yet')))
+            if (categories.isEmpty)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text('No complaints yet'),
+                ),
+              )
             else
-               ...categories.map((category) => _buildCategoryItem(context, category)),
+              ...categories.map(
+                (category) => _buildCategoryItem(context, category),
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildComplaintsByStatusStatic(BuildContext context, List<ComplaintModel> complaints) {
+  Widget _buildComplaintsByStatusStatic(
+    BuildContext context,
+    List<ComplaintModel> complaints,
+  ) {
     final statusCounts = <String, int>{};
     final statusColors = {
       'Resolved': Colors.green,
       'In Progress': Colors.blue,
       'Pending': Colors.orange,
     };
-    
+
     for (var complaint in complaints) {
-      statusCounts[complaint.status] = (statusCounts[complaint.status] ?? 0) + 1;
+      statusCounts[complaint.status] =
+          (statusCounts[complaint.status] ?? 0) + 1;
     }
-    
-    final statuses = statusCounts.entries.map((entry) {
-      return {
-        'name': entry.key,
-        'count': entry.value,
-        'color': statusColors[entry.key] ?? Colors.grey,
-      };
-    }).toList()..sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
+
+    final statuses =
+        statusCounts.entries.map((entry) {
+            return {
+              'name': entry.key,
+              'count': entry.value,
+              'color': statusColors[entry.key] ?? Colors.grey,
+            };
+          }).toList()
+          ..sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
 
     return Card(
       elevation: 2,
@@ -657,11 +780,18 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
           children: [
             Text(
               'Complaints by Status',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             if (statuses.isEmpty)
-              const Center(child: Padding(padding: EdgeInsets.all(16), child: Text('No complaints yet')))
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text('No complaints yet'),
+                ),
+              )
             else
               ...statuses.map((status) => _buildStatusItem(context, status)),
           ],
@@ -673,7 +803,11 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
   Widget _buildUserStatsStatic(BuildContext context, List<UserModel> users) {
     final students = users.where((u) => u.role == 'student').length;
     final parents = users.where((u) => u.role == 'parent').length;
-    final staff = users.where((u) => ['teacher', 'counsellor', 'warden', 'police'].contains(u.role)).length;
+    final staff = users
+        .where(
+          (u) => ['teacher', 'counsellor', 'warden', 'police'].contains(u.role),
+        )
+        .length;
 
     return Card(
       elevation: 2,
@@ -685,14 +819,37 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
           children: [
             Text(
               'User Statistics',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(child: _buildStatItem(context, 'Students', students.toString(), Colors.blue)),
-                Expanded(child: _buildStatItem(context, 'Parents', parents.toString(), Colors.green)),
-                Expanded(child: _buildStatItem(context, 'Staff', staff.toString(), Colors.orange)),
+                Expanded(
+                  child: _buildStatItem(
+                    context,
+                    'Students',
+                    students.toString(),
+                    Colors.blue,
+                  ),
+                ),
+                Expanded(
+                  child: _buildStatItem(
+                    context,
+                    'Parents',
+                    parents.toString(),
+                    Colors.green,
+                  ),
+                ),
+                Expanded(
+                  child: _buildStatItem(
+                    context,
+                    'Staff',
+                    staff.toString(),
+                    Colors.orange,
+                  ),
+                ),
               ],
             ),
           ],
@@ -705,7 +862,9 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     final totalUsers = users.length;
     final now = DateTime.now();
     final weekAgo = now.subtract(const Duration(days: 7));
-    final newRegistrations = users.where((u) => u.createdAt.isAfter(weekAgo)).length;
+    final newRegistrations = users
+        .where((u) => u.createdAt.isAfter(weekAgo))
+        .length;
 
     return Card(
       elevation: 2,
@@ -717,25 +876,50 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
           children: [
             Text(
               'User Activity',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
-            _buildActivityItem(context, 'Active Users', totalUsers.toString(), Colors.green),
-            _buildActivityItem(context, 'New Registrations (7 days)', newRegistrations.toString(), Colors.blue),
-            _buildActivityItem(context, 'Total Users', totalUsers.toString(), Colors.orange),
+            _buildActivityItem(
+              context,
+              'Active Users',
+              totalUsers.toString(),
+              Colors.green,
+            ),
+            _buildActivityItem(
+              context,
+              'New Registrations (7 days)',
+              newRegistrations.toString(),
+              Colors.blue,
+            ),
+            _buildActivityItem(
+              context,
+              'Total Users',
+              totalUsers.toString(),
+              Colors.orange,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildUserEngagement(BuildContext context, List<ComplaintModel> complaints, List<UserModel> users) {
+  Widget _buildUserEngagement(
+    BuildContext context,
+    List<ComplaintModel> complaints,
+    List<UserModel> users,
+  ) {
     final totalUsers = users.length;
     final totalComplaints = complaints.length;
     final reportsPerUser = totalUsers > 0 ? totalComplaints / totalUsers : 0.0;
-    
-    final resolvedComplaints = complaints.where((c) => c.status == 'Resolved').length;
-    final responseRate = totalComplaints > 0 ? (resolvedComplaints / totalComplaints) * 100 : 0.0;
+
+    final resolvedComplaints = complaints
+        .where((c) => c.status == 'Resolved')
+        .length;
+    final responseRate = totalComplaints > 0
+        ? (resolvedComplaints / totalComplaints) * 100
+        : 0.0;
 
     return Card(
       elevation: 2,
@@ -794,7 +978,9 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
       ],
@@ -898,59 +1084,6 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
               fontWeight: FontWeight.w600,
               color: color,
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _exportReport(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Export Report'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Generating a comprehensive PDF report based on the current analytics.'),
-            SizedBox(height: 16),
-            Text('This report will include:'),
-            Text('• Complaints Trend'),
-            Text('• Resolution Rates'),
-            Text('• User Engagement Metrics'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              try {
-                final pdfService = PdfService();
-                final query = await FirebaseFirestore.instance.collection('complaints').limit(50).get();
-                final data = query.docs.map((doc) => {
-                  'Title': doc.data()['title'] ?? 'N/A',
-                  'Status': doc.data()['status'] ?? 'N/A',
-                  'Category': doc.data()['category'] ?? 'N/A',
-                }).toList();
-
-                await pdfService.generateReport(
-                  reportTitle: 'Analytics Export',
-                  category: 'System Performance',
-                  data: data.isEmpty ? [{'Info': 'No data available'}] : data,
-                );
-              } catch (e) {
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Export failed: $e'), backgroundColor: Colors.red),
-                );
-              }
-            },
-            child: const Text('Generate PDF'),
           ),
         ],
       ),
