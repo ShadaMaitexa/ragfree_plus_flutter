@@ -5,6 +5,7 @@ import '../../services/complaint_service.dart';
 import '../../models/complaint_model.dart';
 import '../../services/app_state.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class AdminReportsPage extends StatefulWidget {
   const AdminReportsPage({super.key});
@@ -218,10 +219,13 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                     const Divider(),
                     _buildInsightItem(
                       Icons.description_outlined,
-                      'Detailed Student Complaint Report',
+                      'Student Complaint Case Report',
                       Colors.indigo,
-                      onTap: () =>
-                          _generateReport('complaints', 'Full Complaint Logs'),
+
+                      onTap: () => _generateReport(
+                        'complaints',
+                        'Student Complaint Case Report',
+                      ),
                     ),
                   ],
                 ),
@@ -269,7 +273,34 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
             )
             .toList();
         category = 'User Management';
-      } else if (type == 'complaints' || type == 'analytics') {
+      } else if (type == 'analytics') {
+        final query = await _firestore.collection('complaints').get();
+        final Map<String, int> statusCounts = {};
+        final Map<String, int> categoryCounts = {};
+
+        for (var doc in query.docs) {
+          final s = doc.data()['status'] ?? 'Pending';
+          final c = doc.data()['category'] ?? 'Other';
+          statusCounts[s] = (statusCounts[s] ?? 0) + 1;
+          categoryCounts[c] = (categoryCounts[c] ?? 0) + 1;
+        }
+
+        data = [];
+        data.add({
+          'Metric': 'TOTAL COMPLAINTS',
+          'Value': query.docs.length.toString(),
+        });
+        data.add({'Metric': '--- BY STATUS ---', 'Value': ''});
+        statusCounts.forEach(
+          (k, v) => data.add({'Metric': k, 'Value': v.toString()}),
+        );
+        data.add({'Metric': '--- BY CATEGORY ---', 'Value': ''});
+        categoryCounts.forEach(
+          (k, v) => data.add({'Metric': k, 'Value': v.toString()}),
+        );
+
+        category = 'Complaint Analytics Summary';
+      } else if (type == 'complaints') {
         final query = await _firestore
             .collection('complaints')
             .limit(100)
@@ -277,14 +308,20 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
         data = query.docs
             .map(
               (doc) => {
+                'Date': doc.data()['createdAt'] != null
+                    ? DateFormat(
+                        'yyyy-MM-dd',
+                      ).format((doc.data()['createdAt'] as Timestamp).toDate())
+                    : 'N/A',
                 'Title': doc.data()['title'] ?? 'N/A',
+                'Category': doc.data()['category'] ?? 'N/A',
                 'Student': doc.data()['studentName'] ?? 'Anonymous',
                 'Status': doc.data()['status'] ?? 'Pending',
                 'Priority': doc.data()['priority'] ?? 'Medium',
               },
             )
             .toList();
-        category = 'safety & Complaints';
+        category = 'Safety & Complaints';
       } else {
         // Fetch real data for hotspots analysis
         final query = await _firestore

@@ -3,6 +3,7 @@ import '../../services/complaint_service.dart';
 import '../../models/complaint_model.dart';
 import '../../services/auth_service.dart';
 import '../../utils/responsive.dart';
+import '../../services/pdf_service.dart';
 import 'package:intl/intl.dart';
 
 class AdminComplaintsPage extends StatefulWidget {
@@ -210,7 +211,9 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
                       ? 'No ${status.toLowerCase()} complaints'
                       : 'No complaints found',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -253,13 +256,13 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
             ),
           );
         }
-        
+
         // Filter to show both "In Progress" and "Verified" complaints
         final allComplaints = snapshot.data ?? [];
         final complaints = allComplaints
             .where((c) => c.status == 'In Progress' || c.status == 'Verified')
             .toList();
-            
+
         if (complaints.isEmpty) {
           return Center(
             child: Column(
@@ -275,7 +278,9 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
                 Text(
                   'No in progress or verified complaints',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -324,7 +329,6 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
         statusColor = Colors.grey;
     }
 
-
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Card(
@@ -348,7 +352,9 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
                       decoration: BoxDecoration(
                         color: statusColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: statusColor.withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Text(
                         status,
@@ -366,10 +372,14 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Text(
@@ -466,11 +476,12 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
                       Flexible(
                         child: Text(
                           complaint.assignedToName!,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.6),
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.6),
+                              ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -507,7 +518,10 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
                     ? 'Anonymous'
                     : (complaint.studentName ?? 'Unknown'),
               ),
-              _buildDetailRow('Date', DateFormat('MMM dd, yyyy').format(complaint.createdAt)),
+              _buildDetailRow(
+                'Date',
+                DateFormat('MMM dd, yyyy').format(complaint.createdAt),
+              ),
               if (complaint.assignedToName != null)
                 _buildDetailRow('Assigned To', complaint.assignedToName!),
               if (complaint.location != null)
@@ -549,12 +563,21 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
           ),
+          TextButton.icon(
+            onPressed: () => _downloadComplaintReport(context, complaint),
+            icon: const Icon(Icons.download, color: Colors.green),
+            label: const Text(
+              'Case Report',
+              style: TextStyle(color: Colors.green),
+            ),
+          ),
           if (complaint.status == 'Pending')
             FilledButton(
               onPressed: () => _showAssignDialog(context, complaint),
               child: const Text('Assign'),
             ),
-          if (complaint.status == 'In Progress' || complaint.status == 'Verified')
+          if (complaint.status == 'In Progress' ||
+              complaint.status == 'Verified')
             FilledButton(
               onPressed: () => _showResolveDialog(context, complaint),
               child: const Text('Resolve'),
@@ -562,6 +585,41 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
         ],
       ),
     );
+  }
+
+  Future<void> _downloadComplaintReport(
+    BuildContext context,
+    ComplaintModel complaint,
+  ) async {
+    try {
+      await _complaintService.getComplaintById(complaint.id);
+
+      await PdfService().generateComplaintReport(
+        studentName: complaint.studentName ?? 'Anonymous',
+        complaintTitle: complaint.title,
+        description: complaint.description,
+        status: complaint.status,
+        priority: complaint.priority,
+        incidentType: complaint.incidentType,
+        createdAt: complaint.createdAt,
+      );
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Complaint report generated successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error generating report: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Widget _buildDetailRow(String label, String value) {
@@ -577,18 +635,19 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
-          Expanded(
-            child: Text(value),
-          ),
+          Expanded(child: Text(value)),
         ],
       ),
     );
   }
 
-  Future<void> _showAssignDialog(BuildContext context, ComplaintModel complaint) async {
+  Future<void> _showAssignDialog(
+    BuildContext context,
+    ComplaintModel complaint,
+  ) async {
     // Get available counselors
     final counselors = await _authService.getAvailableCounselors();
-    
+
     if (counselors.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -605,7 +664,9 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Text('Assign Complaint'),
           content: SizedBox(
             width: double.maxFinite,
@@ -632,7 +693,9 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
                         Navigator.pop(context); // Close details dialog
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Complaint assigned to ${counselor['name']}'),
+                            content: Text(
+                              'Complaint assigned to ${counselor['name']}',
+                            ),
                             backgroundColor: Colors.green,
                           ),
                         );
@@ -663,7 +726,10 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
     }
   }
 
-  Future<void> _showResolveDialog(BuildContext context, ComplaintModel complaint) async {
+  Future<void> _showResolveDialog(
+    BuildContext context,
+    ComplaintModel complaint,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -707,4 +773,3 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
     }
   }
 }
-
