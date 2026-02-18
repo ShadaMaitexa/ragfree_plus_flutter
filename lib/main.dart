@@ -424,13 +424,13 @@ class StudentDashboard extends StatelessWidget {
         showInBottomNav: false,
       ),
       NavigationDestinationData(
-        icon: Icons.person,
-        label: 'Profile',
+        icon: Icons.feedback,
+        label: 'Feedback',
         showInBottomNav: false,
       ),
       NavigationDestinationData(
-        icon: Icons.feedback,
-        label: 'Feedback',
+        icon: Icons.person,
+        label: 'Profile',
         showInBottomNav: false,
       ),
     ];
@@ -440,8 +440,8 @@ class StudentDashboard extends StatelessWidget {
       const StudentComplaintsPage(),
       const StudentChatPage(),
       const StudentAwarenessPage(),
-      const StudentProfilePage(),
       const UserFeedbackPage(),
+      const StudentProfilePage(),
     ];
 
     return PopScope(
@@ -759,8 +759,8 @@ class CounsellorDashboard extends StatelessWidget {
       NavigationDestinationData(icon: Icons.schedule, label: 'Schedule'),
       NavigationDestinationData(icon: Icons.chat_bubble, label: 'Chat'),
       NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
-      NavigationDestinationData(icon: Icons.person, label: 'Profile'),
       NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
+      NavigationDestinationData(icon: Icons.person, label: 'Profile'),
     ];
 
     final pages = [
@@ -769,8 +769,8 @@ class CounsellorDashboard extends StatelessWidget {
       _CounsellorPages.schedule,
       _CounsellorPages.chat,
       _CounsellorPages.awareness,
-      _CounsellorPages.profile,
       const UserFeedbackPage(),
+      _CounsellorPages.profile,
     ];
 
     return PopScope(
@@ -805,6 +805,7 @@ class CounsellorDashboard extends StatelessWidget {
         onDestinationSelected: (i) => appState.setNavIndex(i),
         destinations: destinations,
         pages: pages,
+        showBottomNavigation: false,
       ),
     );
   }
@@ -910,11 +911,11 @@ class WardenDashboard extends StatelessWidget {
       NavigationDestinationData(icon: Icons.forward_to_inbox, label: 'Forward'),
       NavigationDestinationData(icon: Icons.people, label: 'Students'),
       NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
-      NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
       NavigationDestinationData(
         icon: Icons.notifications,
         label: 'Notifications',
       ),
+      NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
     ];
 
@@ -924,8 +925,8 @@ class WardenDashboard extends StatelessWidget {
       _WardenDashboardPages.forwardComplaints,
       _WardenDashboardPages.students,
       _WardenDashboardPages.awareness,
-      _WardenDashboardPages.feedback,
       _WardenDashboardPages.notifications,
+      _WardenDashboardPages.feedback,
       _WardenDashboardPages.profile,
     ];
 
@@ -1169,8 +1170,8 @@ class PoliceDashboard extends StatelessWidget {
         icon: Icons.notifications_active,
         label: 'Notify',
       ),
-      NavigationDestinationData(icon: Icons.person, label: 'Profile'),
       NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
+      NavigationDestinationData(icon: Icons.person, label: 'Profile'),
     ];
 
     final pages = const <Widget>[
@@ -1179,8 +1180,8 @@ class PoliceDashboard extends StatelessWidget {
       _PolicePages.verify,
       _PolicePages.generateReport,
       _PolicePages.sendNotification,
-      _PolicePages.profile,
       UserFeedbackPage(),
+      _PolicePages.profile,
     ];
 
     return PopScope(
@@ -1325,8 +1326,8 @@ class TeacherDashboard extends StatelessWidget {
         label: 'Notifications',
       ),
       NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
-      NavigationDestinationData(icon: Icons.person, label: 'Profile'),
       NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
+      NavigationDestinationData(icon: Icons.person, label: 'Profile'),
     ];
 
     final pages = <Widget>[
@@ -1335,8 +1336,8 @@ class TeacherDashboard extends StatelessWidget {
       _TeacherDashboardPages.chat,
       _TeacherDashboardPages.notifications,
       _TeacherDashboardPages.awareness,
-      _TeacherDashboardPages.profile,
       const UserFeedbackPage(),
+      _TeacherDashboardPages.profile,
     ];
 
     return PopScope(
