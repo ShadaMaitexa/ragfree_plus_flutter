@@ -162,8 +162,16 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
 
   Widget _buildComplaintsList(BuildContext context) {
     final user = Provider.of<AppState>(context).currentUser;
-    final institutionNormalized = user?.institutionNormalized ?? '';
+    String institutionNormalized = user?.institutionNormalized ?? '';
     final department = user?.department ?? '';
+
+    // Fallback normalization
+    if (institutionNormalized.isEmpty && user?.institution != null) {
+      institutionNormalized = user!.institution!
+          .trim()
+          .replaceAll(RegExp(r'\s+'), '')
+          .toLowerCase();
+    }
 
     return StreamBuilder<List<ComplaintModel>>(
       stream: _complaintService.getComplaintsByInstitution(
@@ -190,13 +198,17 @@ class _TeacherComplaintsPageState extends State<TeacherComplaintsPage>
           }
 
           // 2. Handle Status filters
-          if (_selectedFilter == 'Pending') return c.status == 'Pending';
-          if (_selectedFilter == 'In Progress') {
-            return c.status == 'In Progress' ||
-                c.status == 'Verified' ||
-                c.status == 'Accepted';
+          if (_selectedFilter == 'Pending') {
+            return c.status.trim().toLowerCase() == 'pending';
           }
-          if (_selectedFilter == 'Resolved') return c.status == 'Resolved';
+          if (_selectedFilter == 'In Progress') {
+            final s = c.status.trim().toLowerCase();
+            return s == 'in progress' || s == 'verified' || s == 'accepted';
+          }
+          if (_selectedFilter == 'Resolved') {
+            return c.status.trim().toLowerCase() == 'resolved' ||
+                c.status.trim().toLowerCase() == 'closed';
+          }
 
           // 3. 'All' filter returns everything
           return true;

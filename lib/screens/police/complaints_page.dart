@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/app_state.dart';
 import '../../services/complaint_service.dart';
 import '../../models/complaint_model.dart';
 import '../../utils/responsive.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PoliceComplaintsPage extends StatefulWidget {
   const PoliceComplaintsPage({super.key});
@@ -554,6 +560,46 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                 _buildDetailRow('Location', complaint.location!),
               if (complaint.assignedToName != null)
                 _buildDetailRow('Assigned To', complaint.assignedToName!),
+
+              // Show Resolution Details if resolved
+              if (complaint.status.toLowerCase() == 'resolved' &&
+                  complaint.metadata != null) ...[
+                const Divider(height: 32),
+                Text(
+                  'Resolution Details',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (complaint.metadata!['actionTaken'] != null)
+                  _buildDetailRow(
+                    'Action Taken',
+                    complaint.metadata!['actionTaken'],
+                  ),
+                if (complaint.metadata!['resolvedAt'] != null)
+                  _buildDetailRow(
+                    'Resolved On',
+                    DateFormat('MMM dd, yyyy HH:mm').format(
+                      (complaint.metadata!['resolvedAt'] as Timestamp).toDate(),
+                    ),
+                  ),
+                if (complaint.metadata!['reportUrl'] != null) ...[
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final url = Uri.parse(complaint.metadata!['reportUrl']);
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url);
+                      }
+                    },
+                    icon: const Icon(Icons.picture_as_pdf, color: Colors.red),
+                    label: const Text('View Case Report'),
+                  ),
+                ],
+              ],
+
               if (complaint.mediaUrls.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Text('Media:', style: Theme.of(context).textTheme.titleSmall),
@@ -575,7 +621,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                           url,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
-                            return Icon(Icons.broken_image);
+                            return const Icon(Icons.broken_image);
                           },
                         ),
                       ),
@@ -728,47 +774,181 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
     BuildContext context,
     ComplaintModel complaint,
   ) async {
-    final confirmed = await showDialog<bool>(
+    final actionController = TextEditingController();
+    File? selectedReport;
+    String? selectedFileName;
+    bool isResolving = false;
+
+    await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Resolve Complaint'),
-        content: const Text(
-          'Confirm that external action has been completed and mark this complaint as resolved in the app?',
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text('Resolve Complaint'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Provide details of the action taken and upload the final case report (PDF).',
+                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: actionController,
+                  decoration: const InputDecoration(
+                    labelText: 'Action Taken',
+                    hintText: 'Describe what was done to resolve this case...',
+                    border: OutlineInputBorder(),
+                    alignLabelWithHint: true,
+                  ),
+                  maxLines: 4,
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Case Report (PDF/Doc)',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: () async {
+                    FilePickerResult? result = await FilePicker.platform
+                        .pickFiles(
+                          type: FileType.custom,
+                          allowedExtensions: ['pdf', 'doc', 'docx'],
+                        );
+
+                    if (result != null) {
+                      setDialogState(() {
+                        selectedReport = File(result.files.single.path!);
+                        selectedFileName = result.files.single.name;
+                      });
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.grey.shade50,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          selectedReport != null
+                              ? Icons.description
+                              : Icons.upload_file,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            selectedFileName ?? 'Select Case Report PDF',
+                            style: TextStyle(
+                              color: selectedFileName != null
+                                  ? Colors.black
+                                  : Colors.grey,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (selectedReport != null)
+                          IconButton(
+                            icon: const Icon(Icons.close, size: 20),
+                            onPressed: () {
+                              setDialogState(() {
+                                selectedReport = null;
+                                selectedFileName = null;
+                              });
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: isResolving ? null : () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: isResolving
+                  ? null
+                  : () async {
+                      if (actionController.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please describe the action taken'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+
+                      setDialogState(() => isResolving = true);
+
+                      try {
+                        final appState = Provider.of<AppState>(
+                          context,
+                          listen: false,
+                        );
+                        final user = appState.currentUser;
+                        if (user == null) throw Exception('User not logged in');
+
+                        await _complaintService.resolveComplaintWithReport(
+                          complaintId: complaint.id,
+                          actionTaken: actionController.text.trim(),
+                          reportFile: selectedReport,
+                          resolverId: user.uid,
+                          resolverName: user.name,
+                        );
+
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Complaint successfully resolved with report',
+                              ),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        setDialogState(() => isResolving = false);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Error: ${e.toString()}'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
+              child: isResolving
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Resolve Case'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Resolve'),
-          ),
-        ],
       ),
     );
 
-    if (confirmed == true) {
-      try {
-        await _complaintService.updateComplaintStatus(complaint.id, 'Resolved');
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Complaint marked as resolved'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    }
+    actionController.dispose();
   }
 }

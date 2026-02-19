@@ -169,8 +169,16 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
 
   Widget _buildStatsGrid(BuildContext context, Color color) {
     final user = Provider.of<AppState>(context).currentUser;
-    final institutionNormalized = user?.institutionNormalized ?? '';
+    String institutionNormalized = user?.institutionNormalized ?? '';
     final department = user?.department ?? '';
+
+    // Fallback: if institutionNormalized is missing, generate it from institution name
+    if (institutionNormalized.isEmpty && user?.institution != null) {
+      institutionNormalized = user!.institution!
+          .trim()
+          .replaceAll(RegExp(r'\s+'), '')
+          .toLowerCase();
+    }
 
     return StreamBuilder<List<ComplaintModel>>(
       stream: _complaintService.getComplaintsByInstitution(
@@ -185,7 +193,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
         }
         final allComplaints = snapshot.data ?? [];
 
-        final complaints = department.isEmpty
+        final complaints = department.trim().isEmpty
             ? allComplaints
             : allComplaints
                   .where(
@@ -196,8 +204,14 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                   .toList();
 
         final total = complaints.length;
-        final resolved = complaints.where((x) => x.status == 'Resolved').length;
-        final active = total - resolved;
+        final resolvedCount = complaints
+            .where(
+              (x) =>
+                  x.status.trim().toLowerCase() == 'resolved' ||
+                  x.status.trim().toLowerCase() == 'closed',
+            )
+            .length;
+        final active = total - resolvedCount;
 
         final stats = [
           {
@@ -208,7 +222,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
           },
           {
             'label': 'Resolved',
-            'value': '$resolved',
+            'value': '$resolvedCount',
             'icon': Icons.verified_rounded,
             'color': Colors.green,
           },

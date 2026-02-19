@@ -547,4 +547,36 @@ class ComplaintService {
       throw Exception('Failed to forward complaint: ${e.toString()}');
     }
   }
+
+  // Resolve complaint with a full report and action taken
+  Future<void> resolveComplaintWithReport({
+    required String complaintId,
+    required String actionTaken,
+    File? reportFile,
+    required String resolverId,
+    required String resolverName,
+  }) async {
+    try {
+      String? reportUrl;
+      if (reportFile != null) {
+        final cloudinary = CloudinaryService();
+        reportUrl = await cloudinary.uploadFile(
+          file: reportFile,
+          folder: 'reports',
+        );
+      }
+
+      await _firestore.collection('complaints').doc(complaintId).update({
+        'status': 'Resolved',
+        'metadata.actionTaken': actionTaken,
+        if (reportUrl != null) 'metadata.reportUrl': reportUrl,
+        'metadata.resolvedBy': resolverId,
+        'metadata.resolvedByName': resolverName,
+        'metadata.resolvedAt': Timestamp.now(),
+        'updatedAt': Timestamp.now(),
+      });
+    } catch (e) {
+      throw Exception('Failed to resolve complaint: ${e.toString()}');
+    }
+  }
 }
