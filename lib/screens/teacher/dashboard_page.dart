@@ -170,7 +170,8 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
   Widget _buildStatsGrid(BuildContext context, Color color) {
     final user = Provider.of<AppState>(context).currentUser;
     String institutionNormalized = user?.institutionNormalized ?? '';
-    final department = user?.department ?? '';
+    // Statistics are now institution-wide to provide full visibility.
+    // If specific department filtering is needed, it can be added as a toggle.
 
     // Fallback: if institutionNormalized is missing, generate it from institution name
     if (institutionNormalized.isEmpty && user?.institution != null) {
@@ -193,15 +194,8 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
         }
         final allComplaints = snapshot.data ?? [];
 
-        final complaints = department.trim().isEmpty
-            ? allComplaints
-            : allComplaints
-                  .where(
-                    (c) =>
-                        (c.studentDepartment ?? '').trim().toLowerCase() ==
-                        department.trim().toLowerCase(),
-                  )
-                  .toList();
+        // Show institution-wide statistics for better visibility
+        final complaints = allComplaints;
 
         final total = complaints.length;
         final resolvedCount = complaints
@@ -211,7 +205,15 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                   x.status.trim().toLowerCase() == 'closed',
             )
             .length;
-        final active = total - resolvedCount;
+
+        final inProgressCount = complaints.where((x) {
+          final s = x.status.trim().toLowerCase();
+          return s == 'in progress' || s == 'verified' || s == 'accepted';
+        }).length;
+
+        final pendingCount = complaints
+            .where((x) => x.status.trim().toLowerCase() == 'pending')
+            .length;
 
         final stats = [
           {
@@ -227,10 +229,16 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
             'color': Colors.green,
           },
           {
-            'label': 'Active',
-            'value': '$active',
+            'label': 'In Progress',
+            'value': '$inProgressCount',
             'icon': Icons.pending_actions_rounded,
             'color': Colors.orange,
+          },
+          {
+            'label': 'Pending',
+            'value': '$pendingCount',
+            'icon': Icons.assignment_late_rounded,
+            'color': Colors.red,
           },
         ];
 
@@ -241,12 +249,12 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
             crossAxisCount: Responsive.getGridCrossAxisCount(
               context,
               mobile: 1,
-              tablet: 3,
-              desktop: 3,
+              tablet: 2,
+              desktop: 4,
             ),
             crossAxisSpacing: 20,
             mainAxisSpacing: 20,
-            childAspectRatio: Responsive.isMobile(context) ? 4 : 1.3,
+            childAspectRatio: Responsive.isMobile(context) ? 4 : 1.2,
           ),
           itemCount: stats.length,
           itemBuilder: (context, index) {

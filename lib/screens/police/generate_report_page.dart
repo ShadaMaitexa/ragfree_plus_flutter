@@ -108,8 +108,10 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
               children: [
                 Text(
                   'Complaint Log',
-                  style: Theme.of(context).textTheme.headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.w700, color: color),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -139,9 +141,9 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
           children: [
             Text(
               'Report Filters',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             Row(
@@ -153,9 +155,13 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
                       labelText: 'Status',
                       border: OutlineInputBorder(),
                     ),
-                    items: ['All', 'Pending', 'In Progress', 'Resolved']
-                        .map((status) {
-                      return DropdownMenuItem(value: status, child: Text(status));
+                    items: ['All', 'Pending', 'In Progress', 'Resolved'].map((
+                      status,
+                    ) {
+                      return DropdownMenuItem(
+                        value: status,
+                        child: Text(status),
+                      );
                     }).toList(),
                     onChanged: (value) {
                       setState(() {
@@ -174,7 +180,9 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
                     ),
                     items: ['All', 'Medium', 'Low'].map((priority) {
                       return DropdownMenuItem(
-                          value: priority, child: Text(priority));
+                        value: priority,
+                        child: Text(priority),
+                      );
                     }).toList(),
                     onChanged: (value) {
                       setState(() {
@@ -221,18 +229,34 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
           return const Center(child: CircularProgressIndicator());
         }
         final allComplaints = snapshot.data ?? [];
-        
+
         final filteredComplaints = _getFilteredComplaints(allComplaints);
 
         final total = filteredComplaints.length;
-        final pending = filteredComplaints.where((c) => c.status == 'Pending').length;
-        final inProgress = filteredComplaints.where((c) => c.status == 'In Progress').length;
-        final resolved = filteredComplaints.where((c) => c.status == 'Resolved').length;
-        final highPriority = filteredComplaints.where((c) => c.priority == 'High').length;
+        final pending = filteredComplaints
+            .where((c) => c.status.trim().toLowerCase() == 'pending')
+            .length;
+        final inProgress = filteredComplaints
+            .where(
+              (c) =>
+                  c.status.trim().toLowerCase() == 'in progress' ||
+                  c.status.trim().toLowerCase() == 'verified' ||
+                  c.status.trim().toLowerCase() == 'accepted',
+            )
+            .length;
+        final resolved = filteredComplaints
+            .where(
+              (c) =>
+                  c.status.trim().toLowerCase() == 'resolved' ||
+                  c.status.trim().toLowerCase() == 'closed',
+            )
+            .length;
 
         return Card(
           elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -240,13 +264,12 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
               children: [
                 Text(
                   'Report Summary',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 16),
                 _buildStatRow('Total Complaints', '$total', Colors.blue),
-                _buildStatRow('High Priority', '$highPriority', Colors.red),
                 _buildStatRow('Pending', '$pending', Colors.orange),
                 _buildStatRow('In Progress', '$inProgress', Colors.blue),
                 _buildStatRow('Resolved', '$resolved', Colors.green),
@@ -256,8 +279,8 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
                 Text(
                   'Report Period',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -280,13 +303,19 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
       filtered = filtered.where((c) => c.status == _selectedStatus).toList();
     }
     if (_selectedPriority != 'All') {
-      filtered = filtered.where((c) => c.priority == _selectedPriority).toList();
+      filtered = filtered
+          .where((c) => c.priority == _selectedPriority)
+          .toList();
     }
     if (_selectedDateRange != null) {
       filtered = filtered
-          .where((c) =>
-              c.createdAt.isAfter(_selectedDateRange!.start) &&
-              c.createdAt.isBefore(_selectedDateRange!.end.add(const Duration(days: 1))))
+          .where(
+            (c) =>
+                c.createdAt.isAfter(_selectedDateRange!.start) &&
+                c.createdAt.isBefore(
+                  _selectedDateRange!.end.add(const Duration(days: 1)),
+                ),
+          )
           .toList();
     }
     return filtered;
@@ -298,10 +327,7 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
+          Text(label, style: Theme.of(context).textTheme.bodyLarge),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
@@ -328,7 +354,9 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
       builder: (context, snapshot) {
         final complaints = _getFilteredComplaints(snapshot.data ?? []);
         return FilledButton.icon(
-          onPressed: complaints.isEmpty ? null : () => _generateReport(context, complaints),
+          onPressed: complaints.isEmpty
+              ? null
+              : () => _generateReport(context, complaints),
           icon: const Icon(Icons.picture_as_pdf),
           label: const Text('Generate PDF Report'),
           style: FilledButton.styleFrom(
@@ -340,7 +368,10 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
     );
   }
 
-  Future<void> _generateReport(BuildContext context, List<ComplaintModel> complaints) async {
+  Future<void> _generateReport(
+    BuildContext context,
+    List<ComplaintModel> complaints,
+  ) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -348,14 +379,18 @@ class _PoliceGenerateReportPageState extends State<PoliceGenerateReportPage>
     );
 
     try {
-      final data = complaints.map((c) => {
-        'Title': c.title,
-        'Student': c.studentName ?? 'Anonymous',
-        'Category': c.category,
-        'Status': c.status,
-        'Priority': c.priority,
-        'Date': DateFormat('yyyy-MM-dd').format(c.createdAt),
-      }).toList();
+      final data = complaints
+          .map(
+            (c) => {
+              'Title': c.title,
+              'Student': c.studentName ?? 'Anonymous',
+              'Category': c.category,
+              'Status': c.status,
+              'Priority': c.priority,
+              'Date': DateFormat('yyyy-MM-dd').format(c.createdAt),
+            },
+          )
+          .toList();
 
       await _pdfService.generateReport(
         reportTitle: 'Campus Safety - Ragging Complaints Report',

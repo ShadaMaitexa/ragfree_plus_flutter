@@ -52,6 +52,46 @@ class ComplaintModel {
   });
 
   factory ComplaintModel.fromMap(Map<String, dynamic> data) {
+    // Collect metadata from both nested and potential top-level fields for robustness
+    Map<String, dynamic> combinedMetadata = {};
+    if (data['metadata'] is Map) {
+      combinedMetadata.addAll(Map<String, dynamic>.from(data['metadata']));
+    }
+
+    // List of fields that might be stored at top level instead of inside metadata
+    const metadataFields = [
+      'verifiedBy',
+      'verifiedByName',
+      'verifiedByRole',
+      'verifiedAt',
+      'verifiedNotes',
+      'rejectedBy',
+      'rejectedByName',
+      'rejectedByRole',
+      'rejectedAt',
+      'rejectionReason',
+      'acceptedBy',
+      'acceptedByName',
+      'acceptedByRole',
+      'acceptedAt',
+      'forwardedTo',
+      'forwardedBy',
+      'forwardedByName',
+      'forwardedAt',
+      'forwardDescription',
+      'actionTaken',
+      'reportUrl',
+      'resolvedBy',
+      'resolvedByName',
+      'resolvedAt',
+    ];
+
+    for (var field in metadataFields) {
+      if (data.containsKey(field) && !combinedMetadata.containsKey(field)) {
+        combinedMetadata[field] = data[field];
+      }
+    }
+
     return ComplaintModel(
       id: data['id'] ?? '',
       studentId: data['studentId'],
@@ -63,8 +103,10 @@ class ComplaintModel {
       priority: data['priority'] ?? 'Medium',
       incidentType: data['incidentType'] ?? 'College',
       status: data['status'] ?? 'Pending',
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: data['updatedAt'] != null
+      createdAt: data['createdAt'] is Timestamp
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
+      updatedAt: data['updatedAt'] != null && data['updatedAt'] is Timestamp
           ? (data['updatedAt'] as Timestamp).toDate()
           : null,
       mediaUrls: List<String>.from(data['mediaUrls'] ?? []),
@@ -76,7 +118,7 @@ class ComplaintModel {
       reporterId: data['reporterId'],
       reporterName: data['reporterName'],
       reporterRole: data['reporterRole'],
-      metadata: data['metadata'],
+      metadata: combinedMetadata.isEmpty ? null : combinedMetadata,
       isAnonymous: data['isAnonymous'] ?? false,
     );
   }

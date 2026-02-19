@@ -108,7 +108,13 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     List<ComplaintModel> complaints,
   ) {
     final total = complaints.length;
-    final resolved = complaints.where((c) => c.status == 'Resolved').length;
+    final resolved = complaints
+        .where(
+          (c) =>
+              c.status.trim().toLowerCase() == 'resolved' ||
+              c.status.trim().toLowerCase() == 'closed',
+        )
+        .length;
 
     // Calculate Response Time
     double avgResponseTime = 0;
@@ -432,7 +438,8 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
   ) {
     final categories = <String, double>{};
     for (var c in complaints) {
-      if (c.status == 'Resolved') {
+      final s = c.status.trim().toLowerCase();
+      if (s == 'resolved' || s == 'closed') {
         categories[c.category] = (categories[c.category] ?? 0) + 1;
       }
     }
@@ -630,8 +637,16 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage>
     List<ComplaintModel> complaints,
   ) {
     final total = complaints.length;
-    final resolved = complaints.where((c) => c.status == 'Resolved').length;
-    final pending = complaints.where((c) => c.status == 'Pending').length;
+    final resolved = complaints
+        .where(
+          (c) =>
+              c.status.trim().toLowerCase() == 'resolved' ||
+              c.status.trim().toLowerCase() == 'closed',
+        )
+        .length;
+    final pending = complaints
+        .where((c) => c.status.trim().toLowerCase() == 'pending')
+        .length;
 
     return Card(
       elevation: 2,

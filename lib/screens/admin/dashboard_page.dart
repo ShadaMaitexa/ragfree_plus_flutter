@@ -274,7 +274,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       {
                         'label': 'Action Required',
                         'value':
-                            '${complaints.where((c) => c.status == 'Pending').length}',
+                            '${complaints.where((c) => c.status.trim().toLowerCase() == 'pending').length}',
                         'icon': Icons.warning_amber_rounded,
                         'color': Colors.orange,
                       },

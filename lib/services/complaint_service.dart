@@ -244,15 +244,24 @@ class ComplaintService {
     String institutionNormalized,
   ) {
     if (institutionNormalized.isEmpty) return Stream.value([]);
+    // Using a broader query and filtering in Dart to handle missing institutionNormalized fields (legacy/dev data)
     return _firestore
         .collection('complaints')
-        .where('institutionNormalized', isEqualTo: institutionNormalized)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
               .map(
                 (doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}),
               )
+              .where((c) {
+                // Return true if it matches exactly, OR if the record is missing institutional data
+                // This is a safety measure for dev/test data seen in Firebase screenshot
+                if (c.institutionNormalized == null ||
+                    c.institutionNormalized!.isEmpty) {
+                  return true;
+                }
+                return c.institutionNormalized == institutionNormalized;
+              })
               .toList(),
         );
   }
@@ -266,14 +275,22 @@ class ComplaintService {
       return Stream.value([]);
     return _firestore
         .collection('complaints')
-        .where('institutionNormalized', isEqualTo: institutionNormalized)
-        .where('studentDepartment', isEqualTo: department)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
               .map(
                 (doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}),
               )
+              .where((c) {
+                bool instMatch =
+                    c.institutionNormalized == institutionNormalized ||
+                    c.institutionNormalized == null ||
+                    c.institutionNormalized!.isEmpty;
+                bool deptMatch =
+                    (c.studentDepartment ?? '').trim().toLowerCase() ==
+                    department.trim().toLowerCase();
+                return instMatch && deptMatch;
+              })
               .toList(),
         );
   }

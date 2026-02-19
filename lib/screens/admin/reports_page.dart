@@ -3,8 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/pdf_service.dart';
 import '../../services/complaint_service.dart';
 import '../../models/complaint_model.dart';
-import '../../services/app_state.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 class AdminReportsPage extends StatefulWidget {
@@ -158,18 +156,24 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
 
         // Resolution Rate
         final total = complaints.length;
-        final resolved = complaints.where((c) => c.status == 'Resolved').length;
-        final resolutionRate = total > 0 ? (resolved / total * 100).toInt() : 0;
-
-        // High Priority Tasks
-        final highPriority = complaints
-            .where((c) => c.priority == 'High' && c.status != 'Resolved')
+        final resolved = complaints
+            .where(
+              (c) =>
+                  c.status.trim().toLowerCase() == 'resolved' ||
+                  c.status.trim().toLowerCase() == 'closed',
+            )
             .length;
+        final resolutionRate = total > 0 ? (resolved / total * 100).toInt() : 0;
 
         // Average Response Time
         double avgResponseTime = 0;
         final resolvedWithTime = complaints
-            .where((c) => c.status == 'Resolved' && c.updatedAt != null)
+            .where(
+              (c) =>
+                  (c.status.trim().toLowerCase() == 'resolved' ||
+                      c.status.trim().toLowerCase() == 'closed') &&
+                  c.updatedAt != null,
+            )
             .toList();
         if (resolvedWithTime.isNotEmpty) {
           final totalHours = resolvedWithTime.fold<int>(
@@ -197,16 +201,6 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                         'analytics',
                         'Resolution Rate Report',
                       ),
-                    ),
-                    const Divider(),
-                    _buildInsightItem(
-                      Icons.warning_amber,
-                      '$highPriority High Priority Tasks',
-                      Colors.orange,
-                      onTap: () => Provider.of<AppState>(
-                        context,
-                        listen: false,
-                      ).setNavIndex(2),
                     ),
                     const Divider(),
                     _buildInsightItem(
