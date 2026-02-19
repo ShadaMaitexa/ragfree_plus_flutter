@@ -7,40 +7,52 @@ class ActivityService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Get recent activities for a user
-  Stream<List<ActivityModel>> getUserActivities(String userId, {int limit = 5}) {
+  Stream<List<ActivityModel>> getUserActivities(
+    String userId, {
+    int limit = 5,
+  }) {
+    if (userId.isEmpty) return Stream.value([]);
+
     return _firestore
         .collection('activities')
         .where('userId', isEqualTo: userId)
-        .orderBy('timestamp', descending: true)
-        .limit(limit)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ActivityModel.fromMap({
-                  ...doc.data(),
-                  'id': doc.id,
-                }))
-            .toList());
+        .map((snapshot) {
+          final docs = snapshot.docs
+              .map(
+                (doc) => ActivityModel.fromMap({...doc.data(), 'id': doc.id}),
+              )
+              .toList();
+          // Sort in memory since we removed orderBy
+          docs.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+          return docs.take(limit).toList();
+        });
   }
 
   // Get activities for multiple users (e.g., Parent + Children)
-  Stream<List<ActivityModel>> getMultiUserActivities(List<String> userIds, {int limit = 10}) {
+  Stream<List<ActivityModel>> getMultiUserActivities(
+    List<String> userIds, {
+    int limit = 10,
+  }) {
     if (userIds.isEmpty) return Stream.value([]);
-    
+
     // Firestore whereIn supports max 10 IDs
     final limitedIds = userIds.length > 10 ? userIds.sublist(0, 10) : userIds;
-    
+
     return _firestore
         .collection('activities')
         .where('userId', whereIn: limitedIds)
-        .orderBy('timestamp', descending: true)
-        .limit(limit)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ActivityModel.fromMap({
-                  ...doc.data(),
-                  'id': doc.id,
-                }))
-            .toList());
+        .map((snapshot) {
+          final docs = snapshot.docs
+              .map(
+                (doc) => ActivityModel.fromMap({...doc.data(), 'id': doc.id}),
+              )
+              .toList();
+          // Sort in memory since we removed orderBy
+          docs.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+          return docs.take(limit).toList();
+        });
   }
 
   // Create activity from complaint
@@ -109,10 +121,7 @@ class ActivityService {
         'description': message.message,
         'timestamp': Timestamp.now(),
         'relatedId': message.chatId,
-        'metadata': {
-          'chatId': message.chatId,
-          'senderId': message.senderId,
-        },
+        'metadata': {'chatId': message.chatId, 'senderId': message.senderId},
       });
     } catch (e) {
       throw Exception('Failed to create activity: ${e.toString()}');
@@ -153,12 +162,10 @@ class ActivityService {
         'userId': userId,
         'type': 'system', // or 'emergency' if we add it
         'title': '🚨 EMERGENCY SOS TRIGGERED',
-        'description': '$studentName has triggered an SOS alert: ${message ?? 'No message provided'}',
+        'description':
+            '$studentName has triggered an SOS alert: ${message ?? 'No message provided'}',
         'timestamp': Timestamp.now(),
-        'metadata': {
-          'isEmergency': true,
-          'priority': 'critical',
-        },
+        'metadata': {'isEmergency': true, 'priority': 'critical'},
       });
     } catch (e) {
       // Handle error silently
@@ -171,11 +178,12 @@ class ActivityService {
         .collection('activities')
         .limit(limit)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ActivityModel.fromMap({
-                  ...doc.data(),
-                  'id': doc.id,
-                }))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => ActivityModel.fromMap({...doc.data(), 'id': doc.id}),
+              )
+              .toList(),
+        );
   }
 }

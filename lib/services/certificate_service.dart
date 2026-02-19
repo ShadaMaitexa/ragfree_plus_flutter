@@ -7,11 +7,12 @@ class CertificateService {
   Stream<List<CertificateModel>> getCertificates() {
     return _firestore
         .collection('certificates')
-        .orderBy('issueDate', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => CertificateModel.fromFirestore(doc))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => CertificateModel.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   Future<void> issueCertificate(CertificateModel cert) async {
@@ -21,7 +22,9 @@ class CertificateService {
   }
 
   Future<void> updateStatus(String id, String status) async {
-    await _firestore.collection('certificates').doc(id).update({'status': status});
+    await _firestore.collection('certificates').doc(id).update({
+      'status': status,
+    });
   }
 
   Future<void> deleteCertificate(String id) async {

@@ -576,12 +576,6 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
               onPressed: () => _showAssignDialog(context, complaint),
               child: const Text('Assign'),
             ),
-          if (complaint.status == 'In Progress' ||
-              complaint.status == 'Verified')
-            FilledButton(
-              onPressed: () => _showResolveDialog(context, complaint),
-              child: const Text('Resolve'),
-            ),
         ],
       ),
     );
@@ -723,53 +717,6 @@ class _AdminComplaintsPageState extends State<AdminComplaintsPage>
           ],
         ),
       );
-    }
-  }
-
-  Future<void> _showResolveDialog(
-    BuildContext context,
-    ComplaintModel complaint,
-  ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Resolve Complaint'),
-        content: const Text('Mark this complaint as resolved?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Resolve'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      try {
-        await _complaintService.updateComplaintStatus(complaint.id, 'Resolved');
-        if (context.mounted) {
-          Navigator.pop(context); // Close details dialog
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Complaint marked as resolved'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
     }
   }
 }

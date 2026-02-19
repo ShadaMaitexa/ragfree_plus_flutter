@@ -465,18 +465,43 @@ class ComplaintService {
     required String verifierId,
     required String verifierName,
     required String verifierRole,
+    String? notes,
   }) async {
     try {
       await _firestore.collection('complaints').doc(complaintId).update({
-        'status': 'In Progress',
+        'status': 'Verified',
         'metadata.verifiedBy': verifierId,
         'metadata.verifiedByName': verifierName,
         'metadata.verifiedByRole': verifierRole,
         'metadata.verifiedAt': Timestamp.now(),
+        'metadata.verifiedNotes': notes,
         'updatedAt': Timestamp.now(),
       });
     } catch (e) {
       throw Exception('Failed to verify complaint: ${e.toString()}');
+    }
+  }
+
+  // Reject action (for Police/Teacher/Warden)
+  Future<void> rejectAction({
+    required String complaintId,
+    required String rejectorId,
+    required String rejectorName,
+    required String rejectorRole,
+    String? reason,
+  }) async {
+    try {
+      await _firestore.collection('complaints').doc(complaintId).update({
+        'status': 'Pending',
+        'metadata.rejectedBy': rejectorId,
+        'metadata.rejectedByName': rejectorName,
+        'metadata.rejectedByRole': rejectorRole,
+        'metadata.rejectedAt': Timestamp.now(),
+        'metadata.rejectionReason': reason,
+        'updatedAt': Timestamp.now(),
+      });
+    } catch (e) {
+      throw Exception('Failed to reject action: ${e.toString()}');
     }
   }
 

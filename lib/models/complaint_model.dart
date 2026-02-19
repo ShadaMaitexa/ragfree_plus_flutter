@@ -9,7 +9,7 @@ class ComplaintModel {
   final String category;
   final String priority;
   final String incidentType; // Hostel, College, Other
-  final String status; // Pending, In Progress, Resolved, Rejected
+  final String status; // Pending, In Progress, Verified, Resolved, Rejected
   final DateTime createdAt;
   final DateTime? updatedAt;
   final List<String> mediaUrls; // URLs of uploaded images/videos
@@ -152,7 +152,8 @@ class ComplaintModel {
       assignedToName: assignedToName ?? this.assignedToName,
       location: location ?? this.location,
       institution: institution ?? this.institution,
-      institutionNormalized: institutionNormalized ?? this.institutionNormalized,
+      institutionNormalized:
+          institutionNormalized ?? this.institutionNormalized,
       reporterId: reporterId ?? this.reporterId,
       reporterName: reporterName ?? this.reporterName,
       reporterRole: reporterRole ?? this.reporterRole,
@@ -161,4 +162,3 @@ class ComplaintModel {
     );
   }
 }
-

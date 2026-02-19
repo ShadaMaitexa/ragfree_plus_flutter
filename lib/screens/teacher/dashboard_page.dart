@@ -177,6 +177,12 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
         institutionNormalized,
       ),
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
         final allComplaints = snapshot.data ?? [];
 
         final complaints = department.isEmpty
@@ -498,11 +504,29 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
         StreamBuilder<List<ActivityModel>>(
           stream: _activityService.getUserActivities(userId),
           builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
+            if (snapshot.hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Error loading activities: ${snapshot.error}',
+                    style: const TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              );
             }
 
-            final activities = snapshot.data!;
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(32.0),
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
+
+            final activities = snapshot.data ?? [];
             if (activities.isEmpty) {
               return Container(
                 padding: const EdgeInsets.all(32),
@@ -623,11 +647,20 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
         StreamBuilder<List<NotificationModel>>(
           stream: _notificationService.getUserNotifications(userId, limit: 5),
           builder: (context, snapshot) {
-            if (!snapshot.hasData) {
+            if (snapshot.hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text('Error loading notifications: ${snapshot.error}'),
+                ),
+              );
+            }
+
+            if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            final notifications = snapshot.data!;
+            final notifications = snapshot.data ?? [];
             if (notifications.isEmpty) {
               return Container(
                 padding: const EdgeInsets.all(32),

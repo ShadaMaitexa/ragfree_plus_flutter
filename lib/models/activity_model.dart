@@ -22,13 +22,26 @@ class ActivityModel {
   });
 
   factory ActivityModel.fromMap(Map<String, dynamic> data) {
+    DateTime parsedTimestamp;
+    try {
+      if (data['timestamp'] is Timestamp) {
+        parsedTimestamp = (data['timestamp'] as Timestamp).toDate();
+      } else if (data['timestamp'] is String) {
+        parsedTimestamp = DateTime.parse(data['timestamp']);
+      } else {
+        parsedTimestamp = DateTime.now();
+      }
+    } catch (e) {
+      parsedTimestamp = DateTime.now();
+    }
+
     return ActivityModel(
       id: data['id'] ?? '',
       userId: data['userId'] ?? '',
       type: data['type'] ?? 'system',
       title: data['title'] ?? '',
       description: data['description'] ?? '',
-      timestamp: (data['timestamp'] as Timestamp).toDate(),
+      timestamp: parsedTimestamp,
       relatedId: data['relatedId'],
       metadata: data['metadata'],
     );
@@ -68,4 +81,3 @@ class ActivityModel {
     );
   }
 }
-

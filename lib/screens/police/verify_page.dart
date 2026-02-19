@@ -62,9 +62,7 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
             child: Column(
               children: [
                 _buildHeader(context, color),
-                Expanded(
-                  child: _buildComplaintsContent(context),
-                ),
+                Expanded(child: _buildComplaintsContent(context)),
               ],
             ),
           ),
@@ -152,18 +150,17 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                 Text(
                   'No Complaints Pending Verification',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'All complaints have been verified',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.7),
-                      ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -178,7 +175,11 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
               ),
               itemCount: pendingVerification.length,
               itemBuilder: (context, index) {
-                return _buildComplaintCard(context, pendingVerification[index], index);
+                return _buildComplaintCard(
+                  context,
+                  pendingVerification[index],
+                  index,
+                );
               },
             );
           },
@@ -205,6 +206,9 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
         break;
       case 'Pending':
         statusColor = Colors.orange;
+        break;
+      case 'Verified':
+        statusColor = Colors.green;
         break;
       default:
         statusColor = Colors.grey;
@@ -245,7 +249,9 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                     decoration: BoxDecoration(
                       color: statusColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: statusColor.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Text(
                       status,
@@ -328,7 +334,7 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                       color: Theme.of(
                         context,
                       ).colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Icon(
@@ -357,7 +363,8 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () => _showVerifyDialog(context, complaint, false),
+                      onPressed: () =>
+                          _showVerifyDialog(context, complaint, false),
                       icon: const Icon(Icons.close),
                       label: const Text('Reject'),
                       style: OutlinedButton.styleFrom(
@@ -368,7 +375,8 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                   const SizedBox(width: 12),
                   Expanded(
                     child: FilledButton.icon(
-                      onPressed: () => _showVerifyDialog(context, complaint, true),
+                      onPressed: () =>
+                          _showVerifyDialog(context, complaint, true),
                       icon: const Icon(Icons.check),
                       label: const Text('Verify'),
                     ),
@@ -407,7 +415,9 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
               TextField(
                 controller: notesController,
                 decoration: InputDecoration(
-                  labelText: verified ? 'Verification Notes' : 'Rejection Reason',
+                  labelText: verified
+                      ? 'Verification Notes'
+                      : 'Rejection Reason',
                   hintText: verified
                       ? 'Add any notes about the verification'
                       : 'Explain why this action is being rejected',
@@ -428,7 +438,7 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
               try {
                 final appState = Provider.of<AppState>(context, listen: false);
                 final user = appState.currentUser;
-                
+
                 if (user == null) throw Exception('User not logged in');
 
                 if (verified) {
@@ -437,12 +447,15 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                     verifierId: user.uid,
                     verifierName: user.name,
                     verifierRole: user.role,
+                    notes: notesController.text.trim(),
                   );
                 } else {
-                  // If rejected, maybe move back to Pending or mark as Rejected
-                  await _complaintService.updateComplaintStatus(
-                    complaint.id,
-                    'Pending',
+                  await _complaintService.rejectAction(
+                    complaintId: complaint.id,
+                    rejectorId: user.uid,
+                    rejectorName: user.name,
+                    rejectorRole: user.role,
+                    reason: notesController.text.trim(),
                   );
                 }
 
@@ -450,9 +463,11 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(verified
-                          ? 'Action verified successfully'
-                          : 'Action rejected'),
+                      content: Text(
+                        verified
+                            ? 'Action verified successfully'
+                            : 'Action rejected',
+                      ),
                       backgroundColor: verified ? Colors.green : Colors.orange,
                     ),
                   );
@@ -480,4 +495,3 @@ class _PoliceVerifyPageState extends State<PoliceVerifyPage>
     notesController.dispose();
   }
 }
-

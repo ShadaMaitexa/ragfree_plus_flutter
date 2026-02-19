@@ -6,19 +6,20 @@ class MaterialService {
 
   Stream<List<MaterialModel>> getMaterials() {
     return _firestore
-        .collection('materials')
-        .orderBy('updatedAt', descending: true)
+        .collection('study_materials')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => MaterialModel.fromFirestore(doc))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => MaterialModel.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   Future<void> addMaterial(MaterialModel material) async {
-    await _firestore.collection('materials').add(material.toFirestore());
+    await _firestore.collection('study_materials').add(material.toFirestore());
   }
 
   Future<void> deleteMaterial(String id) async {
-    await _firestore.collection('materials').doc(id).delete();
+    await _firestore.collection('study_materials').doc(id).delete();
   }
 }

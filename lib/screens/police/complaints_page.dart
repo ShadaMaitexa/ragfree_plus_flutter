@@ -25,7 +25,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
@@ -72,6 +72,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                       _buildAllComplaintsTab(context),
                       _buildPendingTab(context),
                       _buildInProgressTab(context),
+                      _buildResolvedTab(context),
                     ],
                   ),
                 ),
@@ -146,6 +147,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
           Tab(text: 'All'),
           Tab(text: 'Pending'),
           Tab(text: 'In Progress'),
+          Tab(text: 'Resolved'),
         ],
       ),
     );
@@ -155,13 +157,83 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
     return _buildComplaintsList(context, null, null);
   }
 
-
   Widget _buildPendingTab(BuildContext context) {
     return _buildComplaintsList(context, 'Pending', null);
   }
 
   Widget _buildInProgressTab(BuildContext context) {
-    return _buildComplaintsList(context, 'In Progress', null);
+    return _buildInProgressComplaintsList(context);
+  }
+
+  Widget _buildResolvedTab(BuildContext context) {
+    return _buildComplaintsList(context, 'Resolved', null);
+  }
+
+  Widget _buildInProgressComplaintsList(BuildContext context) {
+    return StreamBuilder<List<ComplaintModel>>(
+      stream: _complaintService.getAllComplaints(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                Text('Error: ${snapshot.error}'),
+              ],
+            ),
+          );
+        }
+
+        // Filter to show both "In Progress" and "Verified" complaints
+        final allComplaints = snapshot.data ?? [];
+        final complaints = allComplaints
+            .where((c) => c.status == 'In Progress' || c.status == 'Verified')
+            .toList();
+
+        if (complaints.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.assignment_outlined, size: 64, color: Colors.grey),
+                const SizedBox(height: 16),
+                Text(
+                  'No Complaints',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'No in progress or verified complaints',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return ListView.builder(
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.getHorizontalPadding(context),
+              ),
+              itemCount: complaints.length,
+              itemBuilder: (context, index) {
+                return _buildComplaintCard(context, complaints[index], index);
+              },
+            );
+          },
+        );
+      },
+    );
   }
 
   Widget _buildComplaintsList(
@@ -197,7 +269,7 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
           );
         }
         var complaints = snapshot.data ?? [];
-        
+
         // Filter by priority if needed
         if (priority != null) {
           complaints = complaints.where((c) => c.priority == priority).toList();
@@ -219,10 +291,12 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                   status != null
                       ? 'No ${status.toLowerCase()} complaints'
                       : priority != null
-                          ? 'No $priority priority complaints'
-                          : 'No complaints found',
+                      ? 'No $priority priority complaints'
+                      : 'No complaints found',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -261,6 +335,9 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
         break;
       case 'In Progress':
         statusColor = Colors.blue;
+        break;
+      case 'Verified':
+        statusColor = Colors.purple;
         break;
       case 'Pending':
         statusColor = Colors.orange;
@@ -307,7 +384,9 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                       decoration: BoxDecoration(
                         color: statusColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: statusColor.withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Text(
                         status,
@@ -425,11 +504,12 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                       Flexible(
                         child: Text(
                           complaint.location!,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.6),
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.6),
+                              ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -466,7 +546,10 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                     ? 'Anonymous'
                     : (complaint.studentName ?? 'Unknown'),
               ),
-              _buildDetailRow('Date', DateFormat('MMM dd, yyyy').format(complaint.createdAt)),
+              _buildDetailRow(
+                'Date',
+                DateFormat('MMM dd, yyyy').format(complaint.createdAt),
+              ),
               if (complaint.location != null)
                 _buildDetailRow('Location', complaint.location!),
               if (complaint.assignedToName != null)
@@ -516,6 +599,12 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
               },
               child: const Text('Verify Action'),
             ),
+          if (complaint.status == 'In Progress' ||
+              complaint.status == 'Verified')
+            FilledButton(
+              onPressed: () => _showResolveDialog(context, complaint),
+              child: const Text('Resolve'),
+            ),
         ],
       ),
     );
@@ -534,15 +623,16 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
-          Expanded(
-            child: Text(value),
-          ),
+          Expanded(child: Text(value)),
         ],
       ),
     );
   }
 
-  Future<void> _showVerifyDialog(BuildContext context, ComplaintModel complaint) async {
+  Future<void> _showVerifyDialog(
+    BuildContext context,
+    ComplaintModel complaint,
+  ) async {
     final actionController = TextEditingController();
     bool actionTaken = false;
 
@@ -599,15 +689,17 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
                   complaint.id,
                   actionTaken ? 'In Progress' : complaint.status,
                 );
-                
+
                 // You can add verification details to metadata
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(actionTaken
-                          ? 'Action verified and complaint updated'
-                          : 'Verification recorded'),
+                      content: Text(
+                        actionTaken
+                            ? 'Action verified and complaint updated'
+                            : 'Verification recorded',
+                      ),
                       backgroundColor: Colors.green,
                     ),
                   );
@@ -630,5 +722,53 @@ class _PoliceComplaintsPageState extends State<PoliceComplaintsPage>
     );
 
     actionController.dispose();
+  }
+
+  Future<void> _showResolveDialog(
+    BuildContext context,
+    ComplaintModel complaint,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Resolve Complaint'),
+        content: const Text(
+          'Confirm that external action has been completed and mark this complaint as resolved in the app?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Resolve'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await _complaintService.updateComplaintStatus(complaint.id, 'Resolved');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Complaint marked as resolved'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 }
