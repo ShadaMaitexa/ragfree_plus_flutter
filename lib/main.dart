@@ -428,11 +428,7 @@ class StudentDashboard extends StatelessWidget {
         label: 'Feedback',
         showInBottomNav: false,
       ),
-      NavigationDestinationData(
-        icon: Icons.person,
-        label: 'Profile',
-        showInBottomNav: false,
-      ),
+      NavigationDestinationData(icon: Icons.person, label: 'Profile'),
     ];
 
     final pages = <Widget>[

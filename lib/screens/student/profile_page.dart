@@ -172,8 +172,7 @@ class _StudentProfilePageState extends State<StudentProfilePage>
                         const SizedBox(height: 24),
                         _buildParentInfo(context),
                         const SizedBox(height: 24),
-                        _buildEmergencyInfo(context),
-                        const SizedBox(height: 24),
+
 
                         _buildRecentChats(context),
                         const SizedBox(height: 24),
