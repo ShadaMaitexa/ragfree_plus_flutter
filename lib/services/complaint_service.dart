@@ -244,7 +244,7 @@ class ComplaintService {
     String institutionNormalized,
   ) {
     if (institutionNormalized.isEmpty) return Stream.value([]);
-    // Using a broader query and filtering in Dart to handle missing institutionNormalized fields (legacy/dev data)
+    // Only return complaints that match the institution to ensure accurate counts
     return _firestore
         .collection('complaints')
         .snapshots()
@@ -254,13 +254,11 @@ class ComplaintService {
                 (doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}),
               )
               .where((c) {
-                // Return true if it matches exactly, OR if the record is missing institutional data
-                // This is a safety measure for dev/test data seen in Firebase screenshot
-                if (c.institutionNormalized == null ||
-                    c.institutionNormalized!.isEmpty) {
-                  return true;
-                }
-                return c.institutionNormalized == institutionNormalized;
+                // Only include complaints with matching institutionNormalized
+                // Skip records with missing institutional data to prevent inaccurate statistics
+                return c.institutionNormalized != null &&
+                    c.institutionNormalized!.isNotEmpty &&
+                    c.institutionNormalized == institutionNormalized;
               })
               .toList(),
         );
@@ -283,9 +281,9 @@ class ComplaintService {
               )
               .where((c) {
                 bool instMatch =
-                    c.institutionNormalized == institutionNormalized ||
-                    c.institutionNormalized == null ||
-                    c.institutionNormalized!.isEmpty;
+                    c.institutionNormalized != null &&
+                    c.institutionNormalized!.isNotEmpty &&
+                    c.institutionNormalized == institutionNormalized;
                 bool deptMatch =
                     (c.studentDepartment ?? '').trim().toLowerCase() ==
                     department.trim().toLowerCase();
