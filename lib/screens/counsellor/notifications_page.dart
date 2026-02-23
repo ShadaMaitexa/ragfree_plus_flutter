@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
 import '../../services/notification_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/notification_model.dart';
 import '../../widgets/animated_widgets.dart';
 import 'package:intl/intl.dart';
@@ -125,103 +126,147 @@ class _CounsellorNotificationsPageState
   Widget _buildNotificationsList(BuildContext context, String userId) {
     if (userId.isEmpty) return const SizedBox.shrink();
 
+    // Personal notifications stream
+    final personalStream = _notificationService.getUserNotifications(userId);
+
+    // Audience notifications (legacy writers use 'audience' like 'Counselors' / 'Counselors')
+    final audienceQuery = FirebaseFirestore.instance
+        .collection('notifications')
+        .where('audience', whereIn: ['Counselors', 'Counsellors', 'All Users'])
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snap) => snap.docs
+              .map(
+                (d) => NotificationModel.fromMap({
+                  ...d.data() as Map<String, dynamic>,
+                  'id': d.id,
+                }),
+              )
+              .toList(),
+        );
+
     return StreamBuilder<List<NotificationModel>>(
-      stream: _notificationService.getUserNotifications(userId),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+      stream: personalStream,
+      builder: (context, personalSnapshot) {
+        if (personalSnapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+        if (personalSnapshot.hasError) {
+          return Center(child: Text('Error: ${personalSnapshot.error}'));
         }
 
-        final notifications = snapshot.data ?? [];
-        if (notifications.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.notifications_none,
-                  size: 64,
-                  color: Colors.grey.withValues(alpha: 0.5),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'No notifications yet',
-                  style: TextStyle(color: Colors.grey.shade600),
-                ),
-              ],
-            ),
-          );
-        }
+        final personal = personalSnapshot.data ?? [];
 
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: notifications.length,
-          itemBuilder: (context, index) {
-            final notification = notifications[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: AnimatedWidgets.hoverCard(
-                borderRadius: BorderRadius.circular(16),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(16),
-                  tileColor: notification.isRead
-                      ? null
-                      : Theme.of(
-                          context,
-                        ).colorScheme.primary.withValues(alpha: 0.05),
-                  shape: RoundedRectangleBorder(
+        return StreamBuilder<List<NotificationModel>>(
+          stream: audienceQuery,
+          builder: (context, audienceSnapshot) {
+            if (audienceSnapshot.connectionState == ConnectionState.waiting) {
+              // show personal results while waiting for audience
+            }
+            if (audienceSnapshot.hasError) {
+              return Center(child: Text('Error: ${audienceSnapshot.error}'));
+            }
+
+            final audience = audienceSnapshot.data ?? [];
+
+            // Merge and dedupe by id, keeping newest ordering
+            final combinedMap = <String, NotificationModel>{};
+            for (var n in [...audience, ...personal]) {
+              combinedMap[n.id] = n;
+            }
+            final combined = combinedMap.values.toList()
+              ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+            if (combined.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.notifications_none,
+                      size: 64,
+                      color: Colors.grey.withValues(alpha: 0.5),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No notifications yet',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: combined.length,
+              itemBuilder: (context, index) {
+                final notification = combined[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: AnimatedWidgets.hoverCard(
                     borderRadius: BorderRadius.circular(16),
-                  ),
-                  leading: CircleAvatar(
-                    backgroundColor: _getNotificationColor(
-                      notification.type,
-                    ).withValues(alpha: 0.1),
-                    child: Icon(
-                      _getNotificationIcon(notification.type),
-                      color: _getNotificationColor(notification.type),
-                      size: 20,
-                    ),
-                  ),
-                  title: Text(
-                    notification.title,
-                    style: TextStyle(
-                      fontWeight: notification.isRead
-                          ? FontWeight.normal
-                          : FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 4),
-                      Text(
-                        notification.message,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16),
+                      tileColor: notification.isRead
+                          ? null
+                          : Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.05),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _formatDate(notification.createdAt),
-                        style: Theme.of(context).textTheme.bodySmall,
+                      leading: CircleAvatar(
+                        backgroundColor: _getNotificationColor(
+                          notification.type,
+                        ).withValues(alpha: 0.1),
+                        child: Icon(
+                          _getNotificationIcon(notification.type),
+                          color: _getNotificationColor(notification.type),
+                          size: 20,
+                        ),
                       ),
-                    ],
-                  ),
-                  trailing: !notification.isRead
-                      ? Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary,
-                            shape: BoxShape.circle,
+                      title: Text(
+                        notification.title,
+                        style: TextStyle(
+                          fontWeight: notification.isRead
+                              ? FontWeight.normal
+                              : FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          Text(
+                            notification.message,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        )
-                      : null,
-                  onTap: () => _showNotificationDetails(context, notification),
-                ),
-              ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _formatDate(notification.createdAt),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                      trailing: !notification.isRead
+                          ? Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                shape: BoxShape.circle,
+                              ),
+                            )
+                          : null,
+                      onTap: () =>
+                          _showNotificationDetails(context, notification),
+                    ),
+                  ),
+                );
+              },
             );
           },
         );

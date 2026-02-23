@@ -11,7 +11,14 @@ class AwarenessService {
 
     if (role != 'all') {
       List<String> targetRoles = [role, 'all'];
-      if (['student', 'parent', 'teacher', 'admin'].contains(role)) {
+      if ([
+        'student',
+        'parent',
+        'teacher',
+        'admin',
+        'counselor',
+        'counsellor',
+      ].contains(role)) {
         targetRoles.add('public');
       }
       if (role == 'public') {
@@ -21,17 +28,15 @@ class AwarenessService {
     }
 
     return collection.snapshots().map(
-          (snapshot) => snapshot.docs
-              .map(
-                (doc) => AwarenessModel.fromMap(
-                  {
-                    ...doc.data() as Map<String, dynamic>,
-                    'id': doc.id,
-                  },
-                ),
-              )
-              .toList(),
-        );
+      (snapshot) => snapshot.docs
+          .map(
+            (doc) => AwarenessModel.fromMap({
+              ...doc.data() as Map<String, dynamic>,
+              'id': doc.id,
+            }),
+          )
+          .toList(),
+    );
   }
 
   Stream<List<AwarenessModel>> getAwarenessByAuthor(String authorId) {
@@ -42,12 +47,7 @@ class AwarenessService {
         .map(
           (snapshot) => snapshot.docs
               .map(
-                (doc) => AwarenessModel.fromMap(
-                  {
-                    ...doc.data(),
-                    'id': doc.id,
-                  },
-                ),
+                (doc) => AwarenessModel.fromMap({...doc.data(), 'id': doc.id}),
               )
               .toList(),
         );
@@ -61,7 +61,10 @@ class AwarenessService {
 
   Future<void> updateAwareness(AwarenessModel model) async {
     if (model.id.isEmpty) return;
-    await _firestore.collection('awareness').doc(model.id).update(model.toMap());
+    await _firestore
+        .collection('awareness')
+        .doc(model.id)
+        .update(model.toMap());
   }
 
   Future<void> deleteAwareness(String id) async {
