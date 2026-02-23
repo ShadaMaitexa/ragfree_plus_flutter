@@ -15,8 +15,7 @@ class NotificationService {
   }) {
     Query<Map<String, dynamic>> query = _firestore
         .collection('notifications')
-        .where('userId', isEqualTo: userId)
-        
+        .where('userId', isEqualTo: userId);
 
     if (limit != null) {
       query = query.limit(limit);

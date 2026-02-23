@@ -133,7 +133,6 @@ class _CounsellorNotificationsPageState
     final audienceQuery = FirebaseFirestore.instance
         .collection('notifications')
         .where('audience', whereIn: ['Counselors', 'Counsellors', 'All Users'])
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .map(
           (snap) => snap.docs
