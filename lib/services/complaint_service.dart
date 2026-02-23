@@ -169,20 +169,18 @@ class ComplaintService {
   Stream<List<ComplaintModel>> getAssignedComplaints(String counselorId) {
     return _firestore
         .collection('complaints')
-        .where(
-          Filter.or(
-            Filter('assignedTo', isEqualTo: counselorId),
-            Filter('metadata.forwardedTo', isEqualTo: 'counsellor'),
-          ),
-        )
+        .where('assignedTo', isEqualTo: counselorId)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
+        .map((snapshot) {
+          final complaints = snapshot.docs
               .map(
                 (doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}),
               )
-              .toList(),
-        );
+              .toList();
+          // Sort in memory to avoid index requirement
+          complaints.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return complaints;
+        });
   }
 
   // Get complaints for Warden (Hostel incidents)

@@ -155,7 +155,8 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
   }
 
   Widget _buildStatsGrid(BuildContext context, Color color) {
-    final user = Provider.of<AppState>(context, listen: false).currentUser;
+    // Listen to AppState so this widget rebuilds when the current user is set
+    final user = Provider.of<AppState>(context).currentUser;
     if (user == null) return const SizedBox.shrink();
 
     return StreamBuilder<List<ComplaintModel>>(
