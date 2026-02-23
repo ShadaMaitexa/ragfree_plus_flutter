@@ -229,7 +229,7 @@ class ChatService {
           .get();
 
       return students.docs.map((doc) {
-        final data = doc.data();
+        final data = doc.data() as Map<String, dynamic>;
         return {
           'id': doc.id,
           'name': data['name'] ?? 'Student',
@@ -273,7 +273,7 @@ class ChatService {
           .get();
 
       return counselors.docs.map((doc) {
-        final data = doc.data();
+        final data = doc.data() as Map<String, dynamic>;
         return {
           'id': doc.id,
           'name': data['name'] ?? 'Counselor',
@@ -310,27 +310,33 @@ class ChatService {
         };
       }).toList();
 
-      // 2. Get Teachers in the same department
+      // 2. Get Teachers. If department provided, filter by it; otherwise get all teachers.
       List<Map<String, dynamic>> teachers = [];
+      final teachersQueryBase = _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'teacher')
+          .where('isApproved', isEqualTo: true);
+      Query teachersQuery;
       if (department != null && department.isNotEmpty) {
-        final teachersQuery = await _firestore
-            .collection('users')
-            .where('role', isEqualTo: 'teacher')
-            .where('department', isEqualTo: department)
-            .where('isApproved', isEqualTo: true)
-            .get();
-
-        teachers = teachersQuery.docs.map((doc) {
-          final data = doc.data();
-          return {
-            'id': doc.id,
-            'name': data['name'] ?? 'Teacher',
-            'department': data['department'],
-            'email': data['email'],
-            'role': 'teacher',
-          };
-        }).toList();
+        teachersQuery = teachersQueryBase.where(
+          'department',
+          isEqualTo: department,
+        );
+      } else {
+        teachersQuery = teachersQueryBase;
       }
+
+      final teachersQuerySnapshot = await teachersQuery.get();
+      teachers = teachersQuerySnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return {
+          'id': doc.id,
+          'name': data['name'] ?? 'Teacher',
+          'department': data['department'],
+          'email': data['email'],
+          'role': 'teacher',
+        };
+      }).toList();
 
       // Combine lists
       return [...counselors, ...teachers];

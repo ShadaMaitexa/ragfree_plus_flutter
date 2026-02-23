@@ -171,21 +171,22 @@ class _WardenDashboardPageState extends State<WardenDashboardPage> {
           },
           {
             'label': 'Pending',
-            'value': '${complaints.where((c) => c.status == 'Pending').length}',
+            'value':
+                '${complaints.where((c) => (c.status ?? '').trim().toLowerCase() == 'pending').length}',
             'icon': Icons.hourglass_empty_rounded,
             'color': Colors.orange,
           },
           {
             'label': 'Active',
             'value':
-                '${complaints.where((c) => c.status == 'In Progress').length}',
+                '${complaints.where((c) => (c.status ?? '').trim().toLowerCase() == 'in progress').length}',
             'icon': Icons.run_circle_rounded,
             'color': Colors.indigo,
           },
           {
             'label': 'Resolved',
             'value':
-                '${complaints.where((c) => c.status == 'Resolved').length}',
+                '${complaints.where((c) => (c.status ?? '').trim().toLowerCase() == 'resolved').length}',
             'icon': Icons.task_alt_rounded,
             'color': Colors.green,
           },

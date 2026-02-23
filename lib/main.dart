@@ -14,11 +14,13 @@ import 'screens/student/complaints_page.dart';
 import 'screens/student/chat_page.dart';
 import 'screens/student/awareness_page.dart';
 import 'screens/student/profile_page.dart';
+import 'screens/student/notifications_page.dart';
 import 'screens/parent/home_page.dart' as parent;
 import 'screens/parent/child_complaints_page.dart' as parent;
 import 'screens/parent/chat_page.dart' as parent;
 import 'screens/parent/awareness_page.dart' as parent;
 import 'screens/parent/profile_page.dart' as parent;
+import 'screens/parent/notifications_page.dart' as parent;
 import 'screens/warden/dashboard_page.dart' as warden_pages;
 import 'screens/warden/view_complaints_page.dart' as warden_pages;
 import 'screens/warden/forward_complaints_page.dart' as warden_pages;
@@ -32,6 +34,7 @@ import 'screens/counsellor/schedule_session_page.dart' as counsellor_pages;
 import 'screens/counsellor/chat_page.dart' as counsellor_pages;
 import 'screens/counsellor/awareness_page.dart' as counsellor_pages;
 import 'screens/counsellor/profile_page.dart' as counsellor_pages;
+import 'screens/counsellor/notifications_page.dart' as counsellor_pages;
 import 'screens/police/dashboard_page.dart' as police_pages;
 import 'screens/police/complaints_page.dart' as police_pages;
 import 'screens/police/verify_page.dart' as police_pages;
@@ -419,6 +422,11 @@ class StudentDashboard extends StatelessWidget {
       NavigationDestinationData(icon: Icons.assignment, label: 'Complaints'),
       NavigationDestinationData(icon: Icons.chat_bubble, label: 'Chat'),
       NavigationDestinationData(
+        icon: Icons.notifications,
+        label: 'Notifications',
+        showInBottomNav: false,
+      ),
+      NavigationDestinationData(
         icon: Icons.school,
         label: 'Awareness',
         showInBottomNav: false,
@@ -435,6 +443,7 @@ class StudentDashboard extends StatelessWidget {
       const StudentHomePage(),
       const StudentComplaintsPage(),
       const StudentChatPage(),
+      const StudentNotificationsPage(),
       const StudentAwarenessPage(),
       const UserFeedbackPage(),
       const StudentProfilePage(),
@@ -493,6 +502,10 @@ class ParentDashboard extends StatelessWidget {
       ),
       NavigationDestinationData(icon: Icons.chat_bubble, label: 'Chat'),
       NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
+      NavigationDestinationData(
+        icon: Icons.notifications,
+        label: 'Notifications',
+      ),
       NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
     ];
@@ -502,6 +515,7 @@ class ParentDashboard extends StatelessWidget {
       const parent.ParentChildComplaintsPage(),
       const parent.ParentChatPage(),
       const parent.ParentAwarenessPage(),
+      const parent.ParentNotificationsPage(),
       const UserFeedbackPage(),
       const parent.ParentProfilePage(),
     ];
@@ -754,6 +768,10 @@ class CounsellorDashboard extends StatelessWidget {
       NavigationDestinationData(icon: Icons.assignment, label: 'Assigned'),
       NavigationDestinationData(icon: Icons.schedule, label: 'Schedule'),
       NavigationDestinationData(icon: Icons.chat_bubble, label: 'Chat'),
+      NavigationDestinationData(
+        icon: Icons.notifications,
+        label: 'Notifications',
+      ),
       NavigationDestinationData(icon: Icons.school, label: 'Awareness'),
       NavigationDestinationData(icon: Icons.feedback, label: 'Feedback'),
       NavigationDestinationData(icon: Icons.person, label: 'Profile'),
@@ -764,6 +782,7 @@ class CounsellorDashboard extends StatelessWidget {
       _CounsellorPages.assigned,
       _CounsellorPages.schedule,
       _CounsellorPages.chat,
+      _CounsellorPages.notifications,
       _CounsellorPages.awareness,
       const UserFeedbackPage(),
       _CounsellorPages.profile,
@@ -818,13 +837,24 @@ class _CounsellorPages {
     page: _CounsellorPage.schedule,
   );
   static const Widget chat = _CounsellorLazy(page: _CounsellorPage.chat);
+  static const Widget notifications = _CounsellorLazy(
+    page: _CounsellorPage.notifications,
+  );
   static const Widget awareness = _CounsellorLazy(
     page: _CounsellorPage.awareness,
   );
   static const Widget profile = _CounsellorLazy(page: _CounsellorPage.profile);
 }
 
-enum _CounsellorPage { dashboard, assigned, schedule, chat, awareness, profile }
+enum _CounsellorPage {
+  dashboard,
+  assigned,
+  schedule,
+  chat,
+  notifications,
+  awareness,
+  profile,
+}
 
 class _CounsellorLazy extends StatelessWidget {
   final _CounsellorPage page;
@@ -841,6 +871,8 @@ class _CounsellorLazy extends StatelessWidget {
         return const _CounsellorScheduleProxy();
       case _CounsellorPage.chat:
         return const _CounsellorChatProxy();
+      case _CounsellorPage.notifications:
+        return const _CounsellorNotificationsProxy();
       case _CounsellorPage.awareness:
         return const _CounsellorAwarenessProxy();
       case _CounsellorPage.profile:
@@ -891,6 +923,13 @@ class _CounsellorAwarenessProxy extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       const counsellor_pages.CounsellorAwarenessPage();
+}
+
+class _CounsellorNotificationsProxy extends StatelessWidget {
+  const _CounsellorNotificationsProxy();
+  @override
+  Widget build(BuildContext context) =>
+      const counsellor_pages.CounsellorNotificationsPage();
 }
 
 class WardenDashboard extends StatelessWidget {

@@ -62,9 +62,7 @@ class _ParentChatPageState extends State<ParentChatPage>
             child: Column(
               children: [
                 _buildHeader(context, color),
-                Expanded(
-                  child: _buildConversationsContent(context),
-                ),
+                Expanded(child: _buildConversationsContent(context)),
               ],
             ),
           ),
@@ -122,7 +120,10 @@ class _ParentChatPageState extends State<ParentChatPage>
                     return const SizedBox.shrink();
                   }
                   final conversations = snapshot.data!;
-                  final unreadCount = conversations.fold(0, (sum, c) => sum + c.unreadCount);
+                  final unreadCount = conversations.fold(
+                    0,
+                    (sum, c) => sum + c.unreadCount,
+                  );
                   return Row(
                     children: [
                       Expanded(
@@ -193,7 +194,9 @@ class _ParentChatPageState extends State<ParentChatPage>
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -226,7 +229,9 @@ class _ParentChatPageState extends State<ParentChatPage>
           Text(
             'Start a conversation with our support team',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -276,14 +281,20 @@ class _ParentChatPageState extends State<ParentChatPage>
         }
         final conversations = snapshot.data ?? [];
         if (conversations.isEmpty) {
-          return _buildEmptyState(context, Theme.of(context).colorScheme.primary);
+          return _buildEmptyState(
+            context,
+            Theme.of(context).colorScheme.primary,
+          );
         }
         return _buildConversationsList(context, conversations);
       },
     );
   }
 
-  Widget _buildConversationsList(BuildContext context, List<ChatConversationModel> conversations) {
+  Widget _buildConversationsList(
+    BuildContext context,
+    List<ChatConversationModel> conversations,
+  ) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       itemCount: conversations.length,
@@ -322,7 +333,9 @@ class _ParentChatPageState extends State<ParentChatPage>
                       ).colorScheme.primary.withValues(alpha: 0.1),
                       child: Text(
                         conversation.counselorName != null
-                            ? conversation.counselorName!.substring(0, 1).toUpperCase()
+                            ? conversation.counselorName!
+                                  .substring(0, 1)
+                                  .toUpperCase()
                             : 'C',
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
@@ -348,13 +361,14 @@ class _ParentChatPageState extends State<ParentChatPage>
                           ),
                           Text(
                             conversation.lastMessageAt != null
-                                ? DateFormat('MMM dd, HH:mm').format(conversation.lastMessageAt!)
+                                ? DateFormat(
+                                    'MMM dd, HH:mm',
+                                  ).format(conversation.lastMessageAt!)
                                 : '',
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurface.withValues(alpha: 0.6),
+                                  color: Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.6),
                                 ),
                           ),
                         ],
@@ -362,16 +376,17 @@ class _ParentChatPageState extends State<ParentChatPage>
                       const SizedBox(height: 4),
                       Text(
                         conversation.counselorRole != null &&
-                                    conversation.counselorRole!.isNotEmpty
-                                ? (conversation.counselorRole!.toLowerCase() ==
-                                        'counsellor'
-                                    ? 'Counselor'
-                                    : conversation.counselorRole!
+                                conversation.counselorRole!.isNotEmpty
+                            ? (conversation.counselorRole!.toLowerCase() ==
+                                      'counsellor'
+                                  ? 'Counselor'
+                                  : conversation.counselorRole!
                                             .substring(0, 1)
                                             .toUpperCase() +
-                                        conversation.counselorRole!
-                                            .substring(1))
-                                : 'Counselor',
+                                        conversation.counselorRole!.substring(
+                                          1,
+                                        ))
+                            : 'Counselor',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w500,
@@ -385,10 +400,13 @@ class _ParentChatPageState extends State<ParentChatPage>
                               conversation.lastMessage ?? 'No messages yet',
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface.withValues(alpha: 0.7),
-                                    fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.normal,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.7),
+                                    fontWeight: unread > 0
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
                                   ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -443,17 +461,19 @@ class _ParentChatPageState extends State<ParentChatPage>
   Future<void> _showStartChatDialog(BuildContext context) async {
     final appState = Provider.of<AppState>(context, listen: false);
     final user = appState.currentUser;
-    
+
     if (user == null) return;
 
     try {
-      final counselors = await _chatService.getAvailableCounselors();
-      
-      if (counselors.isEmpty) {
+      final recipients = await _chatService.getAvailableChatRecipients(
+        user.department,
+      );
+
+      if (recipients.isEmpty) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('No counselors available at the moment'),
+            content: Text('No recipients available at the moment'),
             backgroundColor: Colors.orange,
           ),
         );
@@ -464,24 +484,30 @@ class _ParentChatPageState extends State<ParentChatPage>
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             title: const Text('Start New Chat'),
             content: SizedBox(
               width: double.maxFinite,
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: counselors.length,
+                itemCount: recipients.length,
                 itemBuilder: (context, index) {
-                  final counselor = counselors[index];
+                  final r = recipients[index];
                   return ListTile(
                     leading: CircleAvatar(
-                      child: Text(counselor['name'].substring(0, 1)),
+                      child: Text((r['name'] as String).substring(0, 1)),
                     ),
-                    title: Text(counselor['name']),
-                    subtitle: Text(counselor['department'] ?? 'Counselor'),
+                    title: Text(r['name']),
+                    subtitle: Text(
+                      r['role'] == 'teacher'
+                          ? (r['department'] ?? 'Teacher')
+                          : 'Counselor',
+                    ),
                     onTap: () async {
                       Navigator.pop(context);
-                      await _startNewChat(context, counselor);
+                      await _startNewChat(context, r);
                     },
                   );
                 },
@@ -507,10 +533,13 @@ class _ParentChatPageState extends State<ParentChatPage>
     }
   }
 
-  Future<void> _startNewChat(BuildContext context, Map<String, dynamic> counselor) async {
+  Future<void> _startNewChat(
+    BuildContext context,
+    Map<String, dynamic> recipient,
+  ) async {
     final appState = Provider.of<AppState>(context, listen: false);
     final user = appState.currentUser;
-    
+
     if (user == null) return;
 
     try {
@@ -518,8 +547,9 @@ class _ParentChatPageState extends State<ParentChatPage>
       final chatId = await _chatService.getOrCreateConversation(
         studentId: user.uid, // Simplified - should link to child's ID
         studentName: user.name,
-        counselorId: counselor['id'],
-        counselorName: counselor['name'],
+        counselorId: recipient['id'],
+        counselorName: recipient['name'],
+        counselorRole: recipient['role'],
       );
 
       if (!mounted) return;
@@ -527,8 +557,9 @@ class _ParentChatPageState extends State<ParentChatPage>
         id: chatId,
         studentId: user.uid,
         studentName: user.name,
-        counselorId: counselor['id'],
-        counselorName: counselor['name'],
+        counselorId: recipient['id'],
+        counselorName: recipient['name'],
+        counselorRole: recipient['role'],
         createdAt: DateTime.now(),
       );
       _openChat(context, conversation);
@@ -581,7 +612,9 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
               ).colorScheme.primary.withValues(alpha: 0.1),
               child: Text(
                 widget.conversation.counselorName != null
-                    ? widget.conversation.counselorName!.substring(0, 1).toUpperCase()
+                    ? widget.conversation.counselorName!
+                          .substring(0, 1)
+                          .toUpperCase()
                     : 'C',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
@@ -606,13 +639,13 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                     widget.conversation.counselorRole != null &&
                             widget.conversation.counselorRole!.isNotEmpty
                         ? (widget.conversation.counselorRole!.toLowerCase() ==
-                                'counsellor'
-                            ? 'Counselor'
-                            : widget.conversation.counselorRole!
-                                    .substring(0, 1)
-                                    .toUpperCase() +
-                                widget.conversation.counselorRole!
-                                    .substring(1))
+                                  'counsellor'
+                              ? 'Counselor'
+                              : widget.conversation.counselorRole!
+                                        .substring(0, 1)
+                                        .toUpperCase() +
+                                    widget.conversation.counselorRole!
+                                        .substring(1))
                         : 'Counselor',
                     style: TextStyle(
                       fontSize: 12,
@@ -651,7 +684,9 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                     child: Text(
                       'No messages yet. Start the conversation!',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   );
@@ -674,10 +709,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
     );
   }
 
-  Widget _buildMessageBubble(
-    BuildContext context,
-    ChatMessageModel message,
-  ) {
+  Widget _buildMessageBubble(BuildContext context, ChatMessageModel message) {
     final appState = Provider.of<AppState>(context, listen: false);
     final user = appState.currentUser;
     final isMe = message.senderId == user?.uid;
@@ -813,7 +845,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
 
     final appState = Provider.of<AppState>(context, listen: false);
     final user = appState.currentUser;
-    
+
     if (user == null) return;
 
     final messageText = _messageController.text.trim();
@@ -827,7 +859,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
         senderRole: user.role,
         message: messageText,
       );
-      
+
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
@@ -971,12 +1003,15 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
       ),
     );
   }
+
   void _showClearChatDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear Chat'),
-        content: const Text('Are you sure you want to clear all messages in this chat? This cannot be undone.'),
+        content: const Text(
+          'Are you sure you want to clear all messages in this chat? This cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -988,13 +1023,16 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                 await widget.chatService.clearChat(widget.conversation.id);
                 if (!mounted) return;
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Chat cleared')),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Chat cleared')));
               } catch (e) {
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                  SnackBar(
+                    content: Text('Error: $e'),
+                    backgroundColor: Colors.red,
+                  ),
                 );
               }
             },

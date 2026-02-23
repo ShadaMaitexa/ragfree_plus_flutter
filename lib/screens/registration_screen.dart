@@ -380,7 +380,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       ),
                     ),
                     if (_selectedRole != 'parent' &&
-                        _selectedRole != 'police') ...[
+                        _selectedRole != 'police' &&
+                        _selectedRole != 'counsellor') ...[
                       const SizedBox(height: 16),
                       AnimatedWidgets.slideIn(
                         beginOffset: const Offset(0, 0.1),
@@ -437,7 +438,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     if ([
                       'student',
                       'teacher',
-                      'counsellor',
                       'warden',
                     ].contains(_selectedRole)) ...[
                       const SizedBox(height: 16),

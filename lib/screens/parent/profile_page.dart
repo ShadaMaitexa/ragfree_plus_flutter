@@ -130,8 +130,7 @@ class _ParentProfilePageState extends State<ParentProfilePage>
                     const SizedBox(height: 24),
                     _buildChildrenInfo(context),
                     const SizedBox(height: 24),
-                    _buildEmergencyInfo(context),
-                    const SizedBox(height: 24),
+
                     _buildPreferences(context),
                     const SizedBox(height: 24),
                     _buildActions(context, color),
