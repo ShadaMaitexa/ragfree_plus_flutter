@@ -522,12 +522,55 @@ class _CounsellorAssignedComplaintsPageState
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
           ),
-          if (complaint.status != 'Resolved')
+          if (complaint.assignedTo == null)
+            FilledButton.icon(
+              onPressed: () async {
+                final appState = Provider.of<AppState>(context, listen: false);
+                final user = appState.currentUser;
+                if (user != null) {
+                  try {
+                    await _complaintService.acceptComplaint(
+                      complaintId: complaint.id,
+                      acceptorId: user.uid,
+                      acceptorName: user.name,
+                      acceptorRole: 'counsellor',
+                    );
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Complaint accepted and assigned to you',
+                          ),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                }
+              },
+              icon: const Icon(Icons.check_circle_outline),
+              label: const Text('Accept Case'),
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          if (complaint.assignedTo != null && complaint.status != 'Resolved')
             FilledButton(
               onPressed: () => _showRespondDialog(context, complaint),
               child: const Text('Respond'),
             ),
-          if (complaint.status == 'In Progress')
+          if (complaint.assignedTo != null && complaint.status == 'In Progress')
             FilledButton(
               onPressed: () => _showResolveDialog(context, complaint),
               child: const Text('Resolve'),
@@ -595,9 +638,9 @@ class _CounsellorAssignedComplaintsPageState
 
               try {
                 // Update complaint status and add response
-                await _complaintService.updateComplaintStatus(
-                  complaint.id,
-                  'In Progress',
+                await _complaintService.respondToComplaint(
+                  complaintId: complaint.id,
+                  response: responseController.text.trim(),
                 );
 
                 // You can add response to metadata or create a separate responses collection

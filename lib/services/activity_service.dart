@@ -128,6 +128,32 @@ class ActivityService {
     }
   }
 
+  // Create custom activity
+  Future<void> createActivity({
+    required String userId,
+    required String title,
+    required String description,
+    required String type, // complaint, chat, system, user
+    String? relatedId,
+    Map<String, dynamic>? metadata,
+  }) async {
+    try {
+      final docRef = _firestore.collection('activities').doc();
+      await docRef.set({
+        'id': docRef.id,
+        'userId': userId,
+        'type': type,
+        'title': title,
+        'description': description,
+        'timestamp': Timestamp.now(),
+        if (relatedId != null) 'relatedId': relatedId,
+        if (metadata != null) 'metadata': metadata,
+      });
+    } catch (e) {
+      throw Exception('Failed to create activity: ${e.toString()}');
+    }
+  }
+
   // Create system activity
   Future<void> createSystemActivity({
     required String userId,

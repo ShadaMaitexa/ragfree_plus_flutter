@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
+import 'package:rxdart/rxdart.dart';
 import '../models/complaint_model.dart';
 import 'cloudinary_service.dart';
 import 'emailjs_service.dart';
@@ -165,22 +166,51 @@ class ComplaintService {
         );
   }
 
-  // Get complaints assigned to a counselor
+  // Get complaints assigned to a counselor or forwarded to the counsellor role
   Stream<List<ComplaintModel>> getAssignedComplaints(String counselorId) {
-    return _firestore
+    // Stream 1: Complaints assigned to this specific counselor
+    final assignedStream = _firestore
         .collection('complaints')
         .where('assignedTo', isEqualTo: counselorId)
-        .snapshots()
-        .map((snapshot) {
-          final complaints = snapshot.docs
-              .map(
-                (doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}),
-              )
-              .toList();
-          // Sort in memory to avoid index requirement
-          complaints.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-          return complaints;
+        .snapshots();
+
+    // Stream 2: Complaints forwarded to the 'counsellor' role (not yet assigned)
+    final forwardedStream = _firestore
+        .collection('complaints')
+        .where('metadata.forwardedTo', isEqualTo: 'counsellor')
+        .snapshots();
+
+    // Combine both streams
+    return Rx.combineLatest2<
+      QuerySnapshot,
+      QuerySnapshot,
+      List<ComplaintModel>
+    >(assignedStream, forwardedStream, (assignedSnapshot, forwardedSnapshot) {
+      final Map<String, ComplaintModel> allComplaints = {};
+
+      // Process assigned complaints
+      for (var doc in assignedSnapshot.docs) {
+        allComplaints[doc.id] = ComplaintModel.fromMap({
+          ...(doc.data() as Map<String, dynamic>),
+          'id': doc.id,
         });
+      }
+
+      // Process forwarded complaints (avoid duplicates)
+      for (var doc in forwardedSnapshot.docs) {
+        if (!allComplaints.containsKey(doc.id)) {
+          allComplaints[doc.id] = ComplaintModel.fromMap({
+            ...(doc.data() as Map<String, dynamic>),
+            'id': doc.id,
+          });
+        }
+      }
+
+      final complaints = allComplaints.values.toList();
+      // Sort in memory to avoid index requirement
+      complaints.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return complaints;
+    });
   }
 
   // Get complaints for Warden (Hostel incidents)
@@ -242,24 +272,27 @@ class ComplaintService {
     String institutionNormalized,
   ) {
     if (institutionNormalized.isEmpty) return Stream.value([]);
-    // Only return complaints that match the institution to ensure accurate counts
+
+    // Query Firestore directly for the institution's complaints
+    // Note: This requires a Firestore index for 'institutionNormalized' if combined with orderBy.
+    // Since we sort in memory, a single field index on 'institutionNormalized' is enough.
     return _firestore
         .collection('complaints')
+        .where('institutionNormalized', isEqualTo: institutionNormalized)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
+        .map((snapshot) {
+          final complaints = snapshot.docs
               .map(
-                (doc) => ComplaintModel.fromMap({...doc.data(), 'id': doc.id}),
+                (doc) => ComplaintModel.fromMap({
+                  ...(doc.data() as Map<String, dynamic>),
+                  'id': doc.id,
+                }),
               )
-              .where((c) {
-                // Only include complaints with matching institutionNormalized
-                // Skip records with missing institutional data to prevent inaccurate statistics
-                return c.institutionNormalized != null &&
-                    c.institutionNormalized!.isNotEmpty &&
-                    c.institutionNormalized == institutionNormalized;
-              })
-              .toList(),
-        );
+              .toList();
+          // Sort in memory to avoid complex index requirements
+          complaints.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return complaints;
+        });
   }
 
   // Get complaints by Department (for Teachers)
@@ -490,6 +523,15 @@ class ComplaintService {
         'metadata.verifiedNotes': notes,
         'updatedAt': Timestamp.now(),
       });
+
+      // Log activity
+      await _activityService.createActivity(
+        userId: verifierId,
+        relatedId: complaintId,
+        title: 'Complaint Verified',
+        description: 'You verified the complaint: $complaintId',
+        type: 'complaint',
+      );
     } catch (e) {
       throw Exception('Failed to verify complaint: ${e.toString()}');
     }
@@ -513,6 +555,15 @@ class ComplaintService {
         'metadata.rejectionReason': reason,
         'updatedAt': Timestamp.now(),
       });
+
+      // Log activity
+      await _activityService.createActivity(
+        userId: rejectorId,
+        relatedId: complaintId,
+        title: 'Action Rejected',
+        description: 'You rejected the action for complaint: $complaintId',
+        type: 'complaint',
+      );
     } catch (e) {
       throw Exception('Failed to reject action: ${e.toString()}');
     }
@@ -528,12 +579,23 @@ class ComplaintService {
     try {
       await _firestore.collection('complaints').doc(complaintId).update({
         'status': 'Accepted',
+        'assignedTo': acceptorId, // CRITICAL: Assign the complaint to the user
+        'assignedToName': acceptorName,
         'metadata.acceptedBy': acceptorId,
         'metadata.acceptedByName': acceptorName,
         'metadata.acceptedByRole': acceptorRole,
         'metadata.acceptedAt': Timestamp.now(),
         'updatedAt': Timestamp.now(),
       });
+
+      // Log activity
+      await _activityService.createActivity(
+        userId: acceptorId,
+        relatedId: complaintId,
+        title: 'Complaint Accepted',
+        description: 'You accepted the complaint: $complaintId',
+        type: 'complaint',
+      );
     } catch (e) {
       throw Exception('Failed to accept complaint: ${e.toString()}');
     }
@@ -588,8 +650,34 @@ class ComplaintService {
         'metadata.resolvedAt': Timestamp.now(),
         'updatedAt': Timestamp.now(),
       });
+
+      // Log activity
+      await _activityService.createActivity(
+        userId: resolverId,
+        relatedId: complaintId,
+        title: 'Complaint Resolved',
+        description: 'You resolved the complaint: $complaintId',
+        type: 'complaint',
+      );
     } catch (e) {
       throw Exception('Failed to resolve complaint: ${e.toString()}');
+    }
+  }
+
+  // Respond to complaint (for Counsellor)
+  Future<void> respondToComplaint({
+    required String complaintId,
+    required String response,
+  }) async {
+    try {
+      await _firestore.collection('complaints').doc(complaintId).update({
+        'status': 'In Progress',
+        'metadata.counselorResponse': response,
+        'metadata.respondedAt': Timestamp.now(),
+        'updatedAt': Timestamp.now(),
+      });
+    } catch (e) {
+      throw Exception('Failed to respond to complaint: ${e.toString()}');
     }
   }
 }
