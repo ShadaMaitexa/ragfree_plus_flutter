@@ -132,13 +132,13 @@ class _TeacherChatPageState extends State<TeacherChatPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Chat with Students & Staff',
+                  'Chat with Students',
                   style: Theme.of(
                     context,
                   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 Text(
-                  'Communicate with students and colleagues',
+                  'Communicate with your students',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -181,7 +181,7 @@ class _TeacherChatPageState extends State<TeacherChatPage>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'No student conversations available yet',
+                  'No conversations yet',
                   style: Theme.of(context).textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -322,7 +322,11 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                 context,
               ).colorScheme.primary.withValues(alpha: 0.1),
               child: Text(
-                widget.conversation.studentName.substring(0, 1).toUpperCase(),
+                widget.conversation.studentName.isNotEmpty
+                    ? widget.conversation.studentName
+                          .substring(0, 1)
+                          .toUpperCase()
+                    : 'S',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,
@@ -406,6 +410,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                 return ListView.builder(
                   controller: _scrollController,
                   padding: const EdgeInsets.all(16),
+                  reverse: true,
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
@@ -440,7 +445,9 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                 context,
               ).colorScheme.primary.withValues(alpha: 0.1),
               child: Text(
-                message.senderName.substring(0, 1).toUpperCase(),
+                message.senderName.isNotEmpty
+                    ? message.senderName.substring(0, 1).toUpperCase()
+                    : 'U',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,

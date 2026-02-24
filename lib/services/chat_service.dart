@@ -34,11 +34,29 @@ class ChatService {
 
       if (existing.docs.isNotEmpty) {
         // If searching specifically for a complaint, we want that exact one
-        // Otherwise, if just student/counselor, we might need to filter out ones with complaints
         if (complaintId != null && complaintId.isNotEmpty) {
-          return existing.docs.first.id;
+          final complaintConvo = existing.docs.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return data['complaintId'] == complaintId;
+          }).toList();
+          if (complaintConvo.isNotEmpty) {
+            // Update the existing conversation with current counselor info if available
+            if (counselorId != null &&
+                (counselorName != null || counselorRole != null)) {
+              final docRef = complaintConvo.first.reference;
+              final updates = <String, dynamic>{};
+              if (counselorName != null)
+                updates['counselorName'] = counselorName;
+              if (counselorRole != null)
+                updates['counselorRole'] = counselorRole;
+              if (updates.isNotEmpty) {
+                await docRef.update(updates);
+              }
+            }
+            return complaintConvo.first.id;
+          }
         } else {
-          // If no complaintId provided, look for a general conversation (no complaintId)
+          // If no complaintId provided, prefer a general one, but take ANY existing one if it's the only one
           final generalConvo = existing.docs.where((doc) {
             final data = doc.data() as Map<String, dynamic>;
             return data['complaintId'] == null || data['complaintId'] == '';
@@ -59,6 +77,25 @@ class ChatService {
               }
             }
             return generalConvo.first.id;
+          }
+
+          // If no general conversation but there is a complaint conversation, use it
+          // This solves the issue where student sent messages via complaint but teacher clicks "New Chat"
+          // Also update counselor info if available
+          if (existing.docs.isNotEmpty) {
+            final docRef = existing.docs.first.reference;
+            if (counselorId != null &&
+                (counselorName != null || counselorRole != null)) {
+              final updates = <String, dynamic>{};
+              if (counselorName != null)
+                updates['counselorName'] = counselorName;
+              if (counselorRole != null)
+                updates['counselorRole'] = counselorRole;
+              if (updates.isNotEmpty) {
+                await docRef.update(updates);
+              }
+            }
+            return existing.docs.first.id;
           }
         }
       }
@@ -131,6 +168,7 @@ class ChatService {
         .collection('chat_conversations')
         .doc(chatId)
         .collection('messages')
+        .orderBy('timestamp', descending: true)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
@@ -150,16 +188,23 @@ class ChatService {
         .collection('chat_conversations')
         .where('studentId', isEqualTo: studentId)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
+        .map((snapshot) {
+          final list = snapshot.docs
               .map(
                 (doc) => ChatConversationModel.fromMap({
                   ...doc.data(),
                   'id': doc.id,
                 }),
               )
-              .toList(),
-        );
+              .toList();
+          // Sort by lastMessageAt or createdAt
+          list.sort((a, b) {
+            final aTime = a.lastMessageAt ?? a.createdAt;
+            final bTime = b.lastMessageAt ?? b.createdAt;
+            return bTime.compareTo(aTime);
+          });
+          return list;
+        });
   }
 
   // Get conversations for a counselor
@@ -200,16 +245,23 @@ class ChatService {
         .collection('chat_conversations')
         .where('counselorId', isEqualTo: teacherId)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
+        .map((snapshot) {
+          final list = snapshot.docs
               .map(
                 (doc) => ChatConversationModel.fromMap({
                   ...doc.data(),
                   'id': doc.id,
                 }),
               )
-              .toList(),
-        );
+              .toList();
+          // Sort by lastMessageAt or createdAt
+          list.sort((a, b) {
+            final aTime = a.lastMessageAt ?? a.createdAt;
+            final bTime = b.lastMessageAt ?? b.createdAt;
+            return bTime.compareTo(aTime);
+          });
+          return list;
+        });
   }
 
   // Get all students in an institution to start a new chat

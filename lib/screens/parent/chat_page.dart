@@ -332,7 +332,8 @@ class _ParentChatPageState extends State<ParentChatPage>
                         context,
                       ).colorScheme.primary.withValues(alpha: 0.1),
                       child: Text(
-                        conversation.counselorName != null
+                        conversation.counselorName != null &&
+                                conversation.counselorName!.isNotEmpty
                             ? conversation.counselorName!
                                   .substring(0, 1)
                                   .toUpperCase()
@@ -497,7 +498,11 @@ class _ParentChatPageState extends State<ParentChatPage>
                   final r = recipients[index];
                   return ListTile(
                     leading: CircleAvatar(
-                      child: Text((r['name'] as String).substring(0, 1)),
+                      child: Text(
+                        (r['name'] as String).isNotEmpty
+                            ? (r['name'] as String).substring(0, 1)
+                            : 'R',
+                      ),
                     ),
                     title: Text(r['name']),
                     subtitle: Text(
@@ -611,7 +616,8 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                 context,
               ).colorScheme.primary.withValues(alpha: 0.1),
               child: Text(
-                widget.conversation.counselorName != null
+                widget.conversation.counselorName != null &&
+                        widget.conversation.counselorName!.isNotEmpty
                     ? widget.conversation.counselorName!
                           .substring(0, 1)
                           .toUpperCase()
@@ -694,6 +700,7 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                 return ListView.builder(
                   controller: _scrollController,
                   padding: const EdgeInsets.all(16),
+                  reverse: true,
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
@@ -728,7 +735,9 @@ class _ChatDetailPageState extends State<_ChatDetailPage> {
                 context,
               ).colorScheme.primary.withValues(alpha: 0.1),
               child: Text(
-                message.senderName.substring(0, 1).toUpperCase(),
+                message.senderName.isNotEmpty
+                    ? message.senderName.substring(0, 1).toUpperCase()
+                    : 'P',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,

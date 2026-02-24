@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../models/user_model.dart';
-import '../../services/chat_service.dart';
-import '../../models/chat_message_model.dart';
-import '../../services/app_state.dart';
-import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../services/department_service.dart';
 
@@ -165,7 +161,9 @@ class _WardenStudentsPageState extends State<WardenStudentsPage> {
                       radius: 25,
                       backgroundColor: color.withValues(alpha: 0.1),
                       child: Text(
-                        student.name[0].toUpperCase(),
+                        student.name.isNotEmpty
+                            ? student.name[0].toUpperCase()
+                            : 'S',
                         style: TextStyle(
                           color: color,
                           fontWeight: FontWeight.bold,
@@ -231,16 +229,7 @@ class _WardenStudentsPageState extends State<WardenStudentsPage> {
                             ],
                           ),
                         ),
-                        const PopupMenuItem(
-                          value: 'chat',
-                          child: Row(
-                            children: [
-                              Icon(Icons.chat_bubble_outline),
-                              SizedBox(width: 8),
-                              Text('Chat'),
-                            ],
-                          ),
-                        ),
+
                         const PopupMenuItem(
                           value: 'call',
                           child: Row(
@@ -279,9 +268,7 @@ class _WardenStudentsPageState extends State<WardenStudentsPage> {
       case 'details':
         _showStudentDetails(student);
         break;
-      case 'chat':
-        _handleChat(student);
-        break;
+
       case 'call':
         if (student.phone != null) {
           launchUrl(Uri.parse('tel:${student.phone}'));
@@ -290,39 +277,6 @@ class _WardenStudentsPageState extends State<WardenStudentsPage> {
       case 'email':
         launchUrl(Uri.parse('mailto:${student.email}'));
         break;
-    }
-  }
-
-  Future<void> _handleChat(UserModel student) async {
-    final appState = Provider.of<AppState>(context, listen: false);
-    final user = appState.currentUser;
-    if (user == null) return;
-
-    try {
-      final chatService = ChatService();
-      final chatId = await chatService.getOrCreateConversation(
-        studentId: student.uid,
-        studentName: student.name,
-        counselorId: user.uid,
-        counselorName: user.name,
-      );
-
-      if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => WardenChatDetailPage(
-            chatId: chatId,
-            peerName: student.name,
-            peerRole: 'student',
-          ),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error starting chat: $e')));
     }
   }
 
@@ -386,116 +340,6 @@ class _WardenStudentsPageState extends State<WardenStudentsPage> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class WardenChatDetailPage extends StatefulWidget {
-  final String chatId;
-  final String peerName;
-  final String peerRole;
-
-  const WardenChatDetailPage({
-    super.key,
-    required this.chatId,
-    required this.peerName,
-    required this.peerRole,
-  });
-
-  @override
-  State<WardenChatDetailPage> createState() => _WardenChatDetailPageState();
-}
-
-class _WardenChatDetailPageState extends State<WardenChatDetailPage> {
-  final TextEditingController _messageController = TextEditingController();
-  final ChatService _chatService = ChatService();
-
-  @override
-  Widget build(BuildContext context) {
-    final appState = Provider.of<AppState>(context);
-    final user = appState.currentUser!;
-
-    return Scaffold(
-      appBar: AppBar(title: Text('Chat with ${widget.peerName}')),
-      body: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder<List<ChatMessageModel>>(
-              stream: _chatService.getMessages(widget.chatId),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData)
-                  return const Center(child: CircularProgressIndicator());
-                final messages = snapshot.data!;
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  reverse: false,
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final msg = messages[index];
-                    final isMe = msg.senderId == user.uid;
-                    return Align(
-                      alignment: isMe
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isMe
-                              ? Theme.of(context).primaryColor
-                              : Colors.grey[200],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          msg.message,
-                          style: TextStyle(
-                            color: isMe ? Colors.white : Colors.black,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _sendMessage(user),
-                    decoration: const InputDecoration(
-                      hintText: 'Type a message...',
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: () => _sendMessage(user),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _sendMessage(dynamic user) async {
-    if (_messageController.text.trim().isEmpty) return;
-    final message = _messageController.text;
-    _messageController.clear();
-
-    await _chatService.sendMessage(
-      chatId: widget.chatId,
-      senderId: user.uid,
-      senderName: user.name,
-      senderRole: user.role,
-      message: message,
     );
   }
 }

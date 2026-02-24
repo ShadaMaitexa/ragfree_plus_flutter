@@ -24,6 +24,12 @@ class ChatMessageModel {
   });
 
   factory ChatMessageModel.fromMap(Map<String, dynamic> data) {
+    DateTime parseTimestamp(dynamic ts) {
+      if (ts is Timestamp) return ts.toDate();
+      if (ts is String) return DateTime.tryParse(ts) ?? DateTime.now();
+      return DateTime.now();
+    }
+
     return ChatMessageModel(
       id: data['id'] ?? '',
       chatId: data['chatId'] ?? '',
@@ -31,7 +37,7 @@ class ChatMessageModel {
       senderName: data['senderName'] ?? '',
       senderRole: data['senderRole'] ?? '',
       message: data['message'] ?? '',
-      timestamp: (data['timestamp'] as Timestamp).toDate(),
+      timestamp: parseTimestamp(data['timestamp']),
       isRead: data['isRead'] ?? false,
       messageType: data['messageType'] ?? 'text',
     );
@@ -106,6 +112,12 @@ class ChatConversationModel {
   });
 
   factory ChatConversationModel.fromMap(Map<String, dynamic> data) {
+    DateTime parseTimestamp(dynamic ts) {
+      if (ts is Timestamp) return ts.toDate();
+      if (ts is String) return DateTime.tryParse(ts) ?? DateTime.now();
+      return DateTime.now();
+    }
+
     return ChatConversationModel(
       id: data['id'] ?? '',
       studentId: data['studentId'] ?? '',
@@ -115,9 +127,9 @@ class ChatConversationModel {
       counselorRole: data['counselorRole'],
       complaintId: data['complaintId'],
       complaintTitle: data['complaintTitle'],
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      createdAt: parseTimestamp(data['createdAt']),
       lastMessageAt: data['lastMessageAt'] != null
-          ? (data['lastMessageAt'] as Timestamp).toDate()
+          ? parseTimestamp(data['lastMessageAt'])
           : null,
       lastMessage: data['lastMessage'],
       unreadCount: data['unreadCount'] ?? 0,
@@ -135,8 +147,9 @@ class ChatConversationModel {
       'complaintId': complaintId,
       'complaintTitle': complaintTitle,
       'createdAt': Timestamp.fromDate(createdAt),
-      'lastMessageAt':
-          lastMessageAt != null ? Timestamp.fromDate(lastMessageAt!) : null,
+      'lastMessageAt': lastMessageAt != null
+          ? Timestamp.fromDate(lastMessageAt!)
+          : null,
       'lastMessage': lastMessage,
       'unreadCount': unreadCount,
     };
@@ -172,4 +185,3 @@ class ChatConversationModel {
     );
   }
 }
-
