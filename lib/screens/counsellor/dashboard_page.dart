@@ -114,31 +114,45 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
                 ),
                 const SizedBox(width: 24),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Student Counsellor',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Consumer<AppState>(
-                        builder: (context, appState, _) {
-                          final userName =
-                              appState.currentUser?.name ?? 'Counsellor';
-                          return Text(
-                            userName,
+                  child: Consumer<AppState>(
+                    builder: (context, appState, _) {
+                      final user = appState.currentUser;
+                      final roleName = user?.role ?? 'Counsellor';
+                      final capitalizedRole = roleName.isEmpty
+                          ? 'Counsellor'
+                          : roleName[0].toUpperCase() + roleName.substring(1);
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user?.department != null
+                                ? '${user!.department} $capitalizedRole'
+                                : 'Student $capitalizedRole',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            user?.name ?? 'Counsellor',
                             style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w800,
                                 ),
-                          );
-                        },
-                      ),
-                    ],
+                          ),
+                          if (user?.institution != null)
+                            Text(
+                              user!.institution!,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.6),
+                                fontSize: 12,
+                              ),
+                            ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ],
@@ -406,7 +420,7 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
         ),
         const SizedBox(height: 20),
         StreamBuilder<List<ActivityModel>>(
-          stream: ActivityService().getUserActivities(user.uid, limit: 5),
+          stream: ActivityService().getCounsellorActivities(user.uid, limit: 5),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -462,6 +476,15 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
                     case 'appointment':
                       icon = Icons.event_rounded;
                       color = Colors.orange;
+                      break;
+                    case 'system':
+                      if (activity.title.contains('SOS')) {
+                        icon = Icons.emergency_rounded;
+                        color = Colors.red;
+                      } else {
+                        icon = Icons.notifications_rounded;
+                        color = Colors.purple;
+                      }
                       break;
                     default:
                       icon = Icons.notifications_rounded;

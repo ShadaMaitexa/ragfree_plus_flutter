@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rxdart/rxdart.dart';
 import '../models/activity_model.dart';
 import '../models/complaint_model.dart';
 import '../models/chat_message_model.dart';
@@ -175,6 +176,57 @@ class ActivityService {
     }
   }
 
+  // Get relevant activities for a counsellor (own + SOS)
+  Stream<List<ActivityModel>> getCounsellorActivities(
+    String userId, {
+    int limit = 10,
+  }) {
+    if (userId.isEmpty) return Stream.value([]);
+
+    // Get own activities
+    final ownStream = _firestore
+        .collection('activities')
+        .where('userId', isEqualTo: userId)
+        .snapshots();
+
+    // Get SOS activities (system activities with SOS in title)
+    final sosStream = _firestore
+        .collection('activities')
+        .where('type', isEqualTo: 'system')
+        .snapshots();
+
+    // Using rxdart would be cleaner, but we can combine them manually or use Rx.combineLatest2 if available
+    // Let's check if rxdart is imported in this file. It wasn't.
+    // I'll use Rx.combineLatest2 if I can add the import, or just implement it with StreamGroup or similar.
+    // Actually, I'll just use a single query for now if possible, but Firestore doesn't support OR across different fields/values easily.
+
+    // Instead of rxdart for now, I'll just implement a combined stream builder in the UI or a helper.
+    // Actually, I already added rxdart to pubspec! I should use it.
+    return Rx.combineLatest2<QuerySnapshot, QuerySnapshot, List<ActivityModel>>(
+      ownStream,
+      sosStream,
+      (ownSnap, sosSnap) {
+        final allDocs = [...ownSnap.docs, ...sosSnap.docs];
+        final activities = allDocs
+            .map(
+              (doc) => ActivityModel.fromMap({
+                ...doc.data() as Map<String, dynamic>,
+                'id': doc.id,
+              }),
+            )
+            .toList();
+
+        // Dedupe by id
+        final seenIds = <String>{};
+        final deduped = activities.where((a) => seenIds.add(a.id)).toList();
+
+        // Sort
+        deduped.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        return deduped.take(limit).toList();
+      },
+    );
+  }
+
   // Create SOS activity
   Future<void> createSOSActivity({
     required String userId,
@@ -198,18 +250,35 @@ class ActivityService {
     }
   }
 
-  // Get activities for admin (all activities)
-  Stream<List<ActivityModel>> getAllActivities({int limit = 10}) {
+  // Get SOS activities for a user/counsellor
+  Stream<List<ActivityModel>> getSOSActivities(
+    String userId, {
+    int limit = 10,
+  }) {
     return _firestore
         .collection('activities')
-        .limit(limit)
+        .where('type', isEqualTo: 'system')
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
+        .map((snapshot) {
+          final docs = snapshot.docs
               .map(
                 (doc) => ActivityModel.fromMap({...doc.data(), 'id': doc.id}),
               )
-              .toList(),
-        );
+              .where((activity) => activity.title.contains('SOS'))
+              .toList();
+          docs.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+          return docs.take(limit).toList();
+        });
+  }
+
+  // Get activities for admin (all activities)
+  Stream<List<ActivityModel>> getAllActivities({int limit = 10}) {
+    return _firestore.collection('activities').snapshots().map((snapshot) {
+      final docs = snapshot.docs
+          .map((doc) => ActivityModel.fromMap({...doc.data(), 'id': doc.id}))
+          .toList();
+      docs.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return docs.take(limit).toList();
+    });
   }
 }
