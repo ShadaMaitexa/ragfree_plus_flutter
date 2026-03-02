@@ -182,19 +182,43 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
             final complaints = complaintSnapshot.data ?? [];
             final slots = slotSnapshot.data ?? [];
 
+            // Active Cases are complaints assigned to counselor that are not yet resolved/closed
+            final activeCases = complaints.where((c) {
+              final s = (c.status).trim().toLowerCase();
+              return s != 'resolved' && s != 'closed';
+            }).length;
+
+            // Pending Sessions are appointments that are booked but not yet completed/cancelled
+            // We check for 'booked' status OR simply if it has a studentId (robust check for "null issue")
+            final pendingSessions = slots.where((s) {
+              final st = s.status.toLowerCase();
+              // If studentId is present and status is not final, it's pending
+              return (s.studentId != null || st == 'booked') && 
+                     st != 'completed' && 
+                     st != 'cancelled';
+            }).length;
+
+            // Open Slots are slots currently available for booking
+            final openSlots = slots.where((s) => s.status.toLowerCase() == 'available' && s.studentId == null).length;
+
             final stats = [
               {
                 'label': 'Active Cases',
-                'value':
-                    '${complaints.where((c) => c.status != 'Resolved').length}',
+                'value': '$activeCases',
                 'icon': Icons.assignment_ind_rounded,
                 'color': Colors.blue,
               },
               {
                 'label': 'Pending Sessions',
-                'value': '${slots.where((s) => s.status == 'booked').length}',
+                'value': '$pendingSessions',
                 'icon': Icons.calendar_today_rounded,
                 'color': Colors.orange,
+              },
+              {
+                'label': 'Open Slots',
+                'value': '$openSlots',
+                'icon': Icons.event_available_rounded,
+                'color': Colors.green,
               },
             ];
 
@@ -205,8 +229,8 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
                 crossAxisCount: Responsive.getGridCrossAxisCount(
                   context,
                   mobile: 2,
-                  tablet: 4,
-                  desktop: 4,
+                  tablet: 3,
+                  desktop: 3,
                 ),
                 crossAxisSpacing: 20,
                 mainAxisSpacing: 20,

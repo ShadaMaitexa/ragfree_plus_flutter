@@ -203,7 +203,9 @@ class _CounsellorChatPageState extends State<CounsellorChatPage>
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontWeight: unread > 0 ? FontWeight.bold : FontWeight.normal, // Simple approximation
+            fontWeight: (unread > 0 && conversation.lastSenderId != Provider.of<AppState>(context, listen: false).currentUser?.uid)
+                ? FontWeight.bold
+                : FontWeight.normal,
           ),
         ),
         trailing: Column(
@@ -215,7 +217,7 @@ class _CounsellorChatPageState extends State<CounsellorChatPage>
                 DateFormat('MMM dd, HH:mm').format(conversation.lastMessageAt!),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
-            if (unread > 0)
+            if (unread > 0 && conversation.lastSenderId != Provider.of<AppState>(context, listen: false).currentUser?.uid)
               Container(
                 margin: const EdgeInsets.only(top: 4),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -264,6 +266,20 @@ class _CounselorChatDetailPage extends StatefulWidget {
 class _CounselorChatDetailPageState extends State<_CounselorChatDetailPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _markAsRead();
+  }
+
+  Future<void> _markAsRead() async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+    if (user != null) {
+      await widget.chatService.markAsRead(widget.conversation.id, user.uid);
+    }
+  }
 
   @override
   void dispose() {

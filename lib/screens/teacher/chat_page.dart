@@ -259,17 +259,44 @@ class _TeacherChatPageState extends State<TeacherChatPage>
               ),
             Text(
               conversation.lastMessage ?? 'No messages yet',
+              style: TextStyle(
+                fontWeight: (conversation.unreadCount > 0 && conversation.lastSenderId != Provider.of<AppState>(context, listen: false).currentUser?.uid)
+                    ? FontWeight.w600
+                    : FontWeight.normal,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
-        trailing: lastMessageTime != null
-            ? Text(
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            if (lastMessageTime != null)
+              Text(
                 DateFormat('MMM dd').format(lastMessageTime),
                 style: Theme.of(context).textTheme.bodySmall,
-              )
-            : null,
+              ),
+            if (conversation.unreadCount > 0 && conversation.lastSenderId != Provider.of<AppState>(context, listen: false).currentUser?.uid)
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${conversation.unreadCount}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+          ],
+        ),
         onTap: () {
           Navigator.push(
             context,
@@ -302,6 +329,20 @@ class _ChatDetailPage extends StatefulWidget {
 class _ChatDetailPageState extends State<_ChatDetailPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _markAsRead();
+  }
+
+  Future<void> _markAsRead() async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+    if (user != null) {
+      await widget.chatService.markAsRead(widget.conversation.id, user.uid);
+    }
+  }
 
   @override
   void dispose() {

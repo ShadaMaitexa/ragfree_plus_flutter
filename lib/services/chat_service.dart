@@ -152,10 +152,12 @@ class ChatService {
 
       await docRef.set(updatedMessage.toMap());
 
-      // Update conversation last message
+      // Update conversation last message and increment unread count
       await _firestore.collection('chat_conversations').doc(chatId).update({
         'lastMessage': message,
         'lastMessageAt': Timestamp.now(),
+        'unreadCount': FieldValue.increment(1),
+        'lastSenderId': senderId, // Track who sent the last message
       });
     } catch (e) {
       throw Exception('Failed to send message: ${e.toString()}');
@@ -215,16 +217,23 @@ class ChatService {
         .collection('chat_conversations')
         .where('counselorId', isEqualTo: counselorId)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
+        .map((snapshot) {
+          final list = snapshot.docs
               .map(
                 (doc) => ChatConversationModel.fromMap({
                   ...doc.data(),
                   'id': doc.id,
                 }),
               )
-              .toList(),
-        );
+              .toList();
+          // Sort by lastMessageAt or createdAt
+          list.sort((a, b) {
+            final aTime = a.lastMessageAt ?? a.createdAt;
+            final bTime = b.lastMessageAt ?? b.createdAt;
+            return bTime.compareTo(aTime);
+          });
+          return list;
+        });
   }
 
   // Get a single conversation
@@ -294,9 +303,10 @@ class ChatService {
     }
   }
 
-  // Mark messages as read
+  // Mark messages as read and reset unread count
   Future<void> markAsRead(String chatId, String userId) async {
     try {
+      // 1. Get messages not sent by the current user that are unread
       final messages = await _firestore
           .collection('chat_conversations')
           .doc(chatId)
@@ -305,11 +315,25 @@ class ChatService {
           .where('isRead', isEqualTo: false)
           .get();
 
-      final batch = _firestore.batch();
-      for (var doc in messages.docs) {
-        batch.update(doc.reference, {'isRead': true});
+      // 2. Check if the last message was NOT sent by this user before resetting count
+      // This prevents resetting if it was the current user's own unread count
+      final conversationDoc = await _firestore
+          .collection('chat_conversations')
+          .doc(chatId)
+          .get();
+      final data = conversationDoc.data();
+
+      if (data != null && data['lastSenderId'] != userId) {
+        final batch = _firestore.batch();
+        for (var doc in messages.docs) {
+          batch.update(doc.reference, {'isRead': true});
+        }
+        // Reset unread count
+        batch.update(_firestore.collection('chat_conversations').doc(chatId), {
+          'unreadCount': 0,
+        });
+        await batch.commit();
       }
-      await batch.commit();
     } catch (e) {
       throw Exception('Failed to mark as read: ${e.toString()}');
     }
@@ -341,9 +365,15 @@ class ChatService {
 
   // Get available chat recipients (Counselors + Teachers in student's department)
   Future<List<Map<String, dynamic>>> getAvailableChatRecipients(
-    String? department,
-  ) async {
+    String? department, {
+    String? role,
+  }) async {
     try {
+      // If parent, only return counselors
+      if (role == 'parent') {
+        return getAvailableCounselors();
+      }
+
       // 1. Get all Counselors (independent of department)
       final counselorsQuery = await _firestore
           .collection('users')
@@ -415,6 +445,7 @@ class ChatService {
       batch.update(_firestore.collection('chat_conversations').doc(chatId), {
         'lastMessage': 'Chat cleared',
         'lastMessageAt': Timestamp.now(),
+        'unreadCount': 0,
       });
 
       await batch.commit();

@@ -95,6 +95,7 @@ class ChatConversationModel {
   final DateTime? lastMessageAt;
   final String? lastMessage;
   final int unreadCount;
+  final String? lastSenderId;
 
   ChatConversationModel({
     required this.id,
@@ -109,6 +110,7 @@ class ChatConversationModel {
     this.lastMessageAt,
     this.lastMessage,
     this.unreadCount = 0,
+    this.lastSenderId,
   });
 
   factory ChatConversationModel.fromMap(Map<String, dynamic> data) {
@@ -133,6 +135,7 @@ class ChatConversationModel {
           : null,
       lastMessage: data['lastMessage'],
       unreadCount: data['unreadCount'] ?? 0,
+      lastSenderId: data['lastSenderId'],
     );
   }
 
@@ -152,6 +155,7 @@ class ChatConversationModel {
           : null,
       'lastMessage': lastMessage,
       'unreadCount': unreadCount,
+      'lastSenderId': lastSenderId,
     };
   }
 
@@ -168,6 +172,7 @@ class ChatConversationModel {
     DateTime? lastMessageAt,
     String? lastMessage,
     int? unreadCount,
+    String? lastSenderId,
   }) {
     return ChatConversationModel(
       id: id ?? this.id,
@@ -182,6 +187,7 @@ class ChatConversationModel {
       lastMessageAt: lastMessageAt ?? this.lastMessageAt,
       lastMessage: lastMessage ?? this.lastMessage,
       unreadCount: unreadCount ?? this.unreadCount,
+      lastSenderId: lastSenderId ?? this.lastSenderId,
     );
   }
 }

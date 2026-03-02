@@ -129,9 +129,10 @@ class _StudentChatPageState extends State<StudentChatPage>
                       return const SizedBox.shrink();
                     }
                     final conversations = snapshot.data!;
+                    final user = Provider.of<AppState>(context, listen: false).currentUser;
                     final unreadCount = conversations.fold(
                       0,
-                      (sum, c) => sum + c.unreadCount,
+                      (sum, c) => (c.unreadCount > 0 && c.lastSenderId != user?.uid) ? sum + c.unreadCount : sum,
                     );
                     return Row(
                       children: [
@@ -408,7 +409,7 @@ class _StudentChatPageState extends State<StudentChatPage>
                                         .colorScheme
                                         .onSurface
                                         .withValues(alpha: 0.7),
-                                    fontWeight: unread > 0
+                                    fontWeight: (unread > 0 && conversation.lastSenderId != Provider.of<AppState>(context, listen: false).currentUser?.uid)
                                         ? FontWeight.w600
                                         : FontWeight.normal,
                                   ),
@@ -416,7 +417,7 @@ class _StudentChatPageState extends State<StudentChatPage>
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (unread > 0) ...[
+                          if (unread > 0 && conversation.lastSenderId != Provider.of<AppState>(context, listen: false).currentUser?.uid) ...[
                             const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -619,6 +620,20 @@ class _ChatDetailPage extends StatefulWidget {
 class _ChatDetailPageState extends State<_ChatDetailPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _markAsRead();
+  }
+
+  Future<void> _markAsRead() async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+    if (user != null) {
+      await widget.chatService.markAsRead(widget.conversation.id, user.uid);
+    }
+  }
 
   @override
   void dispose() {
