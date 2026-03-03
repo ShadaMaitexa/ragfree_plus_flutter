@@ -71,8 +71,8 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
             ),
             child: SingleChildScrollView(
               child: StreamBuilder<List<AwarenessModel>>(
-                // Fetch only content created BY this counsellor
-                stream: _awarenessService.getAwarenessByAuthor(user.uid),
+                // Show all but NOT admin content
+                stream: _awarenessService.getAwarenessExcludingAdmin(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Padding(
@@ -159,8 +159,8 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
           const SizedBox(height: 20),
           _buildStatCard(
             context,
-            'Total Content',
-            '${items.length}',
+            'Manageable Content',
+            '${items.where((element) => element.authorId == authorId).length}',
             Icons.library_books,
             Colors.blue,
           ),
@@ -379,23 +379,25 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
                     SizedBox(height: constraints.maxWidth > 600 ? 12 : 8),
                     Row(
                       children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => _editContent(context, item),
-                            style: OutlinedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(
-                                vertical: constraints.maxWidth > 600 ? 10 : 8,
+                        if (item.authorId == context.read<AppState>().currentUser?.uid) ...[
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => _editContent(context, item),
+                              style: OutlinedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: constraints.maxWidth > 600 ? 10 : 8,
+                                ),
                               ),
-                            ),
-                            child: Text(
-                              'Edit',
-                              style: TextStyle(
-                                fontSize: constraints.maxWidth > 600 ? 13 : 11,
+                              child: Text(
+                                'Edit',
+                                style: TextStyle(
+                                  fontSize: constraints.maxWidth > 600 ? 13 : 11,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        SizedBox(width: constraints.maxWidth > 600 ? 8 : 6),
+                          SizedBox(width: constraints.maxWidth > 600 ? 8 : 6),
+                        ],
                         Expanded(
                           child: FilledButton(
                             onPressed: () => _shareContent(context, item),
@@ -520,14 +522,16 @@ class _CounsellorAwarenessPageState extends State<CounsellorAwarenessPage>
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              IconButton(
-                onPressed: () => _editContent(context, item),
-                icon: const Icon(Icons.edit),
-              ),
-              IconButton(
-                onPressed: () => _deleteContent(context, item),
-                icon: const Icon(Icons.delete, color: Colors.red),
-              ),
+              if (item.authorId == Provider.of<AppState>(context, listen: false).currentUser?.uid) ...[
+                IconButton(
+                  onPressed: () => _editContent(context, item),
+                  icon: const Icon(Icons.edit),
+                ),
+                IconButton(
+                  onPressed: () => _deleteContent(context, item),
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                ),
+              ],
             ],
           ),
         ),

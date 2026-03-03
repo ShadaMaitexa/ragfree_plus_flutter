@@ -39,6 +39,19 @@ class AwarenessService {
     );
   }
 
+  /// Get awareness excluding those authored by admin
+  Stream<List<AwarenessModel>> getAwarenessExcludingAdmin() {
+    return _firestore
+        .collection('awareness')
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => AwarenessModel.fromMap({...doc.data(), 'id': doc.id}))
+              .where((item) => item.authorRole != 'admin')
+              .toList();
+        });
+  }
+
   Stream<List<AwarenessModel>> getAwarenessByAuthor(String authorId) {
     return _firestore
         .collection('awareness')

@@ -129,10 +129,10 @@ class _CounsellorNotificationsPageState
     // Personal notifications stream
     final personalStream = _notificationService.getUserNotifications(userId);
 
-    // Audience notifications (legacy writers use 'audience' like 'Counselors' / 'Counselors')
+    // Audience notifications (Broadcasts)
     final audienceQuery = FirebaseFirestore.instance
         .collection('notifications')
-        .where('audience', whereIn: ['Counselors', 'Counsellors', 'All Users'])
+        .where('audience', whereIn: ['Counselors', 'Counsellors', 'All Users', 'counsellor', 'all'])
         .snapshots()
         .map(
           (snap) => snap.docs

@@ -182,42 +182,28 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
             final complaints = complaintSnapshot.data ?? [];
             final slots = slotSnapshot.data ?? [];
 
-            // Active Cases are complaints assigned to counselor that are not yet resolved/closed
-            final activeCases = complaints.where((c) {
-              final s = (c.status).trim().toLowerCase();
-              return s != 'resolved' && s != 'closed';
-            }).length;
-
-            // Pending Sessions are appointments that are booked but not yet completed/cancelled
-            // We check for 'booked' status OR simply if it has a studentId (robust check for "null issue")
-            final pendingSessions = slots.where((s) {
-              final st = s.status.toLowerCase();
-              // If studentId is present and status is not final, it's pending
-              return (s.studentId != null || st == 'booked') && 
-                     st != 'completed' && 
-                     st != 'cancelled';
-            }).length;
-
-            // Open Slots are slots currently available for booking
-            final openSlots = slots.where((s) => s.status.toLowerCase() == 'available' && s.studentId == null).length;
+            // Complaints Stats (Matching Image 5)
+            final totalCases = complaints.length;
+            final inProgressCases = complaints.where((c) => c.status == 'In Progress').length;
+            final resolvedCases = complaints.where((c) => c.status == 'Resolved').length;
 
             final stats = [
               {
-                'label': 'Active Cases',
-                'value': '$activeCases',
-                'icon': Icons.assignment_ind_rounded,
+                'label': 'Total Cases',
+                'value': '$totalCases',
+                'icon': Icons.assignment_rounded,
                 'color': Colors.blue,
               },
               {
-                'label': 'Pending Sessions',
-                'value': '$pendingSessions',
-                'icon': Icons.calendar_today_rounded,
+                'label': 'In Progress',
+                'value': '$inProgressCases',
+                'icon': Icons.pending_actions_rounded,
                 'color': Colors.orange,
               },
               {
-                'label': 'Open Slots',
-                'value': '$openSlots',
-                'icon': Icons.event_available_rounded,
+                'label': 'Resolved',
+                'value': '$resolvedCases',
+                'icon': Icons.check_circle_rounded,
                 'color': Colors.green,
               },
             ];
@@ -430,7 +416,7 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Recent Interactions',
+              'Recent Alerts & Activity',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
             ),
             if (user.role == 'counsellor') // Check just in case

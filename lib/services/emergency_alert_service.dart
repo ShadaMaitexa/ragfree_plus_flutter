@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'activity_service.dart';
 
@@ -140,7 +141,25 @@ class EmergencyAlertService {
             .get();
       }
 
-      final batch = _firestore.batch();
+      // First, create a broad "audience" notification for efficiency and reliability
+      // This ensures even if user-specific ones fail, the broadcast is there.
+      for (var role in targetRoles) {
+        final broadRef = _firestore.collection('notifications').doc();
+        await broadRef.set({
+          'id': broadRef.id,
+          'audience': role,
+          'title': title,
+          'message': message,
+          'type': priority == 'critical' ? 'error' : 'info',
+          'createdAt': Timestamp.now(),
+          'isRead': false,
+          'relatedType': 'global_alert',
+        });
+      }
+
+      // Then attempt to create individual ones for unread count tracking (with batch management)
+      int operationCount = 0;
+      WriteBatch batch = _firestore.batch();
       final timestamp = Timestamp.now();
 
       for (var userDoc in users.docs) {
@@ -155,11 +174,21 @@ class EmergencyAlertService {
           'isRead': false,
           'relatedType': 'global_alert',
         });
+
+        operationCount++;
+        if (operationCount >= 450) { // Stay safely under 500
+          await batch.commit();
+          batch = _firestore.batch();
+          operationCount = 0;
+        }
       }
 
-      await batch.commit();
+      if (operationCount > 0) {
+        await batch.commit();
+      }
     } catch (e) {
       // Handle error silently - notification creation shouldn't fail the alert
+      debugPrint('Error notifying target users: $e');
     }
   }
 

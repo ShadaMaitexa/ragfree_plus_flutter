@@ -176,7 +176,7 @@ class ActivityService {
     }
   }
 
-  // Get relevant activities for a counsellor (own + SOS)
+  // Get relevant activities for a counsellor (own + SOS + Role-based Notifications)
   Stream<List<ActivityModel>> getCounsellorActivities(
     String userId, {
     int limit = 10,
@@ -195,28 +195,58 @@ class ActivityService {
         .where('type', isEqualTo: 'system')
         .snapshots();
 
-    // Using rxdart would be cleaner, but we can combine them manually or use Rx.combineLatest2 if available
-    // Let's check if rxdart is imported in this file. It wasn't.
-    // I'll use Rx.combineLatest2 if I can add the import, or just implement it with StreamGroup or similar.
-    // Actually, I'll just use a single query for now if possible, but Firestore doesn't support OR across different fields/values easily.
+    // Get Role-based Notifications
+    final broadNotificationStream = _firestore
+        .collection('notifications')
+        .where('audience', whereIn: ['Counselors', 'Counsellors', 'All Users', 'counsellor', 'all'])
+        .snapshots();
 
-    // Instead of rxdart for now, I'll just implement a combined stream builder in the UI or a helper.
-    // Actually, I already added rxdart to pubspec! I should use it.
-    return Rx.combineLatest2<QuerySnapshot, QuerySnapshot, List<ActivityModel>>(
+    // Get Personal Notifications
+    final personalNotificationStream = _firestore
+        .collection('notifications')
+        .where('userId', isEqualTo: userId)
+        .snapshots();
+
+    return Rx.combineLatest4<QuerySnapshot, QuerySnapshot, QuerySnapshot, QuerySnapshot,
+        List<ActivityModel>>(
       ownStream,
       sosStream,
-      (ownSnap, sosSnap) {
-        final allDocs = [...ownSnap.docs, ...sosSnap.docs];
-        final activities = allDocs
-            .map(
-              (doc) => ActivityModel.fromMap({
-                ...doc.data() as Map<String, dynamic>,
-                'id': doc.id,
-              }),
-            )
-            .toList();
+      broadNotificationStream,
+      personalNotificationStream,
+      (ownSnap, sosSnap, broadSnap, personalSnap) {
+        final List<ActivityModel> activities = [];
 
-        // Dedupe by id
+        // Add activities
+        for (var doc in [...ownSnap.docs, ...sosSnap.docs]) {
+          activities.add(
+            ActivityModel.fromMap({
+              ...doc.data() as Map<String, dynamic>,
+              'id': doc.id,
+            }),
+          );
+        }
+
+        // Add notifications and map to ActivityModel
+        for (var doc in [...broadSnap.docs, ...personalSnap.docs]) {
+          final data = doc.data() as Map<String, dynamic>;
+          activities.add(
+            ActivityModel(
+              id: doc.id,
+              userId: data['userId'] ?? '',
+              type: data['relatedType'] == 'global_alert' ? 'system' : 'notification',
+              title: data['title'] ?? 'Notification',
+              description: data['message'] ?? '',
+              timestamp: (data['createdAt'] as Timestamp).toDate(),
+              relatedId: data['relatedId'],
+              metadata: {
+                'source': 'notification',
+                'isRead': data['isRead'] ?? false,
+              },
+            ),
+          );
+        }
+
+        // Dedupe by id (crucial because a notification might be in both broad and personal if we're not careful)
         final seenIds = <String>{};
         final deduped = activities.where((a) => seenIds.add(a.id)).toList();
 
