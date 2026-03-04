@@ -104,9 +104,9 @@ class _WardenStudentsPageState extends State<WardenStudentsPage> {
             final matchesSearch =
                 s.name.toLowerCase().contains(_searchQuery) ||
                 s.email.toLowerCase().contains(_searchQuery);
-            final matchesDept =
-                _selectedDepartment == 'All' ||
-                s.department == _selectedDepartment;
+            final matchesDept = _selectedDepartment == 'All' ||
+                (s.department?.trim().toLowerCase() ==
+                    _selectedDepartment.trim().toLowerCase());
             return matchesSearch && matchesDept;
           }).toList();
 

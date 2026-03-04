@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
 import '../../services/notification_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rxdart/rxdart.dart';
 import '../../models/notification_model.dart';
 import '../../widgets/animated_widgets.dart';
 import 'package:intl/intl.dart';
@@ -145,37 +146,59 @@ class _CounsellorNotificationsPageState
               .toList(),
         );
 
+    // Use Rx.combineLatest2 to merge streams properly
     return StreamBuilder<List<NotificationModel>>(
-      stream: personalStream,
-      builder: (context, personalSnapshot) {
-        if (personalSnapshot.connectionState == ConnectionState.waiting) {
+      stream: Rx.combineLatest2<List<NotificationModel>, List<NotificationModel>, List<NotificationModel>>(
+        personalStream,
+        audienceQuery,
+        (personal, audience) {
+          // Merge and dedupe
+          // We use a Map with a composite key (id) and also check for content duplicates
+          final Map<String, NotificationModel> deduped = {};
+          
+          // First pass: add by ID (standard Firestore dedupe if it's the same doc)
+          final all = [...personal, ...audience];
+          
+          // Second pass: Dedupe by content (Title + Message) to handle cases 
+          // where the same alert was sent as both an audience broadcast and a personal notification
+          final Map<String, String> contentToId = {};
+          
+          for (var n in all) {
+            final contentKey = "${n.title}_${n.message}_${n.type}";
+            
+            if (contentToId.containsKey(contentKey)) {
+              // If we already have this content, check if the one we have is "personal" (has userId)
+              // We prefer the personal doc because it tracks unread state for this specific user
+              final existingId = contentToId[contentKey]!;
+              final existing = deduped[existingId]!;
+              
+              if (n.userId.isNotEmpty && existing.userId.isEmpty) {
+                // Replace audience notification with personal one
+                deduped.remove(existingId);
+                deduped[n.id] = n;
+                contentToId[contentKey] = n.id;
+              }
+              // Otherwise, just stick with what we have (already deduped content)
+            } else {
+              deduped[n.id] = n;
+              contentToId[contentKey] = n.id;
+            }
+          }
+          
+          final result = deduped.values.toList()
+            ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return result;
+        },
+      ),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (personalSnapshot.hasError) {
-          return Center(child: Text('Error: ${personalSnapshot.error}'));
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
         }
 
-        final personal = personalSnapshot.data ?? [];
-
-        return StreamBuilder<List<NotificationModel>>(
-          stream: audienceQuery,
-          builder: (context, audienceSnapshot) {
-            if (audienceSnapshot.connectionState == ConnectionState.waiting) {
-              // show personal results while waiting for audience
-            }
-            if (audienceSnapshot.hasError) {
-              return Center(child: Text('Error: ${audienceSnapshot.error}'));
-            }
-
-            final audience = audienceSnapshot.data ?? [];
-
-            // Merge and dedupe by id, keeping newest ordering
-            final combinedMap = <String, NotificationModel>{};
-            for (var n in [...audience, ...personal]) {
-              combinedMap[n.id] = n;
-            }
-            final combined = combinedMap.values.toList()
-              ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        final combined = snapshot.data ?? [];
 
             if (combined.isEmpty) {
               return Center(
@@ -269,8 +292,6 @@ class _CounsellorNotificationsPageState
             );
           },
         );
-      },
-    );
   }
 
   void _showNotificationDetails(

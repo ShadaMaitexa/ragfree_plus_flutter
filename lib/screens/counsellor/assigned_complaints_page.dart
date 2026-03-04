@@ -136,7 +136,7 @@ class _CounsellorAssignedComplaintsPageState
                     child: _buildStatCard(
                       context,
                       'In Progress',
-                      '${complaints.where((c) => c.status == 'In Progress').length}',
+                      '${complaints.where((c) => c.status == 'In Progress' || c.status == 'Accepted').length}',
                       Icons.pending,
                       Colors.orange,
                     ),
@@ -292,6 +292,7 @@ class _CounsellorAssignedComplaintsPageState
       case 'Resolved':
         statusColor = Colors.green;
         break;
+      case 'Accepted':
       case 'In Progress':
         statusColor = Colors.blue;
         break;
@@ -570,7 +571,7 @@ class _CounsellorAssignedComplaintsPageState
               onPressed: () => _showRespondDialog(context, complaint),
               child: const Text('Respond'),
             ),
-          if (complaint.assignedTo != null && complaint.status == 'In Progress')
+          if (complaint.assignedTo != null && (complaint.status == 'In Progress' || complaint.status == 'Accepted'))
             FilledButton(
               onPressed: () => _showResolveDialog(context, complaint),
               child: const Text('Resolve'),

@@ -184,7 +184,7 @@ class _CounsellorDashboardPageState extends State<CounsellorDashboardPage> {
 
             // Complaints Stats (Matching Image 5)
             final totalCases = complaints.length;
-            final inProgressCases = complaints.where((c) => c.status == 'In Progress').length;
+            final inProgressCases = complaints.where((c) => c.status == 'In Progress' || c.status == 'Accepted').length;
             final resolvedCases = complaints.where((c) => c.status == 'Resolved').length;
 
             final stats = [

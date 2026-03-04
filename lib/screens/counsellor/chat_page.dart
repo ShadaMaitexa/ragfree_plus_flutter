@@ -111,6 +111,11 @@ class _CounsellorChatPageState extends State<CounsellorChatPage>
                   ],
                 ),
               ),
+              IconButton(
+                onPressed: () => _showStartChatDialog(context),
+                icon: Icon(Icons.add_comment_outlined, color: color),
+                tooltip: 'Start new chat',
+              ),
             ],
           ),
         ],
@@ -140,25 +145,43 @@ class _CounsellorChatPageState extends State<CounsellorChatPage>
         final conversations = snapshot.data ?? [];
 
         if (conversations.isEmpty) {
+          final color = Theme.of(context).colorScheme.primary;
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey),
-                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: color.withValues(alpha: 0.1),
+                  ),
+                  child: Icon(Icons.chat_bubble_outline, size: 64, color: color),
+                ),
+                const SizedBox(height: 24),
                 Text(
                   'No Chats Yet',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Students will appear here when they contact you',
+                  'Start a conversation with a student',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context)
                             .colorScheme
                             .onSurface
                             .withValues(alpha: 0.7),
                       ),
+                ),
+                const SizedBox(height: 32),
+                FilledButton.icon(
+                  onPressed: () => _showStartChatDialog(context),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Start New Chat'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: color,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
                 ),
               ],
             ),
@@ -246,6 +269,140 @@ class _CounsellorChatPageState extends State<CounsellorChatPage>
         ),
       ),
     );
+  }
+
+  Future<void> _showStartChatDialog(BuildContext context) async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+
+    if (user == null || user.institution == null) return;
+
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      // Get available students from the same institution
+      final students = await _chatService.getInstitutionStudents(
+        user.institution!,
+      );
+
+      if (mounted) Navigator.pop(context); // Remove loading
+
+      if (students.isEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No students found in your institution'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Text('Start Chat with Student'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: students.length,
+                itemBuilder: (context, index) {
+                  final student = students[index];
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      child: Text(
+                        student['name'].substring(0, 1).toUpperCase(),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    title: Text(student['name']),
+                    subtitle: Text(student['department'] ?? 'General'),
+                    trailing: Icon(
+                      Icons.chat_bubble_outline,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await _startNewChat(context, student);
+                    },
+                  );
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) Navigator.pop(context); // Remove loading if it fails
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _startNewChat(
+    BuildContext context,
+    Map<String, dynamic> student,
+  ) async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final user = appState.currentUser;
+
+    if (user == null) return;
+
+    try {
+      final chatId = await _chatService.getOrCreateConversation(
+        studentId: student['id'],
+        studentName: student['name'],
+        counselorId: user.uid,
+        counselorName: user.name,
+        counselorRole: user.role,
+      );
+
+      if (!mounted) return;
+      final conversation = ChatConversationModel(
+        id: chatId,
+        studentId: student['id'],
+        studentName: student['name'],
+        counselorId: user.uid,
+        counselorName: user.name,
+        counselorRole: user.role,
+        createdAt: DateTime.now(),
+      );
+      _openChat(context, conversation);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error starting chat: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }
 
